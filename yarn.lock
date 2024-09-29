@@ -1871,6 +1871,18 @@
     prompts "^2.4.2"
     semver "^7.5.2"
 
+"@react-native-community/datetimepicker@^8.2.0":
+  version "8.2.0"
+  resolved "https://registry.npmjs.org/@react-native-community/datetimepicker/-/datetimepicker-8.2.0.tgz"
+  integrity sha512-qrUPhiBvKGuG9Y+vOqsc56RPFcHa1SU2qbAMT0hfGkoFIj3FodE0VuPVrEa8fgy7kcD5NQmkZIKgHOBLV0+hWg==
+  dependencies:
+    invariant "^2.2.4"
+
+"@react-native-picker/picker@^2.8.1":
+  version "2.8.1"
+  resolved "https://registry.npmjs.org/@react-native-picker/picker/-/picker-2.8.1.tgz"
+  integrity sha512-iFhsKQzRh/z3GlmvJWSjJJ4333FdLE/PhXxlGlYllE7sFf+UTzziVY+ajatuJ+R5zDw2AxfJV4v/3tAzUJb0/A==
+
 "@react-native/assets-registry@0.74.87":
   version "0.74.87"
   resolved "https://registry.npmjs.org/@react-native/assets-registry/-/assets-registry-0.74.87.tgz"
@@ -3620,7 +3632,7 @@ expo-status-bar@~1.12.1:
   resolved "https://registry.npmjs.org/expo-status-bar/-/expo-status-bar-1.12.1.tgz"
   integrity sha512-/t3xdbS8KB0prj5KG5w7z+wZPFlPtkgs95BsmrP/E7Q0xHXTcDcQ6Cu2FkFuRM+PKTb17cJDnLkawyS5vDLxMA==
 
-expo@*, expo@~51.0.28:
+expo@*, expo@>=50.0.0, expo@~51.0.28:
   version "51.0.31"
   resolved "https://registry.npmjs.org/expo/-/expo-51.0.31.tgz"
   integrity sha512-YiUNcxzSkQ0jlKW+e8F81KnZfAhCugEZI9VYmuIsFONHivtiYIADHdcFvUWnexUEdgPQDkgWw85XBnIbzIZ39Q==
