@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, StyleSheet, TextInput, Button } from 'react-native';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, StyleSheet, TextInput, Button, Animated } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from './screens/HomeScreen';
@@ -8,7 +8,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import DatosScreen from './screens/DatosScreen';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker'; // Importa DateTimePicker
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const Tab = createBottomTabNavigator();
 
@@ -90,11 +90,11 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
       })}
     >
       <Tab.Screen 
-  name="Inicio" 
-  options={{ headerShown: false }}  // Oculta el encabezado
->
-  {() => <HomeScreen transactions={transactions} setTransactions={setTransactions} />}
-</Tab.Screen>
+        name="Inicio" 
+        options={{ headerShown: false }} 
+      >
+        {() => <HomeScreen transactions={transactions} setTransactions={setTransactions} />}
+      </Tab.Screen>
       <Tab.Screen name="Ahorro" component={AhorroScreen} options={{ headerShown: false }} />
       <Tab.Screen
         name="Agregar"
@@ -123,26 +123,42 @@ export default function App() {
   const [transactionType, setTransactionType] = React.useState('Ingreso');
   const [category, setCategory] = React.useState('');
   const [date, setDate] = React.useState(new Date());
-  const [showDatePicker, setShowDatePicker] = React.useState(false); // Estado para mostrar el picker
+  const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [transactions, setTransactions] = React.useState([]);
+  const slideAnim = React.useRef(new Animated.Value(600)).current;
 
   const ingresoCategorias = ['Salario', 'Venta de producto'];
   const egresoCategorias = ['Comida y Bebidas', 'Vestuario', 'Alojamiento', 'Salud', 'Transporte', 'Educación'];
 
-  const openModal = () => setModalVisible(true);
-  const closeModal = () => setModalVisible(false);
+  const openModal = () => {
+    setModalVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeModal = () => {
+    Animated.timing(slideAnim, {
+      toValue: 600,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalVisible(false);
+    });
+  };
 
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false); // Ocultar el picker después de seleccionar la fecha
+    setShowDatePicker(false);
     if (selectedDate) {
-      setDate(selectedDate); // Actualizar la fecha seleccionada
+      setDate(selectedDate);
     }
   };
 
   const handleAddTransaction = () => {
     const parsedAmount = parseFloat(amount);
 
-    // Validación del monto y categoría
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert('Por favor ingrese un monto válido.');
       return;
@@ -157,13 +173,13 @@ export default function App() {
       type: transactionType,
       amount: parsedAmount,
       category,
-      date: date.toLocaleDateString(), // Usamos la fecha seleccionada
+      date: date.toLocaleDateString(),
     };
 
     setTransactions([...transactions, newTransaction]);
     setAmount('');
     setCategory('');
-    setDate(new Date()); // Restablecemos la fecha por defecto
+    setDate(new Date());
     closeModal();
   };
 
@@ -178,72 +194,71 @@ export default function App() {
 
         {/* Modal para agregar una nueva transacción */}
         <Modal
-          animationType="slide"
+          animationType="none"
           transparent={true}
           visible={modalVisible}
           onRequestClose={closeModal}
         >
-          <View style={styles.modalContainer}>
+          <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalText}>Añadir nueva transacción</Text>
-
+              <Text style={styles.sectionTitle}>Seleccione tipo de transacción</Text>
               <View style={styles.buttonGroup}>
                 <TouchableOpacity
                   style={[styles.typeButton, transactionType === 'Ingreso' ? styles.activeButton : {}]}
                   onPress={() => {
                     setTransactionType('Ingreso');
-                    setCategory(''); // Restablecer categoría
+                    setCategory('');
                   }}
                 >
-                  <Text style={styles.buttonText}>
-                    Ingreso 💰
-                  </Text>
+                  <Text style={styles.buttonText}>Ingreso</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.typeButton, transactionType === 'Egreso' ? styles.activeButton : {}]}
                   onPress={() => {
                     setTransactionType('Egreso');
-                    setCategory(''); // Restablecer categoría
+                    setCategory('');
                   }}
                 >
-                  <Text style={styles.buttonText}>
-                    Egreso 💸
-                  </Text>
+                  <Text style={styles.buttonText}>Egreso</Text>
                 </TouchableOpacity>
               </View>
 
+              <Text style={styles.sectionTitle}>Ingrese cantidad</Text>
               <TextInput
                 placeholder="Ingrese monto"
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(text) => {
-                  const numericValue = text.replace(/[^0-9]/g, ''); // Solo permite números
+                  const numericValue = text.replace(/[^0-9]/g, '');
                   setAmount(numericValue);
                 }}
-                style={styles.input}
+                style={styles.inputBox} 
               />
 
-              {/* Selector de Categoría */}
-              <Picker
-                selectedValue={category}
-                onValueChange={(itemValue) => setCategory(itemValue)}
-                style={styles.picker}
-              >
-                <Picker.Item label="Seleccione categoría" value="" />
-                {transactionType === 'Ingreso'
-                  ? ingresoCategorias.map((cat, index) => (
-                      <Picker.Item key={index} label={cat} value={cat} />
-                    ))
-                  : egresoCategorias.map((cat, index) => (
-                      <Picker.Item key={index} label={cat} value={cat} />
-                    ))}
-              </Picker>
+              <Text style={styles.sectionTitle}>Seleccione Categoría</Text>
+              <View style={styles.inputBox}> 
+                <Picker
+                  selectedValue={category}
+                  onValueChange={(itemValue) => setCategory(itemValue)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Seleccione categoría" value="" />
+                  {transactionType === 'Ingreso'
+                    ? ingresoCategorias.map((cat, index) => (
+                        <Picker.Item key={index} label={cat} value={cat} />
+                      ))
+                    : egresoCategorias.map((cat, index) => (
+                        <Picker.Item key={index} label={cat} value={cat} />
+                      ))}
+                </Picker>
+              </View>
 
-              {/* Botón para mostrar el selector de fecha */}
-              <Button title="Seleccionar Fecha" onPress={() => setShowDatePicker(true)} />
-              <Text style={styles.dateText}>Fecha seleccionada: {date.toLocaleDateString()}</Text>
+              <Text style={styles.sectionTitle}>Seleccione Fecha</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
+                <MaterialCommunityIcons name="calendar" size={24} color="#555" />
+                <Text style={styles.dateText}>{date.toLocaleDateString()}</Text>
+              </TouchableOpacity>
 
-              {/* Muestra el selector de fecha solo si el estado lo permite */}
               {showDatePicker && (
                 <DateTimePicker
                   value={date}
@@ -255,15 +270,15 @@ export default function App() {
 
               <View style={styles.modalButtons}>
                 <TouchableOpacity onPress={handleAddTransaction} style={styles.confirmButton}>
-                  <Text style={styles.confirmText}>Confirmar ✅</Text>
+                  <Text style={styles.confirmText}>Confirmar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                  <Text style={styles.closeText}>Cerrar ❌</Text>
+                  <Text style={styles.closeText}>Cerrar</Text>
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </Animated.View>
         </Modal>
       </KeyboardAvoidingView>
     </NavigationContainer>
@@ -272,51 +287,60 @@ export default function App() {
 
 const styles = StyleSheet.create({
   modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '100%',
+    justifyContent: 'flex-end',
   },
   modalContent: {
-    width: 300,
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
+    width: '100%',
+    padding: 25,
+    backgroundColor: '#f9f9f9',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     alignItems: 'center',
+    elevation: 5,
   },
-  modalText: {
+  sectionTitle: {
     fontSize: 18,
-    marginBottom: 15,
+    color: '#8f539b',
+    marginBottom: 10,
+    fontWeight: 'bold',
   },
   buttonGroup: {
     flexDirection: 'row',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   typeButton: {
-    padding: 10,
+    padding: 15,
     marginHorizontal: 10,
     backgroundColor: '#cccccc',
-    borderRadius: 5,
+    borderRadius: 10,
+    width: '40%',
+    alignItems: 'center',
   },
   activeButton: {
     backgroundColor: '#8f539b',
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#cccccc',
+  inputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eeeeee',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     width: '100%',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   picker: {
     height: 50,
-    width: 250,
-    marginBottom: 15,
+    width: '100%',
+    backgroundColor: 'transparent',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -325,29 +349,39 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: '#4CAF50',
-    padding: 10,
-    borderRadius: 5,
+    padding: 15,
+    borderRadius: 10,
     flex: 1,
     marginRight: 10,
+    alignItems: 'center',
   },
   confirmText: {
     color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 18,
   },
   closeButton: {
     backgroundColor: '#FF6347',
-    padding: 10,
-    borderRadius: 5,
+    padding: 15,
+    borderRadius: 10,
     flex: 1,
+    alignItems: 'center',
   },
   closeText: {
     color: 'white',
-    fontSize: 16,
-    textAlign: 'center',
+    fontSize: 18,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eeeeee',
+    padding: 10,
+    borderRadius: 10,
+    width: '100%',
+    marginBottom: 20,
   },
   dateText: {
-    marginTop: 10,
+    marginLeft: 10,
+    color: '#555',
     fontSize: 16,
   },
 });

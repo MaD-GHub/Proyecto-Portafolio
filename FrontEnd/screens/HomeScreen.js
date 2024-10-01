@@ -10,10 +10,69 @@ import {
   Modal,
   TextInput,
   StyleSheet,
+  ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Font from "expo-font";
 import { Picker } from "@react-native-picker/picker";
+
+// Componente para la línea de tiempo
+const Timeline = ({ transactions }) => {
+  const [projection, setProjection] = useState([]);
+  const months = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+
+  useEffect(() => {
+    calculateProjection();
+  }, [transactions]);
+
+  const calculateProjection = () => {
+    const projectionMonths = 6; // Proyección a 6 meses
+    let currentBalance = transactions.reduce((acc, transaction) => {
+      const amount = parseFloat(transaction.amount);
+      return transaction.type === "Ingreso" ? acc + amount : acc - amount;
+    }, 0);
+
+    const monthlyIncome = transactions
+      .filter((t) => t.type === "Ingreso")
+      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
+
+    const monthlyExpense = transactions
+      .filter((t) => t.type === "Egreso")
+      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
+
+    const currentMonth = new Date().getMonth(); // Mes actual (0 = Enero)
+    const projectionData = [];
+
+    for (let i = 0; i < projectionMonths; i++) {
+      currentBalance += monthlyIncome - monthlyExpense;
+      const projectedMonth = (currentMonth + i) % 12; // Cicla entre los meses del año
+      projectionData.push({
+        month: months[projectedMonth], // Muestra el nombre del mes
+        balance: currentBalance,
+      });
+    }
+    setProjection(projectionData);
+  };
+
+  return (
+    <View style={styles.timelineContainer}>
+      <Text style={styles.timelineTitle}>Proyección Financiera</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {projection.map((item, index) => (
+          <View key={index} style={styles.timelineItem}>
+            <Text style={styles.timelineMonth}>{item.month}</Text>
+            <Text style={styles.timelineBalance}>
+              {formatCurrency(item.balance)}
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
 
 export default function HomeScreen({ transactions = [], setTransactions }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -104,7 +163,7 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
           const originalAmount = parseFloat(item.amount);
           const newAmount = parseFloat(editAmount);
 
-          if (!isNaN(originalAmount) && !isNaN(newAmount)) { // Solo realizar operaciones si los montos son válidos
+          if (!isNaN(originalAmount) && !isNaN(newAmount)) {
             return { ...item, amount: newAmount, category: editCategory };
           }
         }
@@ -136,9 +195,12 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
       </View>
 
+      {/* Línea de tiempo de proyección */}
+      <Timeline transactions={transactions} />
+
       {/* Historial de Ingresos y Egresos */}
       <View style={styles.transactionContainer}>
-        <Text style={styles.sectionTitle}>Ingresos y Egresos 💼</Text>
+        <Text style={styles.balanceTitle}>Ingresos y Egresos 💼</Text>
         {transactions && transactions.length === 0 ? (
           <Text>No hay transacciones aún</Text>
         ) : (
@@ -205,7 +267,10 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
               <TouchableOpacity onPress={handleSaveEdit} style={styles.smallButtonSave}>
                 <Text style={styles.buttonText}>Guardar ✅</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.smallButtonCancel}>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.smallButtonCancel}
+              >
                 <Text style={styles.buttonText}>Cancelar ❌</Text>
               </TouchableOpacity>
             </View>
@@ -278,6 +343,34 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: "gray",
     marginTop: 5,
+  },
+  // Estilos para la línea de tiempo
+  timelineContainer: {
+    backgroundColor: "#FFFFFF",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  timelineTitle: {
+    fontFamily: "ArchivoBlack-Regular",
+    fontSize: 18,
+    color: "black",
+    marginBottom: 10,
+  },
+  timelineItem: {
+    flexDirection: "column",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  timelineMonth: {
+    fontFamily: "QuattrocentoSans-Bold",
+    fontSize: 16,
+    color: "#8f539b",
+  },
+  timelineBalance: {
+    fontFamily: "QuattrocentoSans-Regular",
+    fontSize: 16,
+    color: "gray",
   },
   transactionContainer: {
     backgroundColor: "#FFFFFF",
