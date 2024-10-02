@@ -3,7 +3,6 @@ import {
   View,
   Text,
   SafeAreaView,
-  Image,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
@@ -11,12 +10,24 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
+  Image,
+  Animated,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Font from "expo-font";
 import { Picker } from "@react-native-picker/picker";
+import { LinearGradient } from "expo-linear-gradient";
 
-// Componente para la línea de tiempo
+// Función para obtener la fecha actual
+const getTodayDate = () => {
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, "0");
+  const mm = String(today.getMonth() + 1).padStart(2, "0"); // Enero es 0
+  const yyyy = today.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+// Componente para la línea de tiempo (proyección financiera)
 const Timeline = ({ transactions }) => {
   const [projection, setProjection] = useState([]);
   const months = [
@@ -44,13 +55,17 @@ const Timeline = ({ transactions }) => {
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
     const currentMonth = new Date().getMonth(); // Mes actual (0 = Enero)
+    const currentYear = new Date().getFullYear();
     const projectionData = [];
 
     for (let i = 0; i < projectionMonths; i++) {
-      currentBalance += monthlyIncome - monthlyExpense;
+      if (i !== 0) {
+        currentBalance += monthlyIncome - monthlyExpense;
+      }
       const projectedMonth = (currentMonth + i) % 12; // Cicla entre los meses del año
+      const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
       projectionData.push({
-        month: months[projectedMonth], // Muestra el nombre del mes
+        month: `${months[projectedMonth]} ${projectedYear}`, // Muestra el nombre del mes y el año
         balance: currentBalance,
       });
     }
@@ -61,14 +76,18 @@ const Timeline = ({ transactions }) => {
     <View style={styles.timelineContainer}>
       <Text style={styles.timelineTitle}>Proyección Financiera</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {projection.map((item, index) => (
-          <View key={index} style={styles.timelineItem}>
-            <Text style={styles.timelineMonth}>{item.month}</Text>
-            <Text style={styles.timelineBalance}>
-              {formatCurrency(item.balance)}
-            </Text>
+        <View style={styles.timeline}>
+          <View style={styles.timelineLine} />
+          <View style={styles.timelineMonths}>
+            {projection.map((item, index) => (
+              <View key={index} style={styles.timelineItem}>
+                <View style={styles.timelineVerticalLine} />
+                <Text style={styles.timelineMonth}>{item.month}</Text>
+                <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
+              </View>
+            ))}
           </View>
-        ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -77,10 +96,14 @@ const Timeline = ({ transactions }) => {
 export default function HomeScreen({ transactions = [], setTransactions }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [totalSaved, setTotalSaved] = useState(0); // Saldo inicial en 0
+  const [totalIngresos, setTotalIngresos] = useState(0); // Total de ingresos
+  const [totalGastos, setTotalGastos] = useState(0); // Total de gastos
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editAmount, setEditAmount] = useState("");
   const [editCategory, setEditCategory] = useState("");
+  const [isOpen, setIsOpen] = useState(false); // Controlar si está abierto o cerrado
+  const heightAnim = useState(new Animated.Value(0))[0]; // Animación para la altura
 
   const ingresoCategorias = ["Salario", "Venta de producto"];
   const egresoCategorias = [
@@ -115,92 +138,90 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
 
   const calculateTotalSaved = () => {
     if (transactions && transactions.length > 0) {
-      const total = transactions.reduce((acc, transaction) => {
-        const amount = parseFloat(transaction.amount);
-        if (transaction.type === "Ingreso") {
-          return acc + amount;
-        } else if (transaction.type === "Egreso") {
-          return acc - amount;
-        }
-        return acc;
-      }, 0);
-      setTotalSaved(total);
+      const ingresos = transactions
+        .filter((transaction) => transaction.type === "Ingreso")
+        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+      const gastos = transactions
+        .filter((transaction) => transaction.type === "Egreso")
+        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+      setTotalIngresos(ingresos);
+      setTotalGastos(gastos);
+      setTotalSaved(ingresos - gastos); // Calcula el saldo total
     } else {
       setTotalSaved(0); // Reinicia el saldo si no hay transacciones
+      setTotalIngresos(0);
+      setTotalGastos(0);
     }
+  };
+
+  const toggleLabel = () => {
+    setIsOpen(!isOpen);
+    Animated.timing(heightAnim, {
+      toValue: isOpen ? 0 : 100, // Abrir o cerrar el label
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
   };
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#673072" />;
   }
 
-  const userName = "Matías";
-
-  // Función para eliminar una transacción y actualizar el saldo
-  const handleDeleteTransaction = (id) => {
-    const transactionToDelete = transactions.find((item) => item.id === id);
-
-    if (transactionToDelete) {
-      setTransactions((prevTransactions) =>
-        prevTransactions.filter((item) => item.id !== id)
-      );
-    }
-  };
-
-  // Función para preparar la transacción que será editada
-  const handleEditTransaction = (transaction) => {
-    setEditingTransaction(transaction); // Se establece la transacción seleccionada
-    setEditAmount(String(transaction.amount)); // Inicializamos el monto en el modal
-    setEditCategory(transaction.category); // Inicializamos la categoría en el modal
-    setModalVisible(true); // Mostramos el modal
-  };
-
-  // Función para guardar la transacción editada y ajustar el saldo si se modifica la cantidad
-  const handleSaveEdit = () => {
-    setTransactions((prevTransactions) =>
-      prevTransactions.map((item) => {
-        if (item.id === editingTransaction.id) {
-          const originalAmount = parseFloat(item.amount);
-          const newAmount = parseFloat(editAmount);
-
-          if (!isNaN(originalAmount) && !isNaN(newAmount)) {
-            return { ...item, amount: newAmount, category: editCategory };
-          }
-        }
-        return item;
-      })
-    );
-    setModalVisible(false);
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Encabezado */}
-      <View style={styles.header}>
+      <LinearGradient
+        colors={["#511496", "#885fd8"]}
+        style={styles.balanceContainer}
+      >
         <View style={styles.headerContent}>
           <Image
-            source={require("../assets/images/Logo_F1.png")}
-            style={styles.logo}
+            source={{ uri: "https://example.com/user-profile-pic.png" }} // Aquí debes colocar la URL de la foto de perfil
+            style={styles.profileImage}
           />
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Finawise</Text>
-            <Text style={styles.welcomeText}>¡Bienvenid@, {userName}!</Text>
-          </View>
         </View>
-      </View>
-
-      {/* Sección de Saldo Actual */}
-      <View style={styles.balanceContainer}>
-        <Text style={styles.balanceTitle}>Saldo actual</Text>
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
-      </View>
+        <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
+
+        {/* Flecha con animación */}
+        <TouchableOpacity onPress={toggleLabel} style={styles.chevronContainer}>
+          <View style={styles.chevronLine} />
+          <MaterialCommunityIcons
+            name={isOpen ? "chevron-up" : "chevron-down"}
+            size={24}
+            color="white"
+            style={styles.chevronIcon}
+          />
+          <View style={styles.chevronLine} />
+        </TouchableOpacity>
+
+        {/* Label con animación */}
+        <Animated.View style={[styles.labelContainer, { height: heightAnim }]}>
+          <LinearGradient
+            colors={["#cb70e1", "#885fd8"]}
+            style={styles.labelGradient}
+          >
+            <View style={styles.labelContent}>
+              <View style={styles.totalItem}>
+                <Text style={styles.totalLabel}>Total Ingresos</Text>
+                <Text style={styles.totalAmount}>{formatCurrency(totalIngresos)}</Text>
+              </View>
+              <View style={styles.totalItem}>
+                <Text style={styles.totalLabel}>Total Gastos</Text>
+                <Text style={styles.totalAmount}>{formatCurrency(totalGastos)}</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </LinearGradient>
 
       {/* Línea de tiempo de proyección */}
       <Timeline transactions={transactions} />
 
       {/* Historial de Ingresos y Egresos */}
       <View style={styles.transactionContainer}>
-        <Text style={styles.balanceTitle}>Ingresos y Egresos 💼</Text>
+        <Text style={styles.timelineTitle}>Historial Ingresos y Gastos</Text>
         {transactions && transactions.length === 0 ? (
           <Text>No hay transacciones aún</Text>
         ) : (
@@ -236,47 +257,6 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
           />
         )}
       </View>
-
-      {/* Modal para editar transacciones */}
-      <Modal visible={modalVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Editar Transacción</Text>
-            <TextInput
-              value={editAmount}
-              onChangeText={setEditAmount}
-              keyboardType="numeric"
-              style={styles.input}
-            />
-            <Picker
-              selectedValue={editCategory}
-              onValueChange={(itemValue) => setEditCategory(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Seleccione categoría" value="" />
-              {editingTransaction?.type === "Ingreso"
-                ? ingresoCategorias.map((cat) => (
-                    <Picker.Item key={cat} label={cat} value={cat} />
-                  ))
-                : egresoCategorias.map((cat) => (
-                    <Picker.Item key={cat} label={cat} value={cat} />
-                  ))}
-            </Picker>
-
-            <View style={styles.buttonRow}>
-              <TouchableOpacity onPress={handleSaveEdit} style={styles.smallButtonSave}>
-                <Text style={styles.buttonText}>Guardar ✅</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                style={styles.smallButtonCancel}
-              >
-                <Text style={styles.buttonText}>Cancelar ❌</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -290,61 +270,80 @@ const formatCurrency = (amount) => {
   }).format(amount);
 };
 
+// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F6F6F6",
-    padding: 10,
+    padding: 0,
   },
-  header: {
-    backgroundColor: "#FFFFFF",
+  balanceContainer: {
     padding: 20,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  headerContent: {
-    flexDirection: "row",
     alignItems: "center",
   },
-  logo: {
+  profileImage: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    borderWidth: 2,
-    borderColor: "#000000",
-    backgroundColor: "#FFFFFF",
-  },
-  headerText: {
-    marginLeft: 10,
-  },
-  title: {
-    fontFamily: "ArchivoBlack-Regular",
-    fontSize: 24,
-    color: "black",
-  },
-  welcomeText: {
-    fontFamily: "QuattrocentoSans-Regular",
-    fontSize: 18,
-    color: "gray",
-  },
-  balanceContainer: {
-    backgroundColor: "#FFFFFF",
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  balanceTitle: {
-    fontFamily: "ArchivoBlack-Regular",
-    fontSize: 20,
-    color: "black",
+    position: "absolute",
+    top: 10,
+    left: 10,
   },
   balanceAmount: {
-    fontFamily: "QuattrocentoSans-Bold",
-    fontSize: 22,
-    color: "gray",
+    fontFamily: "ArchivoBlack-Regular",
+    fontSize: 36,
+    color: "white",
+    marginTop: 35, // Bajado un poco más para dejar espacio a la imagen de perfil
+  },
+  balanceDate: {
+    fontFamily: "QuattrocentoSans-Bold", // Cambiado a negrita
+    fontSize: 16,
+    color: "white",
     marginTop: 5,
   },
-  // Estilos para la línea de tiempo
+  chevronContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  chevronLine: {
+    height: 1,
+    backgroundColor: "black",
+    width: 80,
+  },
+  chevronIcon: {
+    marginHorizontal: 10,
+  },
+  labelContainer: {
+    overflow: "hidden",
+    borderRadius: 10, // Bordes más redondeados
+    marginTop: 10,
+    alignItems: "center",
+  },
+  labelGradient: {
+    width: "100%",
+    padding: 10,
+    borderRadius: 10, // Bordes más redondeados
+  },
+  labelContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  totalItem: {
+    alignItems: "center",
+    width: "50%",
+  },
+  totalLabel: {
+    fontFamily: "QuattrocentoSans-Bold",
+    fontSize: 16,
+    color: "white",
+  },
+  totalAmount: {
+    fontFamily: "ArchivoBlack-Regular",
+    fontSize: 24,
+    color: "white", // Números en blanco
+  },
   timelineContainer: {
     backgroundColor: "#FFFFFF",
     padding: 15,
@@ -356,20 +355,43 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "black",
     marginBottom: 10,
+    textAlign: "center",
+  },
+  timeline: {
+    position: "relative",
+    flexDirection: "row",
+  },
+  timelineLine: {
+    height: 2,
+    backgroundColor: "#673072",
+    position: "absolute",
+    top: 12,
+    left: 0,
+    right: 0,
+  },
+  timelineMonths: {
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
   timelineItem: {
-    flexDirection: "column",
     alignItems: "center",
-    marginRight: 15,
+    width: 120,
+    marginHorizontal: 10,
+  },
+  timelineVerticalLine: {
+    height: 30,
+    width: 2,
+    backgroundColor: "#673072",
+    marginBottom: 5,
   },
   timelineMonth: {
-    fontFamily: "QuattrocentoSans-Bold",
-    fontSize: 16,
-    color: "#8f539b",
+    fontFamily: "QuattrocentoSans-Bold", // Cambiado a negrita
+    fontSize: 14,
+    color: "#673072",
   },
   timelineBalance: {
     fontFamily: "QuattrocentoSans-Regular",
-    fontSize: 16,
+    fontSize: 14,
     color: "gray",
   },
   transactionContainer: {
