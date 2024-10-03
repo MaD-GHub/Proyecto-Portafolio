@@ -15,7 +15,6 @@ const ProfileScreen = () => {
   const handleLogout = () => {
     signOut(auth)
       .then(() => {
-        Alert.alert("Has cerrado sesión con éxito");
         navigation.navigate('Login'); // Redirige a la pantalla de login
       })
       .catch(error => {

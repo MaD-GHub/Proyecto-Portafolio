@@ -1,127 +1,111 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { auth, db } from '../firebase'; // Asegúrate de que la ruta sea correcta
+import { auth, db } from '../firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore'; // Importa doc y setDoc
+import { doc, setDoc } from 'firebase/firestore';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker'; // Asegúrate de instalarlo
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [birthDate, setBirthDate] = useState('');
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [birthDateString, setBirthDateString] = useState('');
   const [gender, setGender] = useState('');
   const [hasJob, setHasJob] = useState(false);
   const [salary, setSalary] = useState('');
   const [salaryDay, setSalaryDay] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Función para manejar el registro
   const handleRegister = async () => {
     try {
-      // Crear usuario en Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Guardar datos adicionales en Firestore usando doc y setDoc
       await setDoc(doc(db, 'users', user.uid), {
         firstName,
         lastName,
-        birthDate,
+        birthDate: birthDate.toISOString(), // Guarda la fecha como string
         gender,
         hasJob,
-        salary: hasJob ? salary : null,  // Si tiene trabajo, guarda salario, si no, null
-        salaryDay: hasJob ? salaryDay : null,  // Si tiene trabajo, guarda el día de salario, si no, null
+        salary: hasJob ? salary : null,
+        salaryDay: hasJob ? salaryDay : null,
         email: user.email,
       });
 
-      // Redirigir al login después del registro exitoso
+      Alert.alert("Te has Registrado con éxito");
       navigation.replace('Login');
     } catch (error) {
       alert(error.message);
     }
   };
 
+  const showDatepicker = () => {
+    setShowDatePicker(true);
+  };
+
+  const onChangeDate = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setBirthDate(selectedDate);
+      setBirthDateString(selectedDate.toLocaleDateString()); // Guarda la fecha en formato local
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      
       <LinearGradient colors={['#8f539b', '#d495ed']} style={styles.container}>
         <Text style={styles.title}>Regístrate</Text>
         <Text style={styles.subtitle}>Completa tus datos</Text>
 
-        {/* Botón de regresar */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.navigate("StartScreen")}
-      >
-        <Text style={styles.backButtonText}>⬅ Volver</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate("StartScreen")}>
+          <Text style={styles.backButtonText}>⬅ Volver</Text>
+        </TouchableOpacity>
 
-        {/* Formulario de registro */}
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre"
-          value={firstName}
-          onChangeText={setFirstName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Apellido"
-          value={lastName}
-          onChangeText={setLastName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Fecha de Nacimiento (dd/mm/yyyy)"
-          value={birthDate}
-          onChangeText={setBirthDate}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Género"
-          value={gender}
-          onChangeText={setGender}
-        />
+        <TextInput style={styles.input} placeholder="Nombre" value={firstName} onChangeText={setFirstName} />
+        <TextInput style={styles.input} placeholder="Apellido" value={lastName} onChangeText={setLastName} />
 
-        {/* Checkbox para indicar si tiene trabajo */}
+        {/* Campo de fecha de nacimiento */}
+        <TouchableOpacity style={styles.input} onPress={showDatepicker}>
+          <Text>{birthDateString || "Fecha de Nacimiento"}</Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={birthDate}
+            mode="date"
+            display="default"
+            onChange={onChangeDate}
+          />
+        )}
+
+        {/* Selector de género */}
+        <Picker
+          selectedValue={gender}
+          onValueChange={(itemValue) => setGender(itemValue)}
+          style={styles.input}
+        >
+          <Picker.Item label="Seleccione su género" value="" />
+          <Picker.Item label="Masculino" value="masculino" />
+          <Picker.Item label="Femenino" value="femenino" />
+          <Picker.Item label="No informar" value="no_informar" />
+        </Picker>
+
         <TouchableOpacity onPress={() => setHasJob(!hasJob)}>
           <Text style={styles.checkboxText}>{hasJob ? '✅' : '⬜'} ¿Tienes trabajo?</Text>
         </TouchableOpacity>
 
-        {/* Campos adicionales si tiene trabajo */}
         {hasJob && (
           <>
-            <TextInput
-              style={styles.input}
-              placeholder="Sueldo mensual"
-              value={salary}
-              onChangeText={setSalary}
-              keyboardType="numeric"
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Día de pago del mes"
-              value={salaryDay}
-              onChangeText={setSalaryDay}
-              keyboardType="numeric"
-            />
+            <TextInput style={styles.input} placeholder="Sueldo mensual" value={salary} onChangeText={setSalary} keyboardType="numeric" />
+            <TextInput style={styles.input} placeholder="Día de pago del mes" value={salaryDay} onChangeText={setSalaryDay} keyboardType="numeric" />
           </>
         )}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+        <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
 
         <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
           <Text style={styles.registerButtonText}>Registrar</Text>
