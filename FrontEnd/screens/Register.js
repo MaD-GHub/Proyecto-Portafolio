@@ -44,9 +44,18 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      
       <LinearGradient colors={['#8f539b', '#d495ed']} style={styles.container}>
         <Text style={styles.title}>Regístrate</Text>
         <Text style={styles.subtitle}>Completa tus datos</Text>
+
+        {/* Botón de regresar */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate("StartScreen")}
+      >
+        <Text style={styles.backButtonText}>⬅ Volver</Text>
+      </TouchableOpacity>
 
         {/* Formulario de registro */}
         <TextInput
@@ -151,6 +160,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
     color: 'white',
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
   },
   registerButton: {
     backgroundColor: '#673072',
