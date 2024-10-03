@@ -1,15 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView, Alert } from 'react-native';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native'; // Importa useNavigation
 
 const ProfileScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [userName, setUserName] = useState('Adrian Torres'); // Estado inicial del nombre de usuario
-  const [newUserName, setNewUserName] = useState(userName); // Estado para almacenar el nuevo nombre temporalmente
+  const [userName, setUserName] = useState('Adrian Torres'); 
+  const [newUserName, setNewUserName] = useState(userName); 
+  const navigation = useNavigation(); // Obtén la función de navegación
+
+  // Función para cerrar sesión
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        Alert.alert("Has cerrado sesión con éxito");
+        navigation.navigate('Login'); // Redirige a la pantalla de login
+      })
+      .catch(error => {
+        Alert.alert("Error al cerrar sesión", error.message);
+      });
+  };
 
   const handleEditName = () => {
-    setUserName(newUserName); // Actualiza el nombre de usuario
-    setModalVisible(false);   // Cierra el modal
+    setUserName(newUserName); 
+    setModalVisible(false);   
   };
 
   return (
@@ -25,7 +41,7 @@ const ProfileScreen = () => {
       {/* Profile Info */}
       <View style={styles.profileSection}>
         <Image
-          source={require('../assets/profile-picture.png')} // Cambia esta ruta si es necesario
+          source={require('../assets/images/Logo_F.png')} 
           style={styles.profileImage}
         />
         <Text style={styles.profileName}>{userName}</Text>
@@ -52,7 +68,7 @@ const ProfileScreen = () => {
           <MaterialCommunityIcons name="file-document" size={24} color="#8f539b" />
           <Text style={styles.optionText}>Términos y Condiciones</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionItem}>
+        <TouchableOpacity style={styles.optionItem} onPress={handleLogout}>
           <MaterialCommunityIcons name="logout" size={24} color="#8f539b" />
           <Text style={styles.optionText}>Cerrar sesión</Text>
         </TouchableOpacity>

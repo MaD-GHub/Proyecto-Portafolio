@@ -1,17 +1,26 @@
 import * as React from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, StyleSheet, TextInput, Button, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, StyleSheet, TextInput, Button, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { auth } from './firebase'; // Importar Firebase auth
 import HomeScreen from './screens/HomeScreen';
 import AhorroScreen from './screens/AhorroScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import DatosScreen from './screens/DatosScreen';
+import StartScreen from './screens/StartScreen';
+import LoginScreen from './screens/Login';
+import RegisterScreen from './screens/Register';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker'; // Importa DateTimePicker
 
+// Tab Navigator para la barra flotante
 const Tab = createBottomTabNavigator();
+// Stack Navigator para el manejo de autenticación
+const Stack = createNativeStackNavigator();
 
+// Botón personalizado en la barra flotante
 function CustomTabBarButton({ children, onPress }) {
   return (
     <TouchableOpacity
@@ -45,6 +54,7 @@ function CustomTabBarButton({ children, onPress }) {
   );
 }
 
+// Pantalla de Tabs (barra flotante)
 function HomeTabs({ openModal, transactions, setTransactions }) {
   return (
     <Tab.Navigator
@@ -91,7 +101,7 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
     >
       <Tab.Screen 
         name="Inicio" 
-        options={{ headerShown: false }} 
+        options={{ headerShown: false }}  // Oculta el encabezado
       >
         {() => <HomeScreen transactions={transactions} setTransactions={setTransactions} />}
       </Tab.Screen>
@@ -117,6 +127,7 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
   );
 }
 
+// Aplicación principal
 export default function App() {
   const [modalVisible, setModalVisible] = React.useState(false);
   const [amount, setAmount] = React.useState('');
@@ -125,40 +136,28 @@ export default function App() {
   const [date, setDate] = React.useState(new Date());
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [transactions, setTransactions] = React.useState([]);
-  const slideAnim = React.useRef(new Animated.Value(600)).current;
+
+  // Estado para verificar si el usuario está autenticado y cargando
+  const [user, setUser] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
 
   const ingresoCategorias = ['Salario', 'Venta de producto'];
   const egresoCategorias = ['Comida y Bebidas', 'Vestuario', 'Alojamiento', 'Salud', 'Transporte', 'Educación'];
 
-  const openModal = () => {
-    setModalVisible(true);
-    Animated.timing(slideAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const closeModal = () => {
-    Animated.timing(slideAnim, {
-      toValue: 600,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setModalVisible(false);
-    });
-  };
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
 
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
+    setShowDatePicker(false); // Ocultar el picker después de seleccionar la fecha
     if (selectedDate) {
-      setDate(selectedDate);
+      setDate(selectedDate); // Actualizar la fecha seleccionada
     }
   };
 
   const handleAddTransaction = () => {
     const parsedAmount = parseFloat(amount);
 
+    // Validación del monto y categoría
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert('Por favor ingrese un monto válido.');
       return;
@@ -173,15 +172,39 @@ export default function App() {
       type: transactionType,
       amount: parsedAmount,
       category,
-      date: date.toLocaleDateString(),
+      date: date.toLocaleDateString(), // Usamos la fecha seleccionada
     };
 
     setTransactions([...transactions, newTransaction]);
     setAmount('');
     setCategory('');
-    setDate(new Date());
+    setDate(new Date()); // Restablecemos la fecha por defecto
     closeModal();
   };
+
+  // Listener para autenticación de Firebase
+  React.useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUser(user); // Usuario autenticado
+      } else {
+        setUser(null); // Usuario no autenticado
+      }
+      setLoading(false); // Finaliza el estado de carga
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    // Mostrar indicador de carga mientras se verifica la autenticación
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#673072" />
+        <Text>Cargando...</Text>
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
@@ -190,95 +213,82 @@ export default function App() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <HomeTabs openModal={openModal} transactions={transactions} setTransactions={setTransactions} />
+        {/* Si el usuario está autenticado, mostramos HomeTabs. Si no, StartScreen */}
+        <Stack.Navigator initialRouteName={user ? 'HomeTabs' : 'StartScreen'}>
+          <Stack.Screen name="HomeTabs" options={{ headerShown: false }}>
+            {() => (
+              <HomeTabs openModal={openModal} transactions={transactions} setTransactions={setTransactions} />
+            )}
+          </Stack.Screen>
+          <Stack.Screen name="StartScreen" component={StartScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        </Stack.Navigator>
 
         {/* Modal para agregar una nueva transacción */}
-        <Modal
-          animationType="none"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={closeModal}
-        >
-          <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
+        <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={closeModal}>
+          <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text style={styles.sectionTitle}>Seleccione tipo de transacción</Text>
+              <Text style={styles.modalText}>Añadir nueva transacción</Text>
+
               <View style={styles.buttonGroup}>
                 <TouchableOpacity
                   style={[styles.typeButton, transactionType === 'Ingreso' ? styles.activeButton : {}]}
                   onPress={() => {
                     setTransactionType('Ingreso');
-                    setCategory('');
+                    setCategory(''); // Restablecer categoría
                   }}
                 >
-                  <Text style={styles.buttonText}>Ingreso</Text>
+                  <Text style={styles.buttonText}>Ingreso 💰</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.typeButton, transactionType === 'Egreso' ? styles.activeButton : {}]}
                   onPress={() => {
                     setTransactionType('Egreso');
-                    setCategory('');
+                    setCategory(''); // Restablecer categoría
                   }}
                 >
-                  <Text style={styles.buttonText}>Egreso</Text>
+                  <Text style={styles.buttonText}>Egreso 💸</Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.sectionTitle}>Ingrese cantidad</Text>
               <TextInput
                 placeholder="Ingrese monto"
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(text) => {
-                  const numericValue = text.replace(/[^0-9]/g, '');
+                  const numericValue = text.replace(/[^0-9]/g, ''); // Solo permite números
                   setAmount(numericValue);
                 }}
-                style={styles.inputBox} 
+                style={styles.input}
               />
 
-              <Text style={styles.sectionTitle}>Seleccione Categoría</Text>
-              <View style={styles.inputBox}> 
-                <Picker
-                  selectedValue={category}
-                  onValueChange={(itemValue) => setCategory(itemValue)}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="Seleccione categoría" value="" />
-                  {transactionType === 'Ingreso'
-                    ? ingresoCategorias.map((cat, index) => (
-                        <Picker.Item key={index} label={cat} value={cat} />
-                      ))
-                    : egresoCategorias.map((cat, index) => (
-                        <Picker.Item key={index} label={cat} value={cat} />
-                      ))}
-                </Picker>
-              </View>
+              {/* Selector de Categoría */}
+              <Picker selectedValue={category} onValueChange={(itemValue) => setCategory(itemValue)} style={styles.picker}>
+                <Picker.Item label="Seleccione categoría" value="" />
+                {transactionType === 'Ingreso'
+                  ? ingresoCategorias.map((cat, index) => <Picker.Item key={index} label={cat} value={cat} />)
+                  : egresoCategorias.map((cat, index) => <Picker.Item key={index} label={cat} value={cat} />)}
+              </Picker>
 
-              <Text style={styles.sectionTitle}>Seleccione Fecha</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-                <MaterialCommunityIcons name="calendar" size={24} color="#555" />
-                <Text style={styles.dateText}>{date.toLocaleDateString()}</Text>
-              </TouchableOpacity>
+              {/* Botón para mostrar el selector de fecha */}
+              <Button title="Seleccionar Fecha" onPress={() => setShowDatePicker(true)} />
+              <Text style={styles.dateText}>Fecha seleccionada: {date.toLocaleDateString()}</Text>
 
-              {showDatePicker && (
-                <DateTimePicker
-                  value={date}
-                  mode="date"
-                  display="default"
-                  onChange={handleDateChange}
-                />
-              )}
+              {/* Muestra el selector de fecha solo si el estado lo permite */}
+              {showDatePicker && <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />}
 
               <View style={styles.modalButtons}>
                 <TouchableOpacity onPress={handleAddTransaction} style={styles.confirmButton}>
-                  <Text style={styles.confirmText}>Confirmar</Text>
+                  <Text style={styles.confirmText}>Confirmar ✅</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                  <Text style={styles.closeText}>Cerrar</Text>
+                  <Text style={styles.closeText}>Cerrar ❌</Text>
                 </TouchableOpacity>
               </View>
             </View>
-          </Animated.View>
+          </View>
         </Modal>
       </KeyboardAvoidingView>
     </NavigationContainer>
@@ -286,61 +296,53 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  // Estilos del modal
   modalContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '100%',
-    justifyContent: 'flex-end',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    width: '100%',
-    padding: 25,
-    backgroundColor: '#f9f9f9',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
     alignItems: 'center',
-    elevation: 5,
   },
-  sectionTitle: {
+  modalText: {
     fontSize: 18,
-    color: '#8f539b',
-    marginBottom: 10,
-    fontWeight: 'bold',
+    marginBottom: 15,
   },
   buttonGroup: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   typeButton: {
-    padding: 15,
+    padding: 10,
     marginHorizontal: 10,
     backgroundColor: '#cccccc',
-    borderRadius: 10,
-    width: '40%',
-    alignItems: 'center',
+    borderRadius: 5,
   },
   activeButton: {
     backgroundColor: '#8f539b',
   },
   buttonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
   },
-  inputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#eeeeee',
+  input: {
+    borderWidth: 1,
+    borderColor: '#cccccc',
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 5,
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   picker: {
     height: 50,
-    width: '100%',
-    backgroundColor: 'transparent',
+    width: 250,
+    marginBottom: 15,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -349,39 +351,29 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 5,
     flex: 1,
     marginRight: 10,
-    alignItems: 'center',
   },
   confirmText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
+    textAlign: 'center',
   },
   closeButton: {
     backgroundColor: '#FF6347',
-    padding: 15,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 5,
     flex: 1,
-    alignItems: 'center',
   },
   closeText: {
     color: 'white',
-    fontSize: 18,
-  },
-  dateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#eeeeee',
-    padding: 10,
-    borderRadius: 10,
-    width: '100%',
-    marginBottom: 20,
+    fontSize: 16,
+    textAlign: 'center',
   },
   dateText: {
-    marginLeft: 10,
-    color: '#555',
+    marginTop: 10,
     fontSize: 16,
   },
 });
