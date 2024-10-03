@@ -33,7 +33,7 @@ export default function StartScreen() {
       style={styles.container}
     >
       <Image
-        source={require('../assets/images/Logo_F.png')}
+        source={require('../assets/images/Logo_finawise_blanco.png')}
         style={styles.logo}
       />
       <Text className="mb-5" style={{ fontFamily: "QuattrocentoSans-Regular", fontSize: 25, color: "white"}}>Bienvenid@!</Text>
