@@ -1,11 +1,29 @@
 import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView } from 'react-native';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
+import { auth } from '../firebase';
+import { signOut } from 'firebase/auth';
+import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; 
+
 
 const ProfileScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [userName, setUserName] = useState('Adrian Torres'); // Estado inicial del nombre de usuario
   const [newUserName, setNewUserName] = useState(userName); // Estado para almacenar el nuevo nombre temporalmente
+  const navigation = useNavigation();
+
+  // Función para cerrar sesión
+  const handleLogout = () => {
+    signOut(auth)
+      .then(() => {
+        Alert.alert("Has cerrado sesión con éxito");
+        navigation.navigate('Login'); // Redirige a la pantalla de login
+      })
+      .catch(error => {
+        Alert.alert("Error al cerrar sesión", error.message);
+      });
+  };
 
   const handleEditName = () => {
     setUserName(newUserName); // Actualiza el nombre de usuario
@@ -52,7 +70,7 @@ const ProfileScreen = () => {
           <MaterialCommunityIcons name="file-document" size={24} color="#8f539b" />
           <Text style={styles.optionText}>Términos y Condiciones</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionItem}>
+        <TouchableOpacity style={styles.optionItem} onPress={handleLogout}>
           <MaterialCommunityIcons name="logout" size={24} color="#8f539b" />
           <Text style={styles.optionText}>Cerrar sesión</Text>
         </TouchableOpacity>

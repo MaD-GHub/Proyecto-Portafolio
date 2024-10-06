@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+<<<<<<< HEAD
 import * as Font from 'expo-font'; // No olvides importar el módulo de fuentes
 import { Header } from 'react-native/Libraries/NewAppScreen';
 
@@ -26,7 +27,34 @@ export default function StartScreen() {
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#673072" />;
   }
+=======
+import * as Font from 'expo-font';
 
+export default function StartScreen() {
+  const navigation = useNavigation();
+  const [fontsLoaded, setFontsLoaded] = useState(false);  // Definir el estado para fontsLoaded
+>>>>>>> 19e652ee54855a713717268175e55008afdf46db
+
+  useEffect(() => {
+    const loadFonts = async () => {
+      await Font.loadAsync({
+        "ArchivoBlack-Regular": require("../assets/fonts/ArchivoBlack-Regular.ttf"),
+        "QuattrocentoSans-Bold": require("../assets/fonts/QuattrocentoSans-Bold.ttf"),
+        "QuattrocentoSans-Regular": require("../assets/fonts/QuattrocentoSans-Regular.ttf"),
+        "QuattrocentoSans-Italic": require("../assets/fonts/QuattrocentoSans-Italic.ttf"),
+        "QuattrocentoSans-BoldItalic": require("../assets/fonts/QuattrocentoSans-BoldItalic.ttf"),
+      });
+      setFontsLoaded(true);  // Actualizar el estado cuando las fuentes se carguen
+    };
+    loadFonts();
+  }, []);
+
+  // Mostrar el ActivityIndicator mientras las fuentes están cargando
+  if (!fontsLoaded) {
+    return <ActivityIndicator size="large" color="#673072" />;
+  }
+
+  // Si las fuentes están cargadas, renderizar el contenido de la pantalla
   return (
     
     <LinearGradient
