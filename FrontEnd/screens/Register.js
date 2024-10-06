@@ -100,12 +100,12 @@ export default function RegisterScreen({ navigation }) {
         {hasJob && (
           <>
             <TextInput style={styles.input} placeholder="Sueldo mensual" value={salary} onChangeText={setSalary} keyboardType="numeric" />
-            <TextInput style={styles.input} placeholder="Día de pago del mes" value={salaryDay} onChangeText={setSalaryDay} keyboardType="numeric" />
+            <TextInput style={styles.input} placeholder="Día de pago del mes (01-31)" value={salaryDay} onChangeText={setSalaryDay} keyboardType="numeric" />
           </>
         )}
 
         <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-        <TextInput style={styles.input} placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+        <TextInput style={styles.input} placeholder="Contraseña" value={password} onChangeText={setPassword} secureTextEntry />
 
         <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
           <Text style={styles.registerButtonText}>Registrar</Text>

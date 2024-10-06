@@ -29,7 +29,7 @@ export default function StartScreen() {
 
   return (
     <LinearGradient
-      colors={['#8f539b', '#a972c1']}
+      colors={['#8f539b', '#7d0cae']}
       style={styles.container}
     >
       <Image

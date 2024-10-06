@@ -38,7 +38,7 @@ export default function LoginScreen({ navigation }) {
       // Redirigir a la pantalla Home después de un inicio de sesión exitoso
       navigation.navigate("HomeTabs");
     } catch (error) {
-      Alert.alert("Error", error.message); // Mostrar el mensaje de error si algo falla
+      Alert.alert("Error","Tu correo o contraseña son incorrectos"); // Mostrar el mensaje de error si algo falla
     } finally {
       setLoading(false);
     }
