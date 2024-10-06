@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 21,
   },
   fuenteAv: {
     fontFamily: 'Aventra-Regular',
