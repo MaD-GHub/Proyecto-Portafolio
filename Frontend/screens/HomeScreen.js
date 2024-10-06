@@ -8,11 +8,16 @@ import {
   ScrollView,
   FlatList,
   ActivityIndicator,
+  Modal,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import * as Font from "expo-font";
+import { auth } from "../firebase"; // Asegúrate de tener esto importado
+import { useNavigation } from '@react-navigation/native'; // Importa useNavigation para usar la navegación
 
 export default function HomeScreen() {
+  const navigation = useNavigation(); // Usa useNavigation para acceder a la navegación
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [totalSaved, setTotalSaved] = useState(500000); // Ejemplo de cantidad ahorrada hasta ahora
   const [monthlySavingsNeeded, setMonthlySavingsNeeded] = useState(0); // Ahorro mensual calculado
@@ -21,19 +26,9 @@ export default function HomeScreen() {
     { id: '2', category: 'Transporte', amount: 15000, date: '24/08/2024' },
     { id: '3', category: 'Entretenimiento', amount: 100000, date: '23/08/2024' },
   ]);
-  
-  // Aquí puedes calcular el ahorro mensual necesario, usando datos de metas activas
-  useEffect(() => {
-    // Supongamos que ya tienes una función para calcularlo, o puedes usar la misma lógica de la AhorroScreen
-    const calculateMonthlySavingsNeeded = () => {
-      // Lógica para calcular el ahorro mensual necesario basado en las metas activas
-      let totalNeeded = 0; // Esto debería calcularse con base en tus metas
-      setMonthlySavingsNeeded(totalNeeded);
-    };
+  const [menuVisible, setMenuVisible] = useState(false); // Controla la visibilidad del menú
 
-    calculateMonthlySavingsNeeded();
-  }, []);
-
+  // Carga de fuentes personalizadas
   useEffect(() => {
     const loadFonts = async () => {
       await Font.loadAsync({
@@ -54,6 +49,32 @@ export default function HomeScreen() {
 
   const userName = "Matías";
 
+  // Función para manejar el logout
+  const handleLogout = () => {
+    Alert.alert(
+      "Cerrar Sesión",
+      "¿Estás seguro de que deseas cerrar sesión?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Cerrar Sesión",
+          onPress: async () => {
+            try {
+              await auth.signOut();
+              navigation.navigate('StartScreen'); // Redirige a la pantalla de inicio de sesión
+            } catch (error) {
+              console.log("Error al cerrar sesión:", error);
+            }
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }} className="bg-[#eeeeee]">
       <SafeAreaView className="flex-1">
@@ -73,10 +94,43 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
-          <TouchableOpacity className="bg-[#8f539b] p-3 rounded-full w-14">
+
+          {/* Botón de Menú */}
+          <TouchableOpacity
+            className="bg-[#8f539b] p-3 rounded-full w-14"
+            onPress={() => setMenuVisible(true)} // Abre el menú al presionar el botón
+          >
             <Text className="text-white text-2xl font-bold text-center">≡</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Modal de menú */}
+        <Modal
+          visible={menuVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setMenuVisible(false)} // Cierra el modal al hacer clic fuera
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Menú</Text>
+
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleLogout} // Llama a la función de logout
+              >
+                <Text style={styles.modalButtonText}>Cerrar Sesión</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setMenuVisible(false)} // Cierra el menú
+              >
+                <Text style={styles.modalButtonText}>Cerrar Menú</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* Sección de Saldo Actual */}
         <View className="mt-6 mx-4 p-4 bg-white rounded-xl shadow-sm">
@@ -107,7 +161,7 @@ export default function HomeScreen() {
 
         {/* Resumen de Gastos Recientes */}
         <View className="mt-4 mx-4 p-4 bg-white rounded-xl shadow-sm">
-          <Text style={{ fontFamily: "ArchivoBlack-Regular", fontSize: 20, color: "black", marginBottom: 26, marginTop: 8  }}>
+          <Text style={{ fontFamily: "ArchivoBlack-Regular", fontSize: 20, color: "black", marginBottom: 26, marginTop: 8 }}>
             Gastos Recientes
           </Text>
           <FlatList
@@ -134,4 +188,39 @@ const formatCurrency = (amount) => {
     currency: "CLP",
     minimumFractionDigits: 0, // Sin decimales
   }).format(amount);
+};
+
+// Estilos para el modal
+const styles = {
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    marginBottom: 15,
+    fontFamily: "QuattrocentoSans-Bold",
+  },
+  modalButton: {
+    padding: 10,
+    backgroundColor: "#8f539b",
+    borderRadius: 5,
+    marginVertical: 10,
+    width: "100%",
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontFamily: "QuattrocentoSans-Bold",
+  },
 };

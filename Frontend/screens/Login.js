@@ -4,13 +4,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { auth } from '../firebase';  
 import { signInWithEmailAndPassword } from 'firebase/auth';  
 import * as Font from 'expo-font';
-import { shadow } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';  // Para navegación
+import { FontAwesome5 } from '@expo/vector-icons';  // Iconos FontAwesome
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const navigation = useNavigation();  // Hook de navegación
 
   // Función para manejar el inicio de sesión
   const handleLogin = async () => {
@@ -50,24 +52,23 @@ export default function LoginScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Header con degradado y logo */}
-      <LinearGradient
-        colors={['#511496', '#885FD8']}
-        style={styles.header}
-      >
+      <LinearGradient colors={['#511496', '#885FD8']} style={styles.header}>
         <View style={styles.logoContainer}>
           <Image
             source={require('../assets/images/Logo_finawise_blanco_shadowpurple.png')}
             style={styles.logo}
           />
         </View>
-        {/* Bienvenida y subtítulo */}
-  
+        {/* Botón de volver */}
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('StartScreen')}>
+          <FontAwesome5 name="angle-left" size={24} color="#fff" />
+        </TouchableOpacity>
       </LinearGradient>
 
       {/* Formulario de Login */}
       <View style={styles.formContainer}>
-        <Text className=" pb-5 text-3xl text-center" style={styles.welcomeText}>Bienvenido</Text>
-        <Text className=" pb-1 pt-3 pl-2 text-sm text-left" style={styles.labelCorreo}>Correo electronico</Text>
+        <Text className="pb-5 text-3xl text-center" style={styles.welcomeText}>Bienvenido</Text>
+        <Text className="pb-1 pt-3 pl-2 text-sm text-left" style={styles.labelCorreo}>Correo electronico</Text>
         <TextInput
           style={styles.input}
           placeholder="Correo electronico"
@@ -78,8 +79,7 @@ export default function LoginScreen({ navigation }) {
           autoCapitalize="none"
         />
 
-        <Text className=" pb-1 pt-3 pl-2 text-sm text-left" style={styles.labelCorreo}>Contraseña</Text>
-
+        <Text className="pb-1 pt-3 pl-2 text-sm text-left" style={styles.labelCorreo}>Contraseña</Text>
         <TextInput
           style={styles.input}
           placeholder="Contraseña"
@@ -90,20 +90,17 @@ export default function LoginScreen({ navigation }) {
         />
 
         <TouchableOpacity>
-          <Text style={styles.forgotPassword}>Olvidaste tu Contraseña?</Text>
+          <Text className="" style={styles.forgotPassword}>Olvidaste tu Contraseña?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="" style={styles.loginButton} onPress={handleLogin} disabled={loading}>
-            <LinearGradient
-              colors={['#511496', '#885FD8']}
-              style={styles.loginButton}>
-      
-            <Text className="px-10 text-white font-bold" style={styles.fuenteAv}>{loading ? 'Cargando...' : 'Iniciar Sesión'}</Text>
-            </LinearGradient>
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+          <LinearGradient colors={['#511496', '#885FD8']} style={styles.loginButton}>
+            <Text className="text-white px-4" style={styles.fuenteAv}>{loading ? 'Cargando...' : 'Iniciar Sesión'}</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerLink}>No tienes cuenta? regístrate</Text>
+          <Text className="" style={styles.registerLink}>No tienes cuenta? regístrate</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -122,10 +119,16 @@ const styles = StyleSheet.create({
     height: 300,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+    position: 'relative',  // Posicionamiento relativo para el botón de volver
   },
   logo: {
     width: 140,
     height: 140,
+  },
+  logoContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   fuenteAv: {
     fontFamily: 'Aventra-Regular',
@@ -136,15 +139,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Aventra-Extrabold',
     marginTop: 10,
     color: '#511496',
+    textAlign: 'center',
   },
   labelCorreo: {
     fontFamily: 'Aventra-Regular',
-    color: '#511496',
-  },
-  subText: {
-    fontSize: 14,
-    fontFamily: 'Aventra-Regular',
-    marginTop: 5,
     color: '#511496',
   },
   formContainer: {
@@ -171,29 +169,31 @@ const styles = StyleSheet.create({
   },
   forgotPassword: {
     textAlign: 'center',
-    color: '#8f539b',
     marginBottom: 5,
-    textDecorationLine: 'underline',
+    color: '#511496',
   },
   loginButton: {
     padding: 15,
     borderRadius: 20,
     alignItems: 'center',
     marginBottom: 0,
+    color: 'white',
+  },
+  registerLink: {
+    textAlign: 'center',
+    color: '#511496',
+    marginBottom: 10,
+    textDecorationLine: 'underline',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    padding: 10,
   },
   loginButtonText: {
     color: 'white',
     fontSize: 18,
   },
-  registerLink: {
-    textAlign: 'center',
-    color: '#511496',
-    marginBottom: 5,
-    textDecorationLine: 'underline',
-  },
-  forgotPassword: {
-    color: '#511496',
-    textAlign: 'center',
-    textDecorationLine: 'underline',
-  }
+
 });

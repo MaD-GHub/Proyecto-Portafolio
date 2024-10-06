@@ -1,22 +1,43 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useEffect } from "react";
+import * as Font from 'expo-font'; // No olvides importar el módulo de fuentes
+import { Header } from 'react-native/Libraries/NewAppScreen';
 
 export default function StartScreen() {
   const navigation = useNavigation();
+  const [fontsLoaded, setFontsLoaded] = useState(false); // Estado para las fuentes cargadas
+
+  useEffect(() => {
+    const loadFonts = async () => {
+      await Font.loadAsync({
+        "ArchivoBlack-Regular": require('../assets/fonts/ArchivoBlack-Regular.ttf'),
+        "QuattrocentoSans-Bold": require('../assets/fonts/QuattrocentoSans-Bold.ttf'),
+        "QuattrocentoSans-Regular": require('../assets/fonts/QuattrocentoSans-Regular.ttf'),
+        "QuattrocentoSans-Italic": require('../assets/fonts/QuattrocentoSans-Italic.ttf'),
+        "QuattrocentoSans-BoldItalic": require('../assets/fonts/QuattrocentoSans-BoldItalic.ttf'),
+      });
+      setFontsLoaded(true);
+    };
+    loadFonts();
+  }, []);
+
+  if (!fontsLoaded) {
+    return <ActivityIndicator size="large" color="#673072" />;
+  }
 
   return (
+    
     <LinearGradient
-      colors={['#8f539b', '#a972c1']}
+      colors={['#511496', '#885FD8']}
       style={styles.container}
     >
       <Image
-        source={require('../assets/images/Logo_finawise.png')}
+        source={require('../assets/images/Logo_finawise_blanco.png')}
         style={styles.logo}
       />
-      <Text style={{ fontFamily: "ArchivoBlack-Regular", fontSize: 20, color: "black" }}>Bienvenido a Finawise</Text>
+      <Text className="mb-5" style={{ fontFamily: "QuattrocentoSans-Regular", fontSize: 25, color: "white"}}>Bienvenid@!</Text>
 
       <TouchableOpacity
         style={styles.button}
@@ -31,26 +52,14 @@ export default function StartScreen() {
       >
         <Text style={styles.buttonTextOutline}>Crear Cuenta</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles}
+        onPress={() => navigation.navigate('#')}
+      >
+        <Text className="mb-5 top-32 bottom-0"  style={{ fontFamily: "QuattrocentoSans-Bold", fontSize: 18, color: "white", textDecorationLine: 'underline', }}>Terminos y condiciones.</Text>
+      </TouchableOpacity>
     </LinearGradient>
   );
-}
-
-useEffect(() => {
-  const loadFonts = async () => {
-    await Font.loadAsync({
-      "ArchivoBlack-Regular": require("../assets/fonts/ArchivoBlack-Regular.ttf"),
-      "QuattrocentoSans-Bold": require("../assets/fonts/QuattrocentoSans-Bold.ttf"),
-      "QuattrocentoSans-Regular": require("../assets/fonts/QuattrocentoSans-Regular.ttf"),
-      "QuattrocentoSans-Italic": require("../assets/fonts/QuattrocentoSans-Italic.ttf"),
-      "QuattrocentoSans-BoldItalic": require("../assets/fonts/QuattrocentoSans-BoldItalic.ttf"),
-    });
-    setFontsLoaded(true);
-  };
-  loadFonts();
-}, []);
-
-if (!fontsLoaded) {
-  return <ActivityIndicator size="large" color="#673072" />;
 }
 
 const styles = StyleSheet.create({
@@ -59,10 +68,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  header: {
+    backgroundColor: '#8f539b',
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 40,
+    width: 140,
+    height: 124,
+    marginBottom: 180,
   },
   title: {
     fontSize: 26,
@@ -76,6 +91,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 60,
     borderRadius: 30,
     marginBottom: 20,
+    shadowRadius: 80,
+    shadowColor: '#000000',
+    shadowOpacity: 0.2,
+    shadowOffset: 1
   },
   buttonText: {
     color: '#8f539b',
