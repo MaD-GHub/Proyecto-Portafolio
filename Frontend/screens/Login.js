@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { auth } from '../firebase';  // Asegúrate de que la ruta sea correcta
-import { signInWithEmailAndPassword } from 'firebase/auth';  // Importa el método correcto de Firebase
+import { auth } from '../firebase';  
+import { signInWithEmailAndPassword } from 'firebase/auth';  
+import * as Font from 'expo-font';
+import { shadow } from 'react-native-paper';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
 
   // Función para manejar el inicio de sesión
   const handleLogin = async () => {
@@ -17,122 +20,166 @@ export default function LoginScreen({ navigation }) {
     }
     setLoading(true);
     try {
-      // Iniciar sesión con Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      console.log('Usuario autenticado:', user.uid);  // Verificar si el usuario fue autenticado
-
-      // Redirigir a la pantalla Home después de un inicio de sesión exitoso
+      console.log('Usuario autenticado:', user.uid);  
       navigation.navigate('HomeTabs');
     } catch (error) {
-      Alert.alert('Error', error.message);  // Mostrar el mensaje de error si algo falla
+      Alert.alert('Error', error.message);  
     } finally {
       setLoading(false);
     }
   };
 
+  // Cargar las fuentes
+  useEffect(() => {
+    const loadFonts = async () => {
+      await Font.loadAsync({
+        'Aventra-Extrabold': require('../assets/fonts/Fontspring-DEMO-aventra-extrabold.otf'),
+        'Aventra-Regular': require('../assets/fonts/Fontspring-DEMO-aventra-regular.otf'),
+      });
+      setFontsLoaded(true);
+    };
+    loadFonts();
+  }, []);
 
+  if (!fontsLoaded) {
+    return <ActivityIndicator size="large" color="#673072" />;
+  }
 
   return (
-    <LinearGradient colors={['#8f539b', '#d495ed']} style={styles.container}>
-      {/* Botón de regresar */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('StartScreen')}>
-        <Text style={styles.backButtonText}>⬅ Volver</Text>
-      </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Header con degradado y logo */}
+      <LinearGradient
+        colors={['#511496', '#885FD8']}
+        style={styles.header}
+      >
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../assets/images/Logo_finawise_blanco_shadowpurple.png')}
+            style={styles.logo}
+          />
+        </View>
+        {/* Bienvenida y subtítulo */}
+  
+      </LinearGradient>
 
-      {/* Logo */}
-      <Image source={require('../assets/images/Logo_finawise.png')} style={styles.logo} />
+      {/* Formulario de Login */}
+      <View style={styles.formContainer}>
+        <Text className=" pb-5 text-3xl text-center" style={styles.welcomeText}>Bienvenido</Text>
+        <Text className=" pb-1 pt-3 pl-2 text-sm text-left" style={styles.labelCorreo}>Correo electronico</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Correo electronico"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <Text className="text-white" style={styles.title} >Hola</Text>
-      <Text style={styles.subtitle}>Ingresa tus credenciales</Text>
+        <Text className=" pb-1 pt-3 pl-2 text-sm text-left" style={styles.labelCorreo}>Contraseña</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#ddd"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Contraseña"
+          placeholderTextColor="#aaa"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#ddd"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        <TouchableOpacity>
+          <Text style={styles.forgotPassword}>Olvidaste tu Contraseña?</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity>
-        <Text style={styles.forgotPassword}>Forgot your password?</Text>
-      </TouchableOpacity>
+        <TouchableOpacity className="" style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+            <LinearGradient
+              colors={['#511496', '#885FD8']}
+              style={styles.loginButton}>
+      
+            <Text className="px-10 text-white font-bold" style={styles.fuenteAv}>{loading ? 'Cargando...' : 'Iniciar Sesión'}</Text>
+            </LinearGradient>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
-        <Text style={styles.loginButtonText}>{loading ? 'Cargando...' : 'Iniciar Sesión'}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.registerLink}>No tienes una cuenta? Regístrate Ahora</Text>
-      </TouchableOpacity>
-    </LinearGradient>
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.registerLink}>No tienes cuenta? regístrate</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f4f9ff',
+    justifyContent: 'flex-start',
+  },
+  header: {
     justifyContent: 'center',
-    padding: 20,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 18,
+    alignItems: 'center',
+    height: 300,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   logo: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
-    marginBottom: 40,
+    width: 140,
+    height: 140,
   },
-  title: {
+  fuenteAv: {
+    fontFamily: 'Aventra-Regular',
+    fontSize: 14,
+  },
+  welcomeText: {
     fontSize: 36,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 10,
+    fontFamily: 'Aventra-Extrabold',
+    marginTop: 10,
+    color: '#511496',
   },
-  subtitle: {
-    fontSize: 18,
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 30,
+  labelCorreo: {
+    fontFamily: 'Aventra-Regular',
+    color: '#511496',
+  },
+  subText: {
+    fontSize: 14,
+    fontFamily: 'Aventra-Regular',
+    marginTop: 5,
+    color: '#511496',
+  },
+  formContainer: {
+    width: '90%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+    alignSelf: 'center',
+    marginTop: -50, // Ajustado para la superposición con el header
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: '#fff',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 25,
     marginBottom: 20,
-    color: 'white',
+    color: '#333',
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   forgotPassword: {
-    textAlign: 'right',
-    color: 'white',
-    marginBottom: 20,
+    textAlign: 'center',
+    color: '#8f539b',
+    marginBottom: 5,
+    textDecorationLine: 'underline',
   },
   loginButton: {
-    backgroundColor: '#673072',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 20,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 0,
   },
   loginButtonText: {
     color: 'white',
@@ -140,7 +187,13 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     textAlign: 'center',
-    color: 'white',
-    marginTop: 20,
+    color: '#511496',
+    marginBottom: 5,
+    textDecorationLine: 'underline',
   },
+  forgotPassword: {
+    color: '#511496',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  }
 });
