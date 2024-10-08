@@ -17,6 +17,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Font from "expo-font";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from '@react-navigation/native'; // Importa el hook de navegación
 
 // Función para obtener la fecha actual
 const getTodayDate = () => {
@@ -85,23 +86,24 @@ const Timeline = ({ transactions }) => {
                 <Text style={styles.timelineMonth}>{item.month}</Text>
                 <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
               </View>
-            ))}
+            ))} 
           </View>
         </View>
       </ScrollView>
     </View>
   );
-};
+}
 
 export default function HomeScreen({ transactions = [], setTransactions }) {
+  const navigation = useNavigation(); // Usamos el hook para la navegación
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [totalSaved, setTotalSaved] = useState(0); // Saldo inicial en 0
   const [totalIngresos, setTotalIngresos] = useState(0); // Total de ingresos
   const [totalGastos, setTotalGastos] = useState(0); // Total de gastos
-  const [editingTransaction, setEditingTransaction] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editAmount, setEditAmount] = useState("");
-  const [editCategory, setEditCategory] = useState("");
+  const [editingTransaction, setEditingTransaction] = useState(null); // Estado de la transacción que se está editando
+  const [modalVisible, setModalVisible] = useState(false); // Control del modal de edición
+  const [editAmount, setEditAmount] = useState(""); // Monto a editar
+  const [editCategory, setEditCategory] = useState(""); // Categoría a editar
   const [isOpen, setIsOpen] = useState(false); // Controlar si está abierto o cerrado
   const heightAnim = useState(new Animated.Value(0))[0]; // Animación para la altura
 
@@ -163,6 +165,31 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
       duration: 300,
       useNativeDriver: false,
     }).start();
+  };
+
+  // Función para manejar la edición de una transacción
+  const handleEditTransaction = (transaction) => {
+    setEditingTransaction(transaction); // Establece la transacción seleccionada para editar
+    setEditAmount(transaction.amount); // Rellena el modal con la cantidad actual
+    setEditCategory(transaction.category); // Rellena el modal con la categoría actual
+    setModalVisible(true); // Abre el modal de edición
+  };
+
+  // Función para guardar los cambios de la transacción editada
+  const handleSaveEdit = () => {
+    const updatedTransactions = transactions.map((item) =>
+      item.id === editingTransaction.id
+        ? { ...item, amount: editAmount, category: editCategory }
+        : item
+    );
+    setTransactions(updatedTransactions); // Actualiza las transacciones
+    setModalVisible(false); // Cierra el modal de edición
+  };
+
+  // Función para eliminar una transacción
+  const handleDeleteTransaction = (id) => {
+    const updatedTransactions = transactions.filter((item) => item.id !== id);
+    setTransactions(updatedTransactions); // Elimina la transacción y actualiza la lista
   };
 
   if (!fontsLoaded) {
@@ -257,6 +284,63 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
           />
         )}
       </View>
+
+      {/* Modal de edición de transacción */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>Editar Transacción</Text>
+            <TextInput
+              style={styles.input}
+              value={editAmount}
+              onChangeText={setEditAmount}
+              keyboardType="numeric"
+              placeholder="Monto"
+            />
+            <Picker
+              selectedValue={editCategory}
+              style={styles.picker}
+              onValueChange={(itemValue) => setEditCategory(itemValue)}
+            >
+              <Picker.Item label="Seleccione categoría" value="" />
+              {editingTransaction?.type === "Ingreso"
+                ? ingresoCategorias.map((cat) => (
+                    <Picker.Item key={cat} label={cat} value={cat} />
+                  ))
+                : egresoCategorias.map((cat) => (
+                    <Picker.Item key={cat} label={cat} value={cat} />
+                  ))}
+            </Picker>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.smallButtonSave}
+                onPress={handleSaveEdit}
+              >
+                <Text style={styles.buttonText}>Guardar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.smallButtonCancel}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate('ProfileScreen', { totalSaved })}
+      >
+        <Text style={{ color: 'blue', textAlign: 'center', marginTop: 20 }}>
+          Ver Perfil
+        </Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }

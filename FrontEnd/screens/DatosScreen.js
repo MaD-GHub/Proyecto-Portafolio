@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions } from 'react-native'; 
 import { LineChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -17,10 +17,15 @@ const getNextMonths = () => {
   return nextMonths;
 };
 
-export default function DatosScreen({ transactions = [] }) {
+export default function DatosScreen({ route }) {
   const screenWidth = Dimensions.get('window').width;
 
-  // Asegurarse de que transactions está definido
+  // Recibe las transactions desde route.params
+  const transactions = route?.params?.transactions || []; // Manejar el caso en el que route o params es undefined
+
+  console.log('Transactions:', transactions); // Verificar si las transacciones llegan correctamente
+
+  // Asegurarse de que transactions esté definido
   if (!transactions || transactions.length === 0) {
     return (
       <View style={styles.container}>
@@ -43,20 +48,22 @@ export default function DatosScreen({ transactions = [] }) {
     return { month, ingresos, egresos };
   });
 
+  console.log('Filtered Data:', filteredData); // Verificar los datos filtrados para depuración
+
   // Extraemos los ingresos y egresos por separado para el gráfico
   const ingresosData = filteredData.map(data => data.ingresos);
   const egresosData = filteredData.map(data => data.egresos);
 
   const data = {
-    labels: getNextMonths(),
+    labels: getNextMonths(),  // Meses en el eje X
     datasets: [
       {
-        data: ingresosData, // Ingresos para los próximos 8 meses
+        data: ingresosData, // Valores en el eje Y para los ingresos
         color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Color de la línea de ingresos
         strokeWidth: 3, // Ancho de la línea
       },
       {
-        data: egresosData, // Egresos para los próximos 8 meses
+        data: egresosData, // Valores en el eje Y para los egresos
         color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // Color de la línea de egresos
         strokeWidth: 3, // Ancho de la línea
       },
@@ -75,12 +82,13 @@ export default function DatosScreen({ transactions = [] }) {
       <LineChart
         data={data}
         width={screenWidth} // Ancho del gráfico ahora ocupa toda la pantalla
-        height={256} // Altura del gráfico
+        height={300} // Altura del gráfico
+        yAxisLabel="$" // Etiqueta en el eje Y
         chartConfig={{
           backgroundColor: '#1c1c1e',
           backgroundGradientFrom: '#673072',
           backgroundGradientTo: '#885fd8',
-          decimalPlaces: 0, // No mostrar decimales en los ejes
+          decimalPlaces: 2, // Mostrar 2 decimales para las cantidades monetarias
           color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           style: {
