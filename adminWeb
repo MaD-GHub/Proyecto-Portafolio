@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Administrador</title>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Gestión de Base de Datos</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="data-table-body">
+        <!-- Los datos se insertarán aquí -->
+    </tbody>
+</table>
+
+<h2>Agregar Nuevo Registro</h2>
+<input type="text" id="nombre" placeholder="Nombre" />
+<button id="add-button">Agregar</button>
+
+<script>
+    // Configura Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyCOiPa7GEr4t1JcA_mTAV_8DX6dPnAyb8I",
+        authDomain: "fina-wise.firebaseapp.com",
+        projectId: "fina-wise",
+        storageBucket: "fina-wise.appspot.com",
+        messagingSenderId: "634672613413",
+        appId: "1:634672613413:web:5d5612906f7d5fde82d7cc",
+        measurementId: "G-JE76L5DPY1"
+      };
+
+    // Inicializa Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Función para obtener datos
+    function obtenerDatos() {
+        db.collection("tu_coleccion").get().then((querySnapshot) => {
+            const tableBody = document.getElementById('data-table-body');
+            tableBody.innerHTML = ""; // Limpiar la tabla
+
+            querySnapshot.forEach((doc) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${doc.id}</td>
+                    <td>${doc.data().nombre}</td>
+                    <td>
+                        <button onclick="eliminarRegistro('${doc.id}')">Eliminar</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        });
+    }
+
+    // Función para agregar un nuevo registro
+    document.getElementById('add-button').onclick = function() {
+        const nombre = document.getElementById('nombre').value;
+        if (nombre) {
+            db.collection("tu_coleccion").add({ nombre: nombre })
+                .then(() => {
+                    document.getElementById('nombre').value = ""; // Limpiar el input
+                    obtenerDatos(); // Actualizar la tabla
+                })
+                .catch(error => console.error("Error al agregar el documento: ", error));
+        }
+    };
+
+    // Función para eliminar un registro
+    function eliminarRegistro(id) {
+        db.collection("tu_coleccion").doc(id).delete()
+            .then(() => {
+                obtenerDatos(); // Actualizar la tabla
+            })
+            .catch(error => console.error("Error al eliminar el documento: ", error));
+    }
+
+    // Obtener datos al cargar la página
+    window.onload = obtenerDatos;
+</script>
+
+</body>
+</html>
