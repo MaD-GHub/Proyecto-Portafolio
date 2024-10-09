@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuarios - Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <style>
+        /* Fondo en gradiente para el dashboard */
+        .gradient-bg {
+          background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+        }
+    
+        /* Hacer que el sidebar sea fijo y ocupe toda la altura */
+        .sidebar {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 16rem; /* Ancho de la sidebar */
+          height: 100%;
+          background-color: #6b21a8; /* Color de fondo (morado oscuro) */
+        }
+    
+        /* Ajuste del contenido principal */
+        .main-content {
+          margin-left: 16rem; /* Espacio para la sidebar */
+          padding: 2rem; /* Espaciado interno */
+        }
+      </style>
+<aside class="sidebar text-white flex flex-col">
+    <!-- Logo Section -->
+    <div class="p-6 flex items-center justify-center border-b border-purple-700">
+      <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
+    </div>
+
+    <!-- Sidebar Links -->
+    <nav class="flex-grow p-6">
+      <a href="index.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i>Inicio</a>
+      <a href="usuarios.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i>Usuarios</a>
+      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff; "></i>Estadísticas</a>
+      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i>Configuración</a>
+    </nav>
+
+    <!-- Logout -->
+    <div class="p-6">
+      <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300">Cerrar sesión<i class="fa-solid fa-right-from-bracket pl-3"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content p-8">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-700">Progreso de Usuarios</h1>
+    </header>
+
+    <!-- Tabla de Usuarios -->
+    <div class="bg-white p-0 rounded-lg shadow-lg">
+      <table class="min-w-full bg-white rounded-lg shadow-lg">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="py-2 px-4 text-white bg-purple-600 rounded-tl-xl">Usuario</th>
+            <th class="py-2 px-4 text-white bg-purple-500">Progreso (%)</th>
+            <th class="py-2 px-4 text-white bg-purple-600 rounded-tr-xl">Última Actividad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="py-2 px-4 border-b">Juan Pérez</td>
+            <td class="py-2 px-4 border-b">75%</td>
+            <td class="py-2 px-4 border-b">Hace 3 días</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-4 border-b">María García</td>
+            <td class="py-2 px-4 border-b">90%</td>
+            <td class="py-2 px-4 border-b">Hace 2 días</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-4 border-b">Luis López</td>
+            <td class="py-2 px-4 border-b">50%</td>
+            <td class="py-2 px-4 border-b">Hoy</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <style>
+    /* Fondo en gradiente para el dashboard */
+    .gradient-bg {
+      background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+    }
+
+    /* Hacer que el sidebar sea fijo y ocupe toda la altura */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16rem; /* Ancho de la sidebar */
+      height: 100%;
+      background-color: #6b21a8; /* Color de fondo (morado oscuro) */
+    }
+
+    /* Ajuste del contenido principal */
+    .main-content {
+      margin-left: 16rem; /* Espacio para la sidebar */
+      padding: 2rem; /* Espaciado interno */
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <!-- Sidebar -->
+  <aside class="sidebar text-white flex flex-col">
+    <!-- Logo Section -->
+    <div class="p-6 flex items-center justify-center border-b border-purple-700">
+      <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
+    </div>
+
+    <!-- Sidebar Links -->
+    <nav class="flex-grow p-6">
+      <a href="index.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i>Inicio</a>
+      <a href="usuarios.html" class=" block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i>Usuarios</a>
+      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff; "></i>Estadísticas</a>
+      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i>Configuración</a>
+    </nav>
+
+    <!-- Logout -->
+    <div class="p-6">
+      <button class="w-full py-2 bg-red-600 text-white rounded hover:bg-red-300">Cerrar sesión<i class="fa-solid fa-right-from-bracket pl-3"></i></button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-700">Dashboard Administrativo</h1>
+      <button class="py-2 px-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700">Agregar Datos</button>
+    </header>
+
+    <!-- Stats Section (Cuadros Generales) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Card 1: Usuarios Activos -->
+      <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-lg shadow-lg text-white">
+        <h2 class="text-xl font-semibold">Usuarios Activos</h2>
+        <p class="text-4xl font-bold mt-4">1,235</p>
+      </div>
+
+      <!-- Card 2: Ingresos Totales -->
+      <div class="bg-gradient-to-r from-green-500 to-blue-500 p-6 rounded-lg shadow-lg text-white">
+        <h2 class="text-xl font-semibold">Ingresos Totales</h2>
+        <p class="text-4xl font-bold mt-4">$45,230</p>
+      </div>
+
+      <!-- Card 3: Gastos Totales -->
+      <div class="bg-gradient-to-r from-red-500 to-yellow-500 p-6 rounded-lg shadow-lg text-white">
+        <h2 class="text-xl font-semibold">Gastos Totales</h2>
+        <p class="text-4xl font-bold mt-4">$20,000</p>
+      </div>
+
+      <!-- Card 4: Transacciones Hoy -->
+      <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-lg shadow-lg text-white">
+        <h2 class="text-xl font-semibold">Transacciones Hoy</h2>
+        <p class="text-4xl font-bold mt-4">150</p>
+      </div>
+    </div>
+
+    <!-- Gráficos de Ejemplo (Placeholder) -->
+    <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4">Nuevos Usuarios (Últimos 7 días)</h2>
+        <canvas id="newUsersChart"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4">Distribución de Gastos</h2>
+        <canvas id="expensesChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Apartado de Feedback -->
+    <div class="mt-10">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4">Solicitudes y Feedback de Usuarios</h2>
+      <table class="min-w-full bg-white rounded-lg shadow-lg">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="py-2 px-4 text-white bg-purple-600 rounded-tl-xl">Usuario</th>
+            <th class="py-2 px-4 text-white bg-purple-500">Tipo de Solicitud</th>
+            <th class="py-2 px-4 text-white bg-purple-600">Descripción</th>
+            <th class="py-2 px-4 text-white bg-purple-500 rounded-tr-xl">Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="py-2 px-4 border-b">Juan Pérez</td>
+            <td class="py-2 px-4 border-b">Nueva Categoría</td>
+            <td class="py-2 px-4 border-b">Solicito añadir una categoría para "Inversiones a Largo Plazo".</td>
+            <td class="py-2 px-4 border-b">2023-10-08</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-4 border-b">María García</td>
+            <td class="py-2 px-4 border-b">Error en Transacción</td>
+            <td class="py-2 px-4 border-b">No puedo agregar gastos a partir del mes pasado.</td>
+            <td class="py-2 px-4 border-b">2023-10-07</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-4 border-b">Luis López</td>
+            <td class="py-2 px-4 border-b">Mejora de Interfaz</td>
+            <td class="py-2 px-4 border-b">Sería útil tener un gráfico interactivo de gastos mensuales.</td>
+            <td class="py-2 px-4 border-b">2023-10-06</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // Placeholder data for charts
+    const ctx1 = document.getElementById('newUsersChart').getContext('2d');
+    new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        datasets: [{
+          label: 'Nuevos Usuarios',
+          data: [12, 19, 10, 5, 6, 8, 15],
+          borderColor: 'rgb(75, 192, 192)',
+          tension: 0.1
+        }]
+      }
+    });
+
+    const ctx2 = document.getElementById('expensesChart').getContext('2d');
+    new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: ['Comida', 'Transporte', 'Servicios', 'Entretenimiento'],
+        datasets: [{
+          data: [30, 20, 25, 25],
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+        }]
+      }
+    });
+  </script>
+</body>
+</html>
