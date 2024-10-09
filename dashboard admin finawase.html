@@ -1,0 +1,234 @@
+<html><head><base href="https://finawase.app/admin-dashboard/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinaWase - Dashboard de Administración</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<style>
+  .dashboard-card {
+    transition: all 0.3s ease;
+  }
+  .dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+</style>
+</head>
+<body class="bg-gray-100">
+  <nav class="bg-blue-600 p-4 text-white">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold">FinaWase - Dashboard de Administración</h1>
+      <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <main class="container mx-auto mt-8 p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="dashboard-card bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-2">Usuarios Totales</h2>
+        <p id="totalUsers" class="text-3xl font-bold text-blue-600">-</p>
+      </div>
+      <div class="dashboard-card bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-2">Transacciones Hoy</h2>
+        <p id="todayTransactions" class="text-3xl font-bold text-green-600">-</p>
+      </div>
+      <div class="dashboard-card bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-2">Ingresos Totales</h2>
+        <p id="totalIncome" class="text-3xl font-bold text-purple-600">-</p>
+      </div>
+      <div class="dashboard-card bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-2">Gastos Totales</h2>
+        <p id="totalExpenses" class="text-3xl font-bold text-red-600">-</p>
+      </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Nuevos Usuarios (Últimos 7 días)</h2>
+        <canvas id="newUsersChart"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Distribución de Gastos</h2>
+        <canvas id="expensesDistributionChart"></canvas>
+      </div>
+    </div>
+
+    <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4">Últimas Transacciones</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+          <thead>
+            <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <th class="py-3 px-6 text-left">Usuario</th>
+              <th class="py-3 px-6 text-left">Tipo</th>
+              <th class="py-3 px-6 text-left">Categoría</th>
+              <th class="py-3 px-6 text-left">Monto</th>
+              <th class="py-3 px-6 text-left">Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTable" class="text-gray-600 text-sm font-light">
+            <!-- Las filas de transacciones se agregarán aquí dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Configuración de Firebase (reemplaza con tus propias credenciales)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Función para obtener datos del dashboard
+    async function getDashboardData() {
+      try {
+        const usersSnapshot = await db.collection('users').get();
+        const transactionsSnapshot = await db.collection('transactions').get();
+
+        const totalUsers = usersSnapshot.size;
+        let todayTransactions = 0;
+        let totalIncome = 0;
+        let totalExpenses = 0;
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        transactionsSnapshot.forEach(doc => {
+          const transaction = doc.data();
+          const transactionDate = transaction.date.toDate();
+
+          if (transactionDate >= today) {
+            todayTransactions++;
+          }
+
+          if (transaction.type === 'income') {
+            totalIncome += transaction.amount;
+          } else {
+            totalExpenses += transaction.amount;
+          }
+        });
+
+        document.getElementById('totalUsers').textContent = totalUsers;
+        document.getElementById('todayTransactions').textContent = todayTransactions;
+        document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+        document.getElementById('totalExpenses').textContent = `$${totalExpenses.toFixed(2)}`;
+
+        // Aquí puedes llamar a funciones para actualizar los gráficos y la tabla de transacciones
+        updateNewUsersChart();
+        updateExpensesDistributionChart();
+        updateTransactionsTable();
+      } catch (error) {
+        console.error("Error al obtener datos del dashboard:", error);
+      }
+    }
+
+    // Función para actualizar el gráfico de nuevos usuarios
+    function updateNewUsersChart() {
+      const ctx = document.getElementById('newUsersChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+          datasets: [{
+            label: 'Nuevos Usuarios',
+            data: [12, 19, 3, 5, 2, 3, 7],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Función para actualizar el gráfico de distribución de gastos
+    function updateExpensesDistributionChart() {
+      const ctx = document.getElementById('expensesDistributionChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Comida', 'Transporte', 'Entretenimiento', 'Servicios', 'Otros'],
+          datasets: [{
+            data: [30, 20, 15, 25, 10],
+            backgroundColor: [
+              'rgb(255, 99, 132)',
+              'rgb(54, 162, 235)',
+              'rgb(255, 206, 86)',
+              'rgb(75, 192, 192)',
+              'rgb(153, 102, 255)'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: true,
+              text: 'Distribución de Gastos'
+            }
+          }
+        }
+      });
+    }
+
+    // Función para actualizar la tabla de transacciones
+    function updateTransactionsTable() {
+      const transactionsTable = document.getElementById('transactionsTable');
+      // Aquí deberías obtener las últimas transacciones de Firebase y agregarlas a la tabla
+      // Este es un ejemplo estático:
+      const transactions = [
+        { user: 'usuario1@example.com', type: 'Ingreso', category: 'Salario', amount: 1000, date: '2023-04-15' },
+        { user: 'usuario2@example.com', type: 'Gasto', category: 'Comida', amount: 50, date: '2023-04-14' },
+        { user: 'usuario3@example.com', type: 'Gasto', category: 'Transporte', amount: 30, date: '2023-04-13' }
+      ];
+
+      transactions.forEach(transaction => {
+        const row = `
+          <tr class="border-b border-gray-200 hover:bg-gray-100">
+            <td class="py-3 px-6 text-left whitespace-nowrap">${transaction.user}</td>
+            <td class="py-3 px-6 text-left">${transaction.type}</td>
+            <td class="py-3 px-6 text-left">${transaction.category}</td>
+            <td class="py-3 px-6 text-left">$${transaction.amount.toFixed(2)}</td>
+            <td class="py-3 px-6 text-left">${transaction.date}</td>
+          </tr>
+        `;
+        transactionsTable.innerHTML += row;
+      });
+    }
+
+    // Evento de cierre de sesión
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      firebase.auth().signOut().then(() => {
+        window.location.href = '/login';
+      }).catch((error) => {
+        console.error("Error al cerrar sesión:", error);
+      });
+    });
+
+    // Cargar datos del dashboard al cargar la página
+    document.addEventListener('DOMContentLoaded', getDashboardData);
+  </script>
+</body>
+</html>
