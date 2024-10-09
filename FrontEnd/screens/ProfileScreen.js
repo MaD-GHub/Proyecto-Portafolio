@@ -14,15 +14,15 @@ const ProfileScreen = ({ route }) => {
   // Estado para almacenar datos del usuario
   const [userName, setUserName] = useState('');
   const [firstLastName, setFirstLastName] = useState('');
-  const [secondLastName, setSecondLastName] = useState('');
-  const [phone, setPhone] = useState('Sin teléfono');
+  const [salary, setSalary] = useState(''); // Para cambiar el sueldo del usuario
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('********'); // No se obtiene directamente de Firebase
+  const [password, setPassword] = useState(''); // Estado para almacenar la contraseña actual ingresada
   const [isLoading, setIsLoading] = useState(true);
 
   // Nuevos estados para almacenar las actualizaciones de seguridad
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState(''); // Contraseña actual para reautenticación
 
   const [modalVisible, setModalVisible] = useState(false);
   const [securityModalVisible, setSecurityModalVisible] = useState(false);
@@ -40,8 +40,8 @@ const ProfileScreen = ({ route }) => {
             const userData = userDoc.data();
             setUserName(userData.firstName);
             setFirstLastName(userData.lastName);
+            setSalary(userData.salary || ''); // Seteamos el salario
             setEmail(user.email);
-            setPhone(userData.phone || 'Sin teléfono');
             setNewEmail(user.email); // Inicializamos el nuevo correo con el actual
             setNewPassword(''); // Inicializamos la nueva contraseña en blanco
           }
@@ -97,18 +97,20 @@ const ProfileScreen = ({ route }) => {
   // Función para reautenticar al usuario
   const reauthenticate = async () => {
     const user = auth.currentUser;
-    if (user && password) {
-      const credential = EmailAuthProvider.credential(user.email, password);
+    if (user && currentPassword) {
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
       try {
         await reauthenticateWithCredential(user, credential);
         return true;
       } catch (error) {
         console.error('Error en la reautenticación:', error);
-        Alert.alert('Error', 'Hubo un problema con la reautenticación. Por favor, inténtalo nuevamente.');
+        Alert.alert('Error', 'Contraseña actual incorrecta. Por favor, inténtalo nuevamente.');
         return false;
       }
+    } else {
+      Alert.alert('Error', 'Por favor, ingresa tu contraseña actual para cambiar la información de seguridad.');
+      return false;
     }
-    return false;
   };
 
   // Función para actualizar la seguridad del usuario (correo y contraseña)
@@ -136,6 +138,25 @@ const ProfileScreen = ({ route }) => {
     } catch (error) {
       console.error('Error al actualizar la seguridad:', error);
       Alert.alert('Error', `Error al actualizar la seguridad: ${error.message}`);
+    }
+  };
+
+  // Función para actualizar la información personal del usuario (nombre, apellido y salario)
+  const handleSave = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        await updateDoc(doc(db, 'users', user.uid), {
+          firstName: userName,
+          lastName: firstLastName,
+          salary: salary, // Guardamos el salario actualizado
+        });
+        Alert.alert('Éxito', 'La información personal ha sido actualizada correctamente.');
+        closeModal();
+      }
+    } catch (error) {
+      console.error('Error al actualizar la información personal:', error);
+      Alert.alert('Error', `Error al actualizar la información personal: ${error.message}`);
     }
   };
 
@@ -168,7 +189,7 @@ const ProfileScreen = ({ route }) => {
           style={styles.profileImage}
         />
         <View style={styles.profileTextContainer}>
-          <Text style={styles.profileName}>{userName} {firstLastName} {secondLastName}</Text>
+          <Text style={styles.profileName}>{userName} {firstLastName}</Text>
         </View>
       </View>
 
@@ -216,23 +237,27 @@ const ProfileScreen = ({ route }) => {
           {modalVisible && (
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Editar Información Personal</Text>
+              <Text style={styles.inputLabel}>Nombre</Text>
               <TextInput
                 value={userName}
                 onChangeText={setUserName}
                 style={styles.input}
                 placeholder="Escribe tu nuevo nombre"
               />
+              <Text style={styles.inputLabel}>Apellido</Text>
               <TextInput
                 value={firstLastName}
                 onChangeText={setFirstLastName}
                 style={styles.input}
-                placeholder="Escribe tu primer apellido"
+                placeholder="Escribe tu apellido"
               />
+              <Text style={styles.inputLabel}>Sueldo</Text>
               <TextInput
-                value={secondLastName}
-                onChangeText={setSecondLastName}
+                value={salary}
+                onChangeText={setSalary}
                 style={styles.input}
-                placeholder="Escribe tu segundo apellido"
+                placeholder="Cambia tu sueldo"
+                keyboardType="numeric"
               />
               <View style={styles.modalButtons}>
                 <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -251,16 +276,24 @@ const ProfileScreen = ({ route }) => {
                 style={styles.securityHeader} // Aplicar estilo a la sección de seguridad
               >
                 <Text style={styles.securityHeaderText}>Seguridad del usuario</Text>
-                <Text style={styles.securityDataText}>Correo: {email}</Text>
-                <Text style={styles.securityDataText}>Teléfono: {phone}</Text>
-                <Text style={styles.securityDataText}>Contraseña: {password}</Text>
+                <Text style={styles.securityDataText}>Correo actual: {email}</Text>
               </LinearGradient>
+              <Text style={styles.inputLabel}>Contraseña actual</Text>
+              <TextInput
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                style={styles.input}
+                secureTextEntry
+                placeholder="Ingresa tu contraseña actual"
+              />
+              <Text style={styles.inputLabel}>Nuevo correo</Text>
               <TextInput
                 value={newEmail}
                 onChangeText={setNewEmail}
                 style={styles.input}
                 placeholder="Cambia tu correo"
               />
+              <Text style={styles.inputLabel}>Nueva contraseña</Text>
               <TextInput
                 value={newPassword}
                 onChangeText={setNewPassword}
@@ -383,6 +416,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  inputLabel: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+    alignSelf: 'flex-start',
   },
   input: {
     borderWidth: 1,
