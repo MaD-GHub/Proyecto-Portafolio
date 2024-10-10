@@ -11,7 +11,7 @@ import DatosScreen from './screens/DatosScreen';
 import StartScreen from './screens/StartScreen';
 import LoginScreen from './screens/Login';
 import RegisterScreen from './screens/Register';
-import ProfileScreen from './screens/ProfileScreen'; // Asegúrate de importar ProfileScreen
+import ProfileScreen from './screens/ProfileScreen';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
@@ -57,6 +57,11 @@ function CustomTabBarButton({ children, onPress }) {
   );
 }
 
+// Componente vacío para la pantalla "Agregar"
+function EmptyComponent() {
+  return <View />;
+}
+
 // Pantalla de Tabs (barra flotante)
 function HomeTabs({ openModal, transactions, setTransactions }) {
   return (
@@ -64,6 +69,7 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
+
           if (route.name === 'Inicio') {
             iconName = focused ? 'home' : 'home-outline';
             return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
@@ -105,7 +111,7 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
       <Tab.Screen name="Ahorro" component={AhorroScreen} options={{ headerShown: false }} />
       <Tab.Screen
         name="Agregar"
-        component={() => <View />}  // Renderizar un componente vacío pero sin null
+        component={EmptyComponent} // Usa el componente vacío en lugar de una función en línea
         options={{
           tabBarIcon: ({ focused }) => (
             <Text style={{ color: 'white', fontSize: 28 }}>+</Text>
@@ -135,6 +141,7 @@ export default function App() {
   const [transactions, setTransactions] = React.useState([]);
   const slideAnim = React.useRef(new Animated.Value(600)).current;
 
+  // Estado para verificar si el usuario está autenticado y cargando
   const [user, setUser] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -161,14 +168,15 @@ export default function App() {
   };
 
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false);
+    setShowDatePicker(false); // Ocultar el picker después de seleccionar la fecha
     if (selectedDate) {
-      setDate(selectedDate);
+      setDate(selectedDate); // Actualizar la fecha seleccionada
     }
   };
 
   const handleAddTransaction = () => {
     const parsedAmount = parseFloat(amount);
+
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert('Por favor ingrese un monto válido.');
       return;
@@ -183,13 +191,13 @@ export default function App() {
       type: transactionType,
       amount: parsedAmount,
       category,
-      date: date.toLocaleDateString(),
+      date: date.toLocaleDateString(), 
     };
 
     setTransactions([...transactions, newTransaction]);
     setAmount('');
     setCategory('');
-    setDate(new Date());
+    setDate(new Date()); 
     closeModal();
   };
 
@@ -200,7 +208,7 @@ export default function App() {
       } else {
         setUser(null);
       }
-      setLoading(false);
+      setLoading(false); 
     });
 
     return () => unsubscribe();
@@ -264,7 +272,10 @@ export default function App() {
                 placeholder="Ingrese monto"
                 keyboardType="numeric"
                 value={amount}
-                onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ''))}
+                onChangeText={(text) => {
+                  const numericValue = text.replace(/[^0-9]/g, '');
+                  setAmount(numericValue);
+                }}
                 style={styles.inputBox}
               />
 
@@ -277,8 +288,12 @@ export default function App() {
                 >
                   <Picker.Item label="Seleccione categoría" value="" />
                   {transactionType === 'Ingreso'
-                    ? ingresoCategorias.map((cat, index) => <Picker.Item key={index} label={cat} value={cat} />)
-                    : egresoCategorias.map((cat, index) => <Picker.Item key={index} label={cat} value={cat} />)}
+                    ? ingresoCategorias.map((cat, index) => (
+                        <Picker.Item key={index} label={cat} value={cat} />
+                      ))
+                    : egresoCategorias.map((cat, index) => (
+                        <Picker.Item key={index} label={cat} value={cat} />
+                      ))}
                 </Picker>
               </View>
 
