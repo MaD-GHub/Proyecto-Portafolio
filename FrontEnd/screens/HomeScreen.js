@@ -23,7 +23,7 @@ import { useNavigation } from '@react-navigation/native'; // Importa el hook de 
 const getTodayDate = () => {
   const today = new Date();
   const dd = String(today.getDate()).padStart(2, "0");
-  const mm = String(today.getMonth() + 1).padStart(2, "0"); // Enero es 0
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
   const yyyy = today.getFullYear();
   return `${dd}/${mm}/${yyyy}`;
 };
@@ -41,7 +41,7 @@ const Timeline = ({ transactions }) => {
   }, [transactions]);
 
   const calculateProjection = () => {
-    const projectionMonths = 6; // Proyección a 6 meses
+    const projectionMonths = 6;
     let currentBalance = transactions.reduce((acc, transaction) => {
       const amount = parseFloat(transaction.amount);
       return transaction.type === "Ingreso" ? acc + amount : acc - amount;
@@ -55,7 +55,7 @@ const Timeline = ({ transactions }) => {
       .filter((t) => t.type === "Egreso")
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
-    const currentMonth = new Date().getMonth(); // Mes actual (0 = Enero)
+    const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const projectionData = [];
 
@@ -63,10 +63,10 @@ const Timeline = ({ transactions }) => {
       if (i !== 0) {
         currentBalance += monthlyIncome - monthlyExpense;
       }
-      const projectedMonth = (currentMonth + i) % 12; // Cicla entre los meses del año
+      const projectedMonth = (currentMonth + i) % 12;
       const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
       projectionData.push({
-        month: `${months[projectedMonth]} ${projectedYear}`, // Muestra el nombre del mes y el año
+        month: `${months[projectedMonth]} ${projectedYear}`,
         balance: currentBalance,
       });
     }
@@ -95,17 +95,18 @@ const Timeline = ({ transactions }) => {
 }
 
 export default function HomeScreen({ transactions = [], setTransactions }) {
-  const navigation = useNavigation(); // Usamos el hook para la navegación
+  const navigation = useNavigation();
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [totalSaved, setTotalSaved] = useState(0); // Saldo inicial en 0
-  const [totalIngresos, setTotalIngresos] = useState(0); // Total de ingresos
-  const [totalGastos, setTotalGastos] = useState(0); // Total de gastos
-  const [editingTransaction, setEditingTransaction] = useState(null); // Estado de la transacción que se está editando
-  const [modalVisible, setModalVisible] = useState(false); // Control del modal de edición
-  const [editAmount, setEditAmount] = useState(""); // Monto a editar
-  const [editCategory, setEditCategory] = useState(""); // Categoría a editar
-  const [isOpen, setIsOpen] = useState(false); // Controlar si está abierto o cerrado
-  const heightAnim = useState(new Animated.Value(0))[0]; // Animación para la altura
+  const [totalSaved, setTotalSaved] = useState(0);
+  const [totalIngresos, setTotalIngresos] = useState(0);
+  const [totalGastos, setTotalGastos] = useState(0);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const heightAnim = useState(new Animated.Value(0))[0];
+  const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   const ingresoCategorias = ["Salario", "Venta de producto"];
   const egresoCategorias = [
@@ -150,9 +151,9 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
 
       setTotalIngresos(ingresos);
       setTotalGastos(gastos);
-      setTotalSaved(ingresos - gastos); // Calcula el saldo total
+      setTotalSaved(ingresos - gastos);
     } else {
-      setTotalSaved(0); // Reinicia el saldo si no hay transacciones
+      setTotalSaved(0);
       setTotalIngresos(0);
       setTotalGastos(0);
     }
@@ -161,35 +162,36 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
   const toggleLabel = () => {
     setIsOpen(!isOpen);
     Animated.timing(heightAnim, {
-      toValue: isOpen ? 0 : 100, // Abrir o cerrar el label
+      toValue: isOpen ? 0 : 100,
       duration: 300,
       useNativeDriver: false,
     }).start();
   };
 
-  // Función para manejar la edición de una transacción
-  const handleEditTransaction = (transaction) => {
-    setEditingTransaction(transaction); // Establece la transacción seleccionada para editar
-    setEditAmount(transaction.amount); // Rellena el modal con la cantidad actual
-    setEditCategory(transaction.category); // Rellena el modal con la categoría actual
-    setModalVisible(true); // Abre el modal de edición
+  const toggleNotifications = () => {
+    setNotificationsVisible(!notificationsVisible);
   };
 
-  // Función para guardar los cambios de la transacción editada
+  const handleEditTransaction = (transaction) => {
+    setEditingTransaction(transaction);
+    setEditAmount(transaction.amount);
+    setEditCategory(transaction.category);
+    setModalVisible(true);
+  };
+
   const handleSaveEdit = () => {
     const updatedTransactions = transactions.map((item) =>
       item.id === editingTransaction.id
         ? { ...item, amount: editAmount, category: editCategory }
         : item
     );
-    setTransactions(updatedTransactions); // Actualiza las transacciones
-    setModalVisible(false); // Cierra el modal de edición
+    setTransactions(updatedTransactions);
+    setModalVisible(false);
   };
 
-  // Función para eliminar una transacción
   const handleDeleteTransaction = (id) => {
     const updatedTransactions = transactions.filter((item) => item.id !== id);
-    setTransactions(updatedTransactions); // Elimina la transacción y actualiza la lista
+    setTransactions(updatedTransactions);
   };
 
   if (!fontsLoaded) {
@@ -203,15 +205,23 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
         style={styles.balanceContainer}
       >
         <View style={styles.headerContent}>
-          <Image
-            source={{ uri: "https://example.com/user-profile-pic.png" }} // Aquí debes colocar la URL de la foto de perfil
-            style={styles.profileImage}
-          />
+          <TouchableOpacity onPress={() => navigation.navigate("ProfileScreen")}>
+            <MaterialCommunityIcons name="account" size={35} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleNotifications} style={styles.bellIconContainer}>
+            <MaterialCommunityIcons name="bell" size={35} color="white" />
+          </TouchableOpacity>
         </View>
+
+        {notificationsVisible && (
+          <View style={styles.notificationsLabel}>
+            <Text style={styles.notificationsText}>No hay notificaciones por ahora</Text>
+          </View>
+        )}
+
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
         <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
 
-        {/* Flecha con animación */}
         <TouchableOpacity onPress={toggleLabel} style={styles.chevronContainer}>
           <View style={styles.chevronLine} />
           <MaterialCommunityIcons
@@ -223,7 +233,6 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
           <View style={styles.chevronLine} />
         </TouchableOpacity>
 
-        {/* Label con animación */}
         <Animated.View style={[styles.labelContainer, { height: heightAnim }]}>
           <LinearGradient
             colors={["#cb70e1", "#885fd8"]}
@@ -243,10 +252,8 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
         </Animated.View>
       </LinearGradient>
 
-      {/* Línea de tiempo de proyección */}
       <Timeline transactions={transactions} />
 
-      {/* Historial de Ingresos y Egresos */}
       <View style={styles.transactionContainer}>
         <Text style={styles.timelineTitle}>Historial Ingresos y Gastos</Text>
         {transactions && transactions.length === 0 ? (
@@ -285,7 +292,6 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
         )}
       </View>
 
-      {/* Modal de edición de transacción */}
       <Modal
         visible={modalVisible}
         transparent={true}
@@ -333,14 +339,6 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
           </View>
         </View>
       </Modal>
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate('ProfileScreen', { totalSaved })}
-      >
-        <Text style={{ color: 'blue', textAlign: 'center', marginTop: 20 }}>
-          Ver Perfil
-        </Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -365,22 +363,37 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
   },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    position: "absolute",
-    top: 10,
-    left: 10,
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingTop: 40,
+    paddingHorizontal: 20,
+  },
+  bellIconContainer: {
+    position: "relative",
+  },
+  notificationsLabel: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 5,
+    marginBottom: 10,
+    width: '80%',
+    alignSelf: 'center',
+  },
+  notificationsText: {
+    color: '#333',
+    textAlign: 'center',
   },
   balanceAmount: {
     fontFamily: "ArchivoBlack-Regular",
     fontSize: 36,
     color: "white",
-    marginTop: 35, // Bajado un poco más para dejar espacio a la imagen de perfil
+    marginTop: 20,
   },
   balanceDate: {
-    fontFamily: "QuattrocentoSans-Bold", // Cambiado a negrita
+    fontFamily: "QuattrocentoSans-Bold",
     fontSize: 16,
     color: "white",
     marginTop: 5,
@@ -400,14 +413,14 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     overflow: "hidden",
-    borderRadius: 10, // Bordes más redondeados
+    borderRadius: 10,
     marginTop: 10,
     alignItems: "center",
   },
   labelGradient: {
     width: "100%",
     padding: 10,
-    borderRadius: 10, // Bordes más redondeados
+    borderRadius: 10,
   },
   labelContent: {
     flexDirection: "row",
@@ -426,7 +439,7 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontFamily: "ArchivoBlack-Regular",
     fontSize: 24,
-    color: "white", // Números en blanco
+    color: "white",
   },
   timelineContainer: {
     backgroundColor: "#FFFFFF",
@@ -469,7 +482,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   timelineMonth: {
-    fontFamily: "QuattrocentoSans-Bold", // Cambiado a negrita
+    fontFamily: "QuattrocentoSans-Bold",
     fontSize: 14,
     color: "#673072",
   },

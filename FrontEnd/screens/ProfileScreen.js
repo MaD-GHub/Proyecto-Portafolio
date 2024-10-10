@@ -182,6 +182,11 @@ const ProfileScreen = ({ route }) => {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Botón de retroceso */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <MaterialCommunityIcons name="arrow-left" size={30} color="white" />
+      </TouchableOpacity>
+
       {/* Profile Info */}
       <View style={styles.profileSection}>
         <Image
@@ -327,6 +332,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
+  },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -338,9 +349,10 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
+    marginLeft: 30, // Ajuste de margen para mover la imagen más a la derecha
   },
   profileTextContainer: {
-    marginLeft: 20,
+    marginLeft: 30, // Ajuste de margen para mover el nombre más a la derecha
   },
   profileName: {
     color: 'white',
