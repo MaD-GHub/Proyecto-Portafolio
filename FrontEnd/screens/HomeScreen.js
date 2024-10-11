@@ -1,572 +1,324 @@
-// HomeScreen.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
+  StyleSheet,
   FlatList,
   ActivityIndicator,
-  Modal,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Animated,
-} from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Font from "expo-font";
-import { Picker } from "@react-native-picker/picker";
-import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from '@react-navigation/native'; // Importa el hook de navegación
+  ImageBackground,
+  Dimensions,
+  SafeAreaView,
+} from 'react-native';
+import * as Font from 'expo-font';
+import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient'; // Importar LinearGradient
 
-// Función para obtener la fecha actual
-const getTodayDate = () => {
-  const today = new Date();
-  const dd = String(today.getDate()).padStart(2, "0");
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const yyyy = today.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-};
+const { width } = Dimensions.get('window');
+const NoHayNoticiaImage = require('../assets/Nonoticia.png');
 
-// Componente para la línea de tiempo (proyección financiera)
-const Timeline = ({ transactions }) => {
-  const [projection, setProjection] = useState([]);
-  const months = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
-
-  useEffect(() => {
-    calculateProjection();
-  }, [transactions]);
-
-  const calculateProjection = () => {
-    const projectionMonths = 6;
-    let currentBalance = transactions.reduce((acc, transaction) => {
-      const amount = parseFloat(transaction.amount);
-      return transaction.type === "Ingreso" ? acc + amount : acc - amount;
-    }, 0);
-
-    const monthlyIncome = transactions
-      .filter((t) => t.type === "Ingreso")
-      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
-
-    const monthlyExpense = transactions
-      .filter((t) => t.type === "Egreso")
-      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
-
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const projectionData = [];
-
-    for (let i = 0; i < projectionMonths; i++) {
-      if (i !== 0) {
-        currentBalance += monthlyIncome - monthlyExpense;
-      }
-      const projectedMonth = (currentMonth + i) % 12;
-      const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
-      projectionData.push({
-        month: `${months[projectedMonth]} ${projectedYear}`,
-        balance: currentBalance,
-      });
-    }
-    setProjection(projectionData);
-  };
-
-  return (
-    <View style={styles.timelineContainer}>
-      <Text style={styles.timelineTitle}>Proyección Financiera</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.timeline}>
-          <View style={styles.timelineLine} />
-          <View style={styles.timelineMonths}>
-            {projection.map((item, index) => (
-              <View key={index} style={styles.timelineItem}>
-                <View style={styles.timelineVerticalLine} />
-                <Text style={styles.timelineMonth}>{item.month}</Text>
-                <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </ScrollView>
-    </View>
-  );
-};
-
-export default function HomeScreen({ transactions = [], setTransactions }) {
-  const navigation = useNavigation(); // Inicializa el hook de navegación
+const ActualidadScreen = () => {
+  const [selectedTab, setSelectedTab] = useState('Valor Mercado');
+  const [loading, setLoading] = useState(false);
+  const [marketData, setMarketData] = useState([]);
+  const [newsData, setNewsData] = useState([]);
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [totalSaved, setTotalSaved] = useState(0);
-  const [totalIngresos, setTotalIngresos] = useState(0);
-  const [totalGastos, setTotalGastos] = useState(0);
-  const [editingTransaction, setEditingTransaction] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editAmount, setEditAmount] = useState("");
-  const [editCategory, setEditCategory] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const heightAnim = useState(new Animated.Value(0))[0];
-  const [notificationsVisible, setNotificationsVisible] = useState(false);
 
-  const ingresoCategorias = ["Salario", "Venta de producto"];
-  const egresoCategorias = [
-    "Comida y Bebidas",
-    "Vestuario",
-    "Alojamiento",
-    "Salud",
-    "Transporte",
-    "Educación",
-  ];
-
+  // Cargar fuentes personalizadas
   useEffect(() => {
     const loadFonts = async () => {
       await Font.loadAsync({
-        "ArchivoBlack-Regular": require("../assets/fonts/ArchivoBlack-Regular.ttf"),
-        "QuattrocentoSans-Bold": require("../assets/fonts/QuattrocentoSans-Bold.ttf"),
-        "QuattrocentoSans-Regular": require("../assets/fonts/QuattrocentoSans-Regular.ttf"),
-        "QuattrocentoSans-Italic": require("../assets/fonts/QuattrocentoSans-Italic.ttf"),
-        "QuattrocentoSans-BoldItalic": require("../assets/fonts/QuattrocentoSans-BoldItalic.ttf"),
+        'Inter-Bold': require('../assets/fonts/Inter-VariableFont_opsz,wght.ttf'),
+        'Inter-Regular': require('../assets/fonts/Inter-VariableFont_opsz,wght.ttf'),
+        'Inter-Light': require('../assets/fonts/Inter-VariableFont_opsz,wght.ttf'),
       });
       setFontsLoaded(true);
     };
+
     loadFonts();
   }, []);
 
   useEffect(() => {
-    if (transactions.length > 0) {
-      console.log("Transactions updated:", transactions);
+    if (selectedTab === 'Valor Mercado') {
+      fetchMarketData();
+    } else if (selectedTab === 'Noticias') {
+      fetchNews();
     }
-    calculateTotalSaved();
-  }, [transactions]);
+  }, [selectedTab]);
 
-  const calculateTotalSaved = () => {
-    if (transactions && transactions.length > 0) {
-      const ingresos = transactions
-        .filter((transaction) => transaction.type === "Ingreso")
-        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
-
-      const gastos = transactions
-        .filter((transaction) => transaction.type === "Egreso")
-        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
-
-      setTotalIngresos(ingresos);
-      setTotalGastos(gastos);
-      setTotalSaved(ingresos - gastos);
-    } else {
-      setTotalSaved(0);
-      setTotalIngresos(0);
-      setTotalGastos(0);
+  const fetchMarketData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('https://mindicador.cl/api');
+      const data = await response.json();
+      setMarketData([
+        { name: 'UF', value: data.uf.valor, date: data.uf.fecha },
+        { name: 'Dólar', value: data.dolar.valor, date: data.dolar.fecha },
+        { name: 'Euro', value: data.euro.valor, date: data.euro.fecha },
+        { name: 'Bitcoin', value: data.bitcoin.valor, date: data.bitcoin.fecha },
+      ]);
+    } catch (error) {
+      console.error('Error fetching market data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const toggleLabel = () => {
-    setIsOpen(!isOpen);
-    Animated.timing(heightAnim, {
-      toValue: isOpen ? 0 : 100,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
-
-  const toggleNotifications = () => {
-    setNotificationsVisible(!notificationsVisible);
-  };
-
-  const handleEditTransaction = (transaction) => {
-    setEditingTransaction(transaction);
-    setEditAmount(transaction.amount.toString());
-    setEditCategory(transaction.category);
-    setModalVisible(true);
-  };
-
-  const handleSaveEdit = () => {
-    const updatedTransactions = transactions.map((item) =>
-      item.id === editingTransaction.id
-        ? { ...item, amount: parseFloat(editAmount), category: editCategory }
-        : item
-    );
-    setTransactions(updatedTransactions);
-    setModalVisible(false);
-  };
-
-  const handleDeleteTransaction = (id) => {
-    const updatedTransactions = transactions.filter((item) => item.id !== id);
-    setTransactions(updatedTransactions);
+  const fetchNews = async () => {
+    setLoading(true);
+    try {
+      const apiKey = 'pub_558981038471f3f656bfac49834a162deb6af';
+      const response = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&country=cl&category=business,technology`);
+      const data = await response.json();
+      setNewsData(data.results);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color="#673072" />;
+    return <ActivityIndicator size="large" color="#511496" />;
   }
+
+  // Renderiza los datos del mercado con gradiente
+  const renderMarketItem = ({ item }) => (
+    <LinearGradient colors={["#511496", "#885fd8"]} style={styles.marketCard}>
+      <FontAwesome5 name="money-bill-wave" size={24} color="#fff" />
+      <Text style={styles.marketName}>{item.name}</Text>
+      <Text style={styles.marketValue}>${item.value.toFixed(2)}</Text>
+      <Text style={styles.marketDate}>Fecha: {new Date(item.date).toLocaleDateString()}</Text>
+    </LinearGradient>
+  );
+
+  // Renderiza cada noticia
+  const renderNewsItem = ({ item }) => {
+    const imageUrl = typeof item.image_url === 'string' ? item.image_url : null;
+
+    return (
+      <View style={styles.newsCard}>
+        <ImageBackground
+          source={imageUrl ? { uri: imageUrl } : NoHayNoticiaImage}
+          style={styles.newsImage}
+          imageStyle={{ borderRadius: 10 }}
+        >
+          <View style={styles.newsOverlay}>
+            <Text style={styles.newsTitle}>{item.title}</Text>
+          </View>
+        </ImageBackground>
+      </View>
+    );
+  };
+
+  // Renderiza el contenido de Educación Financiera con gradiente
+  const renderEducationItem = ({ item }) => (
+    <LinearGradient colors={["#511496", "#885fd8"]} style={[styles.educationCard]}>
+      <MaterialIcons name={item.icon} size={40} color="white" />
+      <Text style={styles.educationTitle}>{item.title}</Text>
+      <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
+    </LinearGradient>
+  );
+
+  // Datos para las tarjetas de educación financiera
+  const educationData = [
+    { title: 'Artículos', subtitle: 'Explora artículos sobre finanzas', icon: 'article', backgroundColor: '#A5D6FF' },
+    { title: 'Vídeos', subtitle: 'Aprende con videos interactivos', icon: 'play-circle-outline', backgroundColor: '#FFE599' },
+    { title: 'Quizzes', subtitle: 'Prueba tu conocimiento', icon: 'quiz', backgroundColor: '#B2FAB4' },
+    { title: 'Glosario', subtitle: 'Términos financieros importantes', icon: 'book', backgroundColor: '#FFC1E3' },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={["#511496", "#885fd8"]}
-        style={styles.balanceContainer}
-      >
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.navigate("ProfileScreen")}>
-            <MaterialCommunityIcons name="account" size={35} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={toggleNotifications} style={styles.bellIconContainer}>
-            <MaterialCommunityIcons name="bell" size={35} color="white" />
-          </TouchableOpacity>
-        </View>
+      <Text style={styles.screenTitle}>Actualidad</Text>
 
-        {notificationsVisible && (
-          <View style={styles.notificationsLabel}>
-            <Text style={styles.notificationsText}>No hay notificaciones por ahora</Text>
-          </View>
-        )}
-
-        <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
-        <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
-
-        <TouchableOpacity onPress={toggleLabel} style={styles.chevronContainer}>
-          <View style={styles.chevronLine} />
-          <MaterialCommunityIcons
-            name={isOpen ? "chevron-up" : "chevron-down"}
-            size={24}
-            color="white"
-            style={styles.chevronIcon}
-          />
-          <View style={styles.chevronLine} />
+      <View style={styles.segmentedControl}>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Valor Mercado' && styles.activeTab]}
+          onPress={() => setSelectedTab('Valor Mercado')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Valor Mercado' && styles.activeTabText]}>
+            Mercado
+          </Text>
         </TouchableOpacity>
 
-        <Animated.View style={[styles.labelContainer, { height: heightAnim }]}>
-          <LinearGradient
-            colors={["#cb70e1", "#885fd8"]}
-            style={styles.labelGradient}
-          >
-            <View style={styles.labelContent}>
-              <View style={styles.totalItem}>
-                <Text style={styles.totalLabel}>Total Ingresos</Text>
-                <Text style={styles.totalAmount}>{formatCurrency(totalIngresos)}</Text>
-              </View>
-              <View style={styles.totalItem}>
-                <Text style={styles.totalLabel}>Total Gastos</Text>
-                <Text style={styles.totalAmount}>{formatCurrency(totalGastos)}</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Animated.View>
-      </LinearGradient>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Noticias' && styles.activeTab]}
+          onPress={() => setSelectedTab('Noticias')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Noticias' && styles.activeTabText]}>
+            Noticias
+          </Text>
+        </TouchableOpacity>
 
-      <Timeline transactions={transactions} />
-
-      <View style={styles.transactionContainer}>
-        <Text style={styles.timelineTitle}>Historial Ingresos y Gastos</Text>
-        {transactions && transactions.length === 0 ? (
-          <Text>No hay transacciones aún</Text>
-        ) : (
-          <FlatList
-            data={transactions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.transactionItem}>
-                <View>
-                  <Text
-                    style={[
-                      styles.transactionText,
-                      { color: item.type === "Ingreso" ? "green" : "red" },
-                    ]}
-                  >
-                    {item.type} - {item.category} - {formatCurrency(item.amount)}
-                  </Text>
-                  <Text style={styles.transactionDate}>{item.date}</Text>
-                </View>
-                <View style={styles.transactionActions}>
-                  <TouchableOpacity onPress={() => handleEditTransaction(item)}>
-                    <MaterialCommunityIcons name="pencil" size={24} color="blue" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteTransaction(item.id)}
-                    style={styles.deleteIcon}
-                  >
-                    <MaterialCommunityIcons name="trash-can" size={24} color="red" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          />
-        )}
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Educación' && styles.activeTab]}
+          onPress={() => setSelectedTab('Educación')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Educación' && styles.activeTabText]}>
+            Educación
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>Editar Transacción</Text>
-            <TextInput
-              style={styles.input}
-              value={editAmount}
-              onChangeText={setEditAmount}
-              keyboardType="numeric"
-              placeholder="Monto"
+      {loading ? (
+        <ActivityIndicator size="large" color="#511496" />
+      ) : (
+        <>
+          {selectedTab === 'Valor Mercado' && (
+            <FlatList
+              data={marketData}
+              renderItem={renderMarketItem}
+              keyExtractor={(item) => item.name}
+              contentContainerStyle={styles.marketList}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              ListFooterComponent={<View style={{ height: 120 }} />}  
             />
-            <Picker
-              selectedValue={editCategory}
-              style={styles.picker}
-              onValueChange={(itemValue) => setEditCategory(itemValue)}
-            >
-              <Picker.Item label="Seleccione categoría" value="" />
-              {editingTransaction?.type === "Ingreso"
-                ? ingresoCategorias.map((cat) => (
-                    <Picker.Item key={cat} label={cat} value={cat} />
-                  ))
-                : egresoCategorias.map((cat) => (
-                    <Picker.Item key={cat} label={cat} value={cat} />
-                  ))}
-            </Picker>
-            <View style={styles.buttonRow}>
-              <TouchableOpacity
-                style={styles.smallButtonSave}
-                onPress={handleSaveEdit}
-              >
-                <Text style={styles.buttonText}>Guardar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.smallButtonCancel}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.buttonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+          )}
+
+          {selectedTab === 'Noticias' && (
+            <FlatList
+              data={newsData}
+              renderItem={renderNewsItem}
+              keyExtractor={(item) => item.title}
+              contentContainerStyle={styles.newsList}
+              ListFooterComponent={<View style={{ height: 120 }} />} 
+            />
+          )}
+
+          {selectedTab === 'Educación' && (
+            <FlatList
+              data={educationData}
+              renderItem={renderEducationItem}
+              keyExtractor={(item) => item.title}
+              contentContainerStyle={styles.educationList}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              ListFooterComponent={<View style={{ height: 120 }} />}  
+            />
+          )}
+        </>
+      )}
     </SafeAreaView>
   );
-}
-
-// Función para formatear a CLP
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    minimumFractionDigits: 0,
-  }).format(amount);
 };
 
-// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F6F6F6",
-    padding: 0,
+    backgroundColor: '#f4f9ff',
   },
-  balanceContainer: {
-    padding: 20,
-    alignItems: "center",
+  screenTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#511496',
+    textAlign: 'center',
+    marginVertical: 10,
+    paddingTop: 25,
   },
-  headerContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    paddingTop: 40,
-    paddingHorizontal: 20,
+  segmentedControl: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    backgroundColor: '#ececec',
+    borderRadius: 30,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    padding: 5,
   },
-  bellIconContainer: {
-    position: "relative",
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
   },
-  notificationsLabel: {
-    backgroundColor: '#fff',
+  activeTab: {
+    backgroundColor: '#511496',
+  },
+  tabText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#6d6d6d',
+  },
+  activeTabText: {
+    color: 'white',
+  },
+  marketList: {
     padding: 10,
-    borderRadius: 10,
-    marginTop: 5,
-    marginBottom: 10,
-    width: '80%',
-    alignSelf: 'center',
   },
-  notificationsText: {
-    color: '#333',
+  marketCard: {
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 10,
+    width: (width / 2) - 20,
+    alignItems: 'center',
+  },
+  marketName: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  marketValue: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#fff',
+    marginTop: 5,
+  },
+  marketDate: {
+    fontFamily: 'Inter-Light',
+    fontSize: 14,
+    color: '#ddd',
+    marginTop: 5,
+  },
+  newsList: {
+    padding: 10,
+  },
+  newsCard: {
+    marginBottom: 15,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  newsImage: {
+    height: 200,
+    justifyContent: 'flex-end',
+  },
+  newsOverlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 10,
+  },
+  newsTitle: {
+    fontFamily: 'Inter-Regular',
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  educationList: {
+    padding: 10,
+  },
+  educationCard: {
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 10,
+    width: (width / 2) - 20,
+    alignItems: 'center',
+  },
+  educationTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    color: '#fff',
+    marginTop: 10,
+  },
+  educationSubtitle: {
+    fontFamily: 'Inter-Light',
+    fontSize: 14,
+    color: '#fff',
     textAlign: 'center',
   },
-  balanceAmount: {
-    fontFamily: "ArchivoBlack-Regular",
-    fontSize: 36,
-    color: "white",
-    marginTop: 20,
-  },
-  balanceDate: {
-    fontFamily: "QuattrocentoSans-Bold",
-    fontSize: 16,
-    color: "white",
-    marginTop: 5,
-  },
-  chevronContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  chevronLine: {
-    height: 1,
-    backgroundColor: "black",
-    width: 80,
-  },
-  chevronIcon: {
-    marginHorizontal: 10,
-  },
-  labelContainer: {
-    overflow: "hidden",
-    borderRadius: 10,
-    marginTop: 10,
-    alignItems: "center",
-  },
-  labelGradient: {
-    width: "100%",
-    padding: 10,
-    borderRadius: 10,
-  },
-  labelContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  totalItem: {
-    alignItems: "center",
-    width: "50%",
-  },
-  totalLabel: {
-    fontFamily: "QuattrocentoSans-Bold",
-    fontSize: 16,
-    color: "white",
-  },
-  totalAmount: {
-    fontFamily: "ArchivoBlack-Regular",
-    fontSize: 24,
-    color: "white",
-  },
-  timelineContainer: {
-    backgroundColor: "#FFFFFF",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  timelineTitle: {
-    fontFamily: "ArchivoBlack-Regular",
-    fontSize: 18,
-    color: "black",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  timeline: {
-    position: "relative",
-    flexDirection: "row",
-  },
-  timelineLine: {
-    height: 2,
-    backgroundColor: "#673072",
-    position: "absolute",
-    top: 12,
-    left: 0,
-    right: 0,
-  },
-  timelineMonths: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  timelineItem: {
-    alignItems: "center",
-    width: 120,
-    marginHorizontal: 10,
-  },
-  timelineVerticalLine: {
-    height: 30,
-    width: 2,
-    backgroundColor: "#673072",
-    marginBottom: 5,
-  },
-  timelineMonth: {
-    fontFamily: "QuattrocentoSans-Bold",
-    fontSize: 14,
-    color: "#673072",
-  },
-  timelineBalance: {
-    fontFamily: "QuattrocentoSans-Regular",
-    fontSize: 14,
-    color: "gray",
-  },
-  transactionContainer: {
-    backgroundColor: "#FFFFFF",
-    padding: 20,
-    borderRadius: 10,
-  },
-  transactionItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  transactionText: {
-    fontFamily: "QuattrocentoSans-Bold",
-    fontSize: 16,
-  },
-  transactionDate: {
-    fontFamily: "QuattrocentoSans-Regular",
-    fontSize: 16,
-    color: "gray",
-  },
-  transactionActions: {
-    flexDirection: "row",
-  },
-  deleteIcon: {
-    marginLeft: 10,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: 300,
-    alignItems: "center",
-  },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 15,
-    fontWeight: "bold",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "gray",
-    padding: 10,
-    marginBottom: 10,
-    width: "100%",
-    borderRadius: 5,
-  },
-  picker: {
-    height: 50,
-    width: "100%",
-    marginBottom: 15,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  smallButtonSave: {
-    backgroundColor: "#4CAF50",
-    padding: 10,
-    borderRadius: 5,
-    width: "45%",
-  },
-  smallButtonCancel: {
-    backgroundColor: "#FF6347",
-    padding: 10,
-    borderRadius: 5,
-    width: "45%",
-  },
-  buttonText: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 16,
-  },
 });
+
+export default ActualidadScreen;
