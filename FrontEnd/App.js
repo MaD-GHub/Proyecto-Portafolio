@@ -1,9 +1,21 @@
+// App.js
 import * as React from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, StyleSheet, TextInput, ActivityIndicator, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
+  StyleSheet,
+  TextInput,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { auth } from './firebase'; 
+import { auth } from './firebase';
 import HomeScreen from './screens/HomeScreen';
 import AhorroScreen from './screens/AhorroScreen';
 import ActualidadScreen from './screens/ActualidadScreen';
@@ -11,7 +23,7 @@ import DatosScreen from './screens/DatosScreen';
 import StartScreen from './screens/StartScreen';
 import LoginScreen from './screens/Login';
 import RegisterScreen from './screens/Register';
-import ProfileScreen from './screens/ProfileScreen';
+import ProfileScreen from './screens/ProfileScreen'; // Importa ProfileScreen
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
@@ -19,6 +31,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 // Tab Navigator para la barra flotante
 const Tab = createBottomTabNavigator();
+// Stack Navigator para el manejo de autenticación
 const Stack = createNativeStackNavigator();
 
 // Botón personalizado en la barra flotante
@@ -55,11 +68,6 @@ function CustomTabBarButton({ children, onPress }) {
       </LinearGradient>
     </TouchableOpacity>
   );
-}
-
-// Componente vacío para la pantalla "Agregar"
-function EmptyComponent() {
-  return <View />;
 }
 
 // Pantalla de Tabs (barra flotante)
@@ -107,11 +115,20 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
         },
       })}
     >
-      <Tab.Screen name="Inicio" component={HomeScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Inicio" options={{ headerShown: false }}>
+        {(props) => (
+          <HomeScreen
+            {...props}
+            openModal={openModal}
+            transactions={transactions}
+            setTransactions={setTransactions}
+          />
+        )}
+      </Tab.Screen>
       <Tab.Screen name="Ahorro" component={AhorroScreen} options={{ headerShown: false }} />
       <Tab.Screen
         name="Agregar"
-        component={EmptyComponent} // Usa el componente vacío en lugar de una función en línea
+        component={HomeScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <Text style={{ color: 'white', fontSize: 28 }}>+</Text>
@@ -177,6 +194,7 @@ export default function App() {
   const handleAddTransaction = () => {
     const parsedAmount = parseFloat(amount);
 
+    // Validación del monto y categoría
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert('Por favor ingrese un monto válido.');
       return;
@@ -191,30 +209,32 @@ export default function App() {
       type: transactionType,
       amount: parsedAmount,
       category,
-      date: date.toLocaleDateString(), 
+      date: date.toLocaleDateString(), // Usamos la fecha seleccionada
     };
 
     setTransactions([...transactions, newTransaction]);
     setAmount('');
     setCategory('');
-    setDate(new Date()); 
+    setDate(new Date()); // Restablecemos la fecha por defecto
     closeModal();
   };
 
+  // Listener para autenticación de Firebase
   React.useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        setUser(user);
+        setUser(user); // Usuario autenticado
       } else {
-        setUser(null);
+        setUser(null); // Usuario no autenticado
       }
-      setLoading(false); 
+      setLoading(false); // Finaliza el estado de carga
     });
 
     return () => unsubscribe();
   }, []);
 
   if (loading) {
+    // Mostrar indicador de carga mientras se verifica la autenticación
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#673072" />
@@ -233,15 +253,26 @@ export default function App() {
         <Stack.Navigator initialRouteName={user ? 'HomeTabs' : 'StartScreen'}>
           <Stack.Screen name="HomeTabs" options={{ headerShown: false }}>
             {(props) => (
-              <HomeTabs {...props} openModal={openModal} transactions={transactions} setTransactions={setTransactions} />
+              <HomeTabs
+                {...props}
+                openModal={openModal}
+                transactions={transactions}
+                setTransactions={setTransactions}
+              />
             )}
           </Stack.Screen>
+          {/* Agrega ProfileScreen al Stack Navigator */}
+          <Stack.Screen
+            name="ProfileScreen"
+            component={ProfileScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen name="StartScreen" component={StartScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
 
+        {/* Modal para agregar una nueva transacción */}
         <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={closeModal}>
           <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
             <View style={styles.modalContent}>
@@ -304,7 +335,12 @@ export default function App() {
               </TouchableOpacity>
 
               {showDatePicker && (
-                <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                />
               )}
 
               <View style={styles.modalButtons}>

@@ -1,3 +1,4 @@
+// HomeScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -10,7 +11,6 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  Image,
   Animated,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -86,16 +86,16 @@ const Timeline = ({ transactions }) => {
                 <Text style={styles.timelineMonth}>{item.month}</Text>
                 <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
               </View>
-            ))} 
+            ))}
           </View>
         </View>
       </ScrollView>
     </View>
   );
-}
+};
 
 export default function HomeScreen({ transactions = [], setTransactions }) {
-  const navigation = useNavigation();
+  const navigation = useNavigation(); // Inicializa el hook de navegación
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [totalSaved, setTotalSaved] = useState(0);
   const [totalIngresos, setTotalIngresos] = useState(0);
@@ -174,7 +174,7 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
 
   const handleEditTransaction = (transaction) => {
     setEditingTransaction(transaction);
-    setEditAmount(transaction.amount);
+    setEditAmount(transaction.amount.toString());
     setEditCategory(transaction.category);
     setModalVisible(true);
   };
@@ -182,7 +182,7 @@ export default function HomeScreen({ transactions = [], setTransactions }) {
   const handleSaveEdit = () => {
     const updatedTransactions = transactions.map((item) =>
       item.id === editingTransaction.id
-        ? { ...item, amount: editAmount, category: editCategory }
+        ? { ...item, amount: parseFloat(editAmount), category: editCategory }
         : item
     );
     setTransactions(updatedTransactions);
