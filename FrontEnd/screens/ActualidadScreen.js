@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import * as Font from 'expo-font';
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient'; // Importar LinearGradient
 
 const { width } = Dimensions.get('window');
 const NoHayNoticiaImage = require('../assets/Nonoticia.png');
@@ -81,14 +82,14 @@ const ActualidadScreen = () => {
     return <ActivityIndicator size="large" color="#511496" />;
   }
 
-  // Renderiza los datos del mercado
+  // Renderiza los datos del mercado con gradiente
   const renderMarketItem = ({ item }) => (
-    <View style={styles.marketCard}>
-      <FontAwesome5 name="money-bill-wave" size={24} color="#511496" />
+    <LinearGradient colors={["#511496", "#885fd8"]} style={styles.marketCard}>
+      <FontAwesome5 name="money-bill-wave" size={24} color="#fff" />
       <Text style={styles.marketName}>{item.name}</Text>
       <Text style={styles.marketValue}>${item.value.toFixed(2)}</Text>
       <Text style={styles.marketDate}>Fecha: {new Date(item.date).toLocaleDateString()}</Text>
-    </View>
+    </LinearGradient>
   );
 
   // Renderiza cada noticia
@@ -110,13 +111,13 @@ const ActualidadScreen = () => {
     );
   };
 
-  // Renderiza el contenido de Educación Financiera
+  // Renderiza el contenido de Educación Financiera con gradiente
   const renderEducationItem = ({ item }) => (
-    <TouchableOpacity style={[styles.educationCard, { backgroundColor: item.backgroundColor }]}>
+    <LinearGradient colors={["#511496", "#885fd8"]} style={[styles.educationCard]}>
       <MaterialIcons name={item.icon} size={40} color="white" />
       <Text style={styles.educationTitle}>{item.title}</Text>
       <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
-    </TouchableOpacity>
+    </LinearGradient>
   );
 
   // Datos para las tarjetas de educación financiera
@@ -170,7 +171,7 @@ const ActualidadScreen = () => {
               renderItem={renderMarketItem}
               keyExtractor={(item) => item.name}
               contentContainerStyle={styles.marketList}
-              numColumns={2} // Ajustar a dos columnas
+              numColumns={2}
               columnWrapperStyle={{ justifyContent: 'space-between' }}
               ListFooterComponent={<View style={{ height: 120 }} />}  
             />
@@ -192,7 +193,7 @@ const ActualidadScreen = () => {
               renderItem={renderEducationItem}
               keyExtractor={(item) => item.title}
               contentContainerStyle={styles.educationList}
-              numColumns={2} // Mostrar en dos columnas
+              numColumns={2}
               columnWrapperStyle={{ justifyContent: 'space-between' }}
               ListFooterComponent={<View style={{ height: 120 }} />}  
             />
@@ -250,28 +251,28 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   marketCard: {
-    backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
     marginBottom: 10,
-    width: (width / 2) - 20, // Ajustar el ancho de las tarjetas para dos columnas
+    width: (width / 2) - 20,
     alignItems: 'center',
   },
   marketName: {
     fontFamily: 'Inter-Bold',
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#fff',
   },
   marketValue: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    color: '#511496',
+    color: '#fff',
     marginTop: 5,
   },
   marketDate: {
     fontFamily: 'Inter-Light',
     fontSize: 14,
-    color: '#777',
+    color: '#ddd',
     marginTop: 5,
   },
   newsList: {
@@ -302,25 +303,21 @@ const styles = StyleSheet.create({
   educationCard: {
     padding: 20,
     borderRadius: 10,
-    width: (width / 2) - 20, // Ajustar el ancho de las tarjetas para dos columnas
     marginBottom: 10,
+    width: (width / 2) - 20,
     alignItems: 'center',
   },
   educationTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 18,
-    marginTop: 10,
     color: '#fff',
+    marginTop: 10,
   },
   educationSubtitle: {
     fontFamily: 'Inter-Light',
     fontSize: 14,
     color: '#fff',
     textAlign: 'center',
-  },
-  educationContainer: {
-    padding: 20,
-    alignItems: 'center',
   },
 });
 
