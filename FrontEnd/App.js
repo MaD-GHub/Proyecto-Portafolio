@@ -1,5 +1,17 @@
+// App.js
 import * as React from 'react';
-import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Modal, StyleSheet, TextInput, Button, ActivityIndicator, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Modal,
+  StyleSheet,
+  TextInput,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -7,15 +19,16 @@ import { collection, addDoc } from 'firebase/firestore';
 import { db, auth } from './firebase'; // Importar Firebase auth y firestore
 import HomeScreen from './screens/HomeScreen';
 import AhorroScreen from './screens/AhorroScreen';
-import ProfileScreen from './screens/ProfileScreen';
+import ActualidadScreen from './screens/ActualidadScreen';
 import DatosScreen from './screens/DatosScreen';
 import StartScreen from './screens/StartScreen';
 import LoginScreen from './screens/Login';
-import RegisterScreen from './screens/Register'; // Importar RegisterScreen
+import RegisterScreen from './screens/Register';
+import ProfileScreen from './screens/ProfileScreen'; // Importa ProfileScreen
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker'; // Importa DateTimePicker
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -70,8 +83,8 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
             return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
           } else if (route.name === 'Datos') {
             return <AntDesign name="linechart" size={size} color={color} />;
-          } else if (route.name === 'Usuario') {
-            return <AntDesign name="user" size={size} color={color} />;
+          } else if (route.name === 'Actualidad') {
+            return <MaterialCommunityIcons name="newspaper" size={size} color={color} />;
           }
         },
         tabBarShowLabel: true,
@@ -121,7 +134,7 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
         }}
       />
       <Tab.Screen name="Datos" component={DatosScreen} options={{ headerShown: false }} />
-      <Tab.Screen name="Usuario" component={ProfileScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Actualidad" component={ActualidadScreen} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 }
@@ -252,9 +265,20 @@ export default function App() {
         <Stack.Navigator initialRouteName={user ? 'HomeTabs' : 'StartScreen'}>
           <Stack.Screen name="HomeTabs" options={{ headerShown: false }}>
             {(props) => (
-              <HomeTabs {...props} openModal={openModal} transactions={transactions} setTransactions={setTransactions} />
+              <HomeTabs
+                {...props}
+                openModal={openModal}
+                transactions={transactions}
+                setTransactions={setTransactions}
+              />
             )}
           </Stack.Screen>
+          {/* Agrega ProfileScreen al Stack Navigator */}
+          <Stack.Screen
+            name="ProfileScreen"
+            component={ProfileScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen name="StartScreen" component={StartScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />

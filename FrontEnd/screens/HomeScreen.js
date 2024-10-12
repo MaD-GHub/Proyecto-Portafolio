@@ -1,3 +1,4 @@
+// HomeScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -10,7 +11,6 @@ import {
   TextInput,
   StyleSheet,
   ScrollView,
-  Image,
   Animated,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -45,6 +45,7 @@ const Timeline = ({ transactions }) => {
   const calculateProjection = () => {
     console.log("Calculando proyección financiera...");
     const projectionMonths = 6;
+    const projectionMonths = 6;
     let currentBalance = transactions.reduce((acc, transaction) => {
       const amount = parseFloat(transaction.amount);
       return transaction.type === "Ingreso" ? acc + amount : acc - amount;
@@ -59,6 +60,7 @@ const Timeline = ({ transactions }) => {
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
     const currentMonth = new Date().getMonth(); 
+    const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const projectionData = [];
 
@@ -67,9 +69,11 @@ const Timeline = ({ transactions }) => {
         currentBalance += monthlyIncome - monthlyExpense;
       }
       const projectedMonth = (currentMonth + i) % 12; 
+      const projectedMonth = (currentMonth + i) % 12;
       const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
       projectionData.push({
         month: `${months[projectedMonth]} ${projectedYear}`, 
+        month: `${months[projectedMonth]} ${projectedYear}`,
         balance: currentBalance,
       });
     }
@@ -90,17 +94,19 @@ const Timeline = ({ transactions }) => {
                 <Text style={styles.timelineMonth}>{item.month}</Text>
                 <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
               </View>
-            ))} 
+            ))}
           </View>
         </View>
       </ScrollView>
     </View>
   );
-}
+};
 
 export default function HomeScreen() {
   const navigation = useNavigation(); 
   const [transactions, setTransactions] = useState([]); 
+export default function HomeScreen({ openModal, transactions = [], setTransactions }) {
+  const navigation = useNavigation(); // Inicializa el hook de navegación
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [totalSaved, setTotalSaved] = useState(0); 
   const [totalIngresos, setTotalIngresos] = useState(0); 
@@ -111,6 +117,16 @@ export default function HomeScreen() {
   const [editCategory, setEditCategory] = useState(""); 
   const [isOpen, setIsOpen] = useState(false); 
   const heightAnim = useState(new Animated.Value(0))[0]; 
+  const [totalSaved, setTotalSaved] = useState(0);
+  const [totalIngresos, setTotalIngresos] = useState(0);
+  const [totalGastos, setTotalGastos] = useState(0);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const heightAnim = useState(new Animated.Value(0))[0];
+  const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   const ingresoCategorias = ["Salario", "Venta de producto"];
   const egresoCategorias = [
@@ -248,8 +264,10 @@ export default function HomeScreen() {
       setTotalGastos(gastos);
       setTotalSaved(ingresos - gastos); 
       console.log("Totales calculados: Ingresos =", ingresos, "Gastos =", gastos);
+      setTotalSaved(ingresos - gastos);
     } else {
       setTotalSaved(0); 
+      setTotalSaved(0);
       setTotalIngresos(0);
       setTotalGastos(0);
       console.log("No hay transacciones para calcular los totales");
@@ -259,6 +277,43 @@ export default function HomeScreen() {
   useEffect(() => {
     calculateTotalSaved();
   }, [transactions]);
+    }
+  };
+
+  const toggleLabel = () => {
+    setIsOpen(!isOpen);
+    Animated.timing(heightAnim, {
+      toValue: isOpen ? 0 : 100,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const toggleNotifications = () => {
+    setNotificationsVisible(!notificationsVisible);
+  };
+
+  const handleEditTransaction = (transaction) => {
+    setEditingTransaction(transaction);
+    setEditAmount(transaction.amount.toString());
+    setEditCategory(transaction.category);
+    setModalVisible(true);
+  };
+
+  const handleSaveEdit = () => {
+    const updatedTransactions = transactions.map((item) =>
+      item.id === editingTransaction.id
+        ? { ...item, amount: parseFloat(editAmount), category: editCategory }
+        : item
+    );
+    setTransactions(updatedTransactions);
+    setModalVisible(false);
+  };
+
+  const handleDeleteTransaction = (id) => {
+    const updatedTransactions = transactions.filter((item) => item.id !== id);
+    setTransactions(updatedTransactions);
+  };
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#673072" />;
@@ -275,7 +330,20 @@ export default function HomeScreen() {
             source={{ uri: "https://example.com/user-profile-pic.png" }} 
             style={styles.profileImage}
           />
+          <TouchableOpacity onPress={() => navigation.navigate("ProfileScreen")}>
+            <MaterialCommunityIcons name="account" size={35} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleNotifications} style={styles.bellIconContainer}>
+            <MaterialCommunityIcons name="bell" size={35} color="white" />
+          </TouchableOpacity>
         </View>
+
+        {notificationsVisible && (
+          <View style={styles.notificationsLabel}>
+            <Text style={styles.notificationsText}>No hay notificaciones por ahora</Text>
+          </View>
+        )}
+
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
         <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
 
@@ -393,14 +461,6 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate('ProfileScreen', { totalSaved })}
-      >
-        <Text style={{ color: 'blue', textAlign: 'center', marginTop: 20 }}>
-          Ver Perfil
-        </Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -425,19 +485,35 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
   },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    position: "absolute",
-    top: 10,
-    left: 10,
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingTop: 40,
+    paddingHorizontal: 20,
+  },
+  bellIconContainer: {
+    position: "relative",
+  },
+  notificationsLabel: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 5,
+    marginBottom: 10,
+    width: '80%',
+    alignSelf: 'center',
+  },
+  notificationsText: {
+    color: '#333',
+    textAlign: 'center',
   },
   balanceAmount: {
     fontFamily: "ArchivoBlack-Regular",
     fontSize: 36,
     color: "white",
     marginTop: 35,
+    marginTop: 20,
   },
   balanceDate: {
     fontFamily: "QuattrocentoSans-Bold",
