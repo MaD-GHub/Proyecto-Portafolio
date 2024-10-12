@@ -39,8 +39,11 @@ const ProfileScreen = ({ route }) => {
 
   const slideAnim = useState(new Animated.Value(600))[0]; // Animación para ambos labels
   const mesesUso = '12 meses';
-
+  
+  let unsubscribe = null;
+  
   useEffect(() => {
+    
     const fetchUserData = async () => {
       try {
         const user = auth.currentUser;
@@ -55,8 +58,7 @@ const ProfileScreen = ({ route }) => {
             setNewEmail(user.email);
             setNewPassword('');
           }
-
-          // Query para obtener las transacciones del usuario
+  
           const q = query(collection(db, 'transactions'), where('userId', '==', user.uid));
           const unsubscribe = onSnapshot(q, (snapshot) => {
             const transacciones = snapshot.docs.map(doc => ({
@@ -65,7 +67,7 @@ const ProfileScreen = ({ route }) => {
             }));
             setTransactions(transacciones);
           });
-
+  
           return () => unsubscribe(); // Limpia el listener cuando el componente se desmonta
         }
       } catch (error) {
@@ -74,9 +76,16 @@ const ProfileScreen = ({ route }) => {
         setIsLoading(false);
       }
     };
-
+  
     fetchUserData();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe(); // Detenemos el listener cuando el componente se desmonta
+      }
+    };
   }, []);
+
 
   const openModal = () => {
     setModalVisible(true);
@@ -197,12 +206,16 @@ const ProfileScreen = ({ route }) => {
   // Función para cerrar sesión
   const handleLogout = async () => {
     try {
+      if (unsubscribe) {
+        unsubscribe(); // Detenemos el listener cuando el usuario cierra sesión
+      }
       await auth.signOut(); // Cierra sesión en Firebase Auth
       navigation.replace('StartScreen'); // Navegar a la pantalla de inicio de sesión o pantalla inicial después del logout
     } catch (error) {
       console.error("Error al cerrar sesión: ", error);
     }
   };
+  
 
   if (isLoading) {
     return (
