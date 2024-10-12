@@ -79,22 +79,22 @@ const Timeline = ({ transactions }) => {
 
   return (
     <View style={styles.timelineContainer}>
-      <Text style={styles.timelineTitle}>Proyección Financiera</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View style={styles.timeline}>
-          <View style={styles.timelineLine} />
-          <View style={styles.timelineMonths}>
-            {projection.map((item, index) => (
-              <View key={index} style={styles.timelineItem}>
-                <View style={styles.timelineVerticalLine} />
-                <Text style={styles.timelineMonth}>{item.month}</Text>
-                <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
-              </View>
-            ))}
-          </View>
+    <Text style={styles.timelineTitle}>Proyección Financiera</Text>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <View style={styles.timeline}>
+        <View style={styles.timelineLine} />
+        <View style={styles.timelineMonths}>
+          {projection.map((item, index) => (
+            <View key={index} style={styles.timelineItem}>
+              <View style={styles.timelineVerticalLine} />
+              <Text style={styles.timelineMonth}>{item.month}</Text>
+              <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
+            </View>
+          ))}
         </View>
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
+  </View>
   );
 };
 
@@ -111,6 +111,7 @@ export default function HomeScreen() {
   const [editCategory, setEditCategory] = useState(""); 
   const [isOpen, setIsOpen] = useState(false); 
   const heightAnim = useState(new Animated.Value(0))[0];
+  const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   const ingresoCategorias = ["Salario", "Venta de producto"];
   const egresoCategorias = [
@@ -260,6 +261,9 @@ export default function HomeScreen() {
     }).start();
   };
 
+  const toggleNotifications = () => {
+    setNotificationsVisible(!notificationsVisible);
+  };
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#673072" />;
   }
@@ -271,8 +275,19 @@ export default function HomeScreen() {
         style={styles.balanceContainer}
       >
         <View style={styles.headerContent}>
-          <Text>Balance</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("ProfileScreen")}>
+            <MaterialCommunityIcons name="account" size={35} color="white" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={toggleNotifications} style={styles.bellIconContainer}>
+            <MaterialCommunityIcons name="bell" size={35} color="white" />
+          </TouchableOpacity>
         </View>
+
+        {notificationsVisible && (
+          <View style={styles.notificationsLabel}>
+            <Text style={styles.notificationsText}>No hay notificaciones por ahora</Text>
+          </View>
+        )}
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
         <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
 
