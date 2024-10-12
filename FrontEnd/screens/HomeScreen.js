@@ -45,7 +45,6 @@ const Timeline = ({ transactions }) => {
   const calculateProjection = () => {
     console.log("Calculando proyección financiera...");
     const projectionMonths = 6;
-    const projectionMonths = 6;
     let currentBalance = transactions.reduce((acc, transaction) => {
       const amount = parseFloat(transaction.amount);
       return transaction.type === "Ingreso" ? acc + amount : acc - amount;
@@ -60,7 +59,6 @@ const Timeline = ({ transactions }) => {
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
     const currentMonth = new Date().getMonth(); 
-    const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const projectionData = [];
 
@@ -69,11 +67,9 @@ const Timeline = ({ transactions }) => {
         currentBalance += monthlyIncome - monthlyExpense;
       }
       const projectedMonth = (currentMonth + i) % 12; 
-      const projectedMonth = (currentMonth + i) % 12;
       const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
       projectionData.push({
         month: `${months[projectedMonth]} ${projectedYear}`, 
-        month: `${months[projectedMonth]} ${projectedYear}`,
         balance: currentBalance,
       });
     }
@@ -105,8 +101,6 @@ const Timeline = ({ transactions }) => {
 export default function HomeScreen() {
   const navigation = useNavigation(); 
   const [transactions, setTransactions] = useState([]); 
-export default function HomeScreen({ openModal, transactions = [], setTransactions }) {
-  const navigation = useNavigation(); // Inicializa el hook de navegación
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [totalSaved, setTotalSaved] = useState(0); 
   const [totalIngresos, setTotalIngresos] = useState(0); 
@@ -116,17 +110,7 @@ export default function HomeScreen({ openModal, transactions = [], setTransactio
   const [editAmount, setEditAmount] = useState(""); 
   const [editCategory, setEditCategory] = useState(""); 
   const [isOpen, setIsOpen] = useState(false); 
-  const heightAnim = useState(new Animated.Value(0))[0]; 
-  const [totalSaved, setTotalSaved] = useState(0);
-  const [totalIngresos, setTotalIngresos] = useState(0);
-  const [totalGastos, setTotalGastos] = useState(0);
-  const [editingTransaction, setEditingTransaction] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editAmount, setEditAmount] = useState("");
-  const [editCategory, setEditCategory] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
   const heightAnim = useState(new Animated.Value(0))[0];
-  const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   const ingresoCategorias = ["Salario", "Venta de producto"];
   const egresoCategorias = [
@@ -241,15 +225,6 @@ export default function HomeScreen({ openModal, transactions = [], setTransactio
     }
   };
 
-  const toggleLabel = () => {
-    setIsOpen(!isOpen);
-    Animated.timing(heightAnim, {
-      toValue: isOpen ? 0 : 100, 
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
-
   const calculateTotalSaved = () => {
     if (transactions && transactions.length > 0) {
       const ingresos = transactions
@@ -264,10 +239,8 @@ export default function HomeScreen({ openModal, transactions = [], setTransactio
       setTotalGastos(gastos);
       setTotalSaved(ingresos - gastos); 
       console.log("Totales calculados: Ingresos =", ingresos, "Gastos =", gastos);
-      setTotalSaved(ingresos - gastos);
     } else {
       setTotalSaved(0); 
-      setTotalSaved(0);
       setTotalIngresos(0);
       setTotalGastos(0);
       console.log("No hay transacciones para calcular los totales");
@@ -277,8 +250,6 @@ export default function HomeScreen({ openModal, transactions = [], setTransactio
   useEffect(() => {
     calculateTotalSaved();
   }, [transactions]);
-    }
-  };
 
   const toggleLabel = () => {
     setIsOpen(!isOpen);
@@ -287,32 +258,6 @@ export default function HomeScreen({ openModal, transactions = [], setTransactio
       duration: 300,
       useNativeDriver: false,
     }).start();
-  };
-
-  const toggleNotifications = () => {
-    setNotificationsVisible(!notificationsVisible);
-  };
-
-  const handleEditTransaction = (transaction) => {
-    setEditingTransaction(transaction);
-    setEditAmount(transaction.amount.toString());
-    setEditCategory(transaction.category);
-    setModalVisible(true);
-  };
-
-  const handleSaveEdit = () => {
-    const updatedTransactions = transactions.map((item) =>
-      item.id === editingTransaction.id
-        ? { ...item, amount: parseFloat(editAmount), category: editCategory }
-        : item
-    );
-    setTransactions(updatedTransactions);
-    setModalVisible(false);
-  };
-
-  const handleDeleteTransaction = (id) => {
-    const updatedTransactions = transactions.filter((item) => item.id !== id);
-    setTransactions(updatedTransactions);
   };
 
   if (!fontsLoaded) {
@@ -326,24 +271,8 @@ export default function HomeScreen({ openModal, transactions = [], setTransactio
         style={styles.balanceContainer}
       >
         <View style={styles.headerContent}>
-          <Image
-            source={{ uri: "https://example.com/user-profile-pic.png" }} 
-            style={styles.profileImage}
-          />
-          <TouchableOpacity onPress={() => navigation.navigate("ProfileScreen")}>
-            <MaterialCommunityIcons name="account" size={35} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={toggleNotifications} style={styles.bellIconContainer}>
-            <MaterialCommunityIcons name="bell" size={35} color="white" />
-          </TouchableOpacity>
+          <Text>Balance</Text>
         </View>
-
-        {notificationsVisible && (
-          <View style={styles.notificationsLabel}>
-            <Text style={styles.notificationsText}>No hay notificaciones por ahora</Text>
-          </View>
-        )}
-
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
         <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
 
@@ -512,7 +441,6 @@ const styles = StyleSheet.create({
     fontFamily: "ArchivoBlack-Regular",
     fontSize: 36,
     color: "white",
-    marginTop: 35,
     marginTop: 20,
   },
   balanceDate: {
