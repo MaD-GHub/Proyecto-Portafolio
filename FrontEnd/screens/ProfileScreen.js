@@ -4,11 +4,20 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { auth, db } from '../firebase'; // Importar Firebase auth y Firestore
 import { useNavigation } from '@react-navigation/native'; // Para navegación después de logout
-import { doc, getDoc, updateDoc } from 'firebase/firestore'; // Para obtener y actualizar los datos del usuario
+import { doc, getDoc, updateDoc, collection, query, where, onSnapshot } from 'firebase/firestore'; // Importar las funciones correctas de Firestore
 import { updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'; // Para actualizar correo y contraseña
 
+// Función para formatear a CLP
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+
 const ProfileScreen = ({ route }) => {
-  const { totalSaved = 0 } = route.params || {};
+  const { totalSaved = 0 } = route.params || {}; // Recibe el saldo desde los params
   const navigation = useNavigation(); // Para navegación después de logout
 
   // Estado para almacenar datos del usuario
@@ -18,6 +27,7 @@ const ProfileScreen = ({ route }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(''); // Estado para almacenar la contraseña actual ingresada
   const [isLoading, setIsLoading] = useState(true);
+  const [transactions, setTransactions] = useState([]); // Estado para almacenar las transacciones del usuario
 
   // Nuevos estados para almacenar las actualizaciones de seguridad
   const [newEmail, setNewEmail] = useState('');
@@ -35,16 +45,28 @@ const ProfileScreen = ({ route }) => {
       try {
         const user = auth.currentUser;
         if (user) {
-          const userDoc = await getDoc(doc(db, 'users', user.uid)); // Obtenemos los datos del usuario desde Firestore
+          const userDoc = await getDoc(doc(db, 'users', user.uid)); 
           if (userDoc.exists()) {
             const userData = userDoc.data();
             setUserName(userData.firstName);
             setFirstLastName(userData.lastName);
-            setSalary(userData.salary || ''); // Seteamos el salario
+            setSalary(userData.salary || '');
             setEmail(user.email);
-            setNewEmail(user.email); // Inicializamos el nuevo correo con el actual
-            setNewPassword(''); // Inicializamos la nueva contraseña en blanco
+            setNewEmail(user.email);
+            setNewPassword('');
           }
+
+          // Query para obtener las transacciones del usuario
+          const q = query(collection(db, 'transactions'), where('userId', '==', user.uid));
+          const unsubscribe = onSnapshot(q, (snapshot) => {
+            const transacciones = snapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setTransactions(transacciones);
+          });
+
+          return () => unsubscribe(); // Limpia el listener cuando el componente se desmonta
         }
       } catch (error) {
         console.error('Error al obtener los datos del usuario:', error);
@@ -160,15 +182,26 @@ const ProfileScreen = ({ route }) => {
     }
   };
 
+  const calculateTotalSaved = () => {
+    const ingresos = transactions
+      .filter((transaction) => transaction.type === "Ingreso")
+      .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+    const gastos = transactions
+      .filter((transaction) => transaction.type === "Egreso")
+      .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+    return ingresos - gastos;
+  };
+
   // Función para cerrar sesión
-  const handleLogout = () => {
-    auth.signOut()
-      .then(() => {
-        navigation.replace('StartScreen'); // Navegar a la pantalla de inicio de sesión o pantalla inicial después del logout
-      })
-      .catch(error => {
-        console.error("Error al cerrar sesión: ", error);
-      });
+  const handleLogout = async () => {
+    try {
+      await auth.signOut(); // Cierra sesión en Firebase Auth
+      navigation.replace('StartScreen'); // Navegar a la pantalla de inicio de sesión o pantalla inicial después del logout
+    } catch (error) {
+      console.error("Error al cerrar sesión: ", error);
+    }
   };
 
   if (isLoading) {
@@ -201,7 +234,7 @@ const ProfileScreen = ({ route }) => {
       {/* Saldo y Meses en una línea */}
       <View style={styles.balanceContainer}>
         <View style={styles.balanceItem}>
-          <Text style={styles.balanceText}>{totalSaved.toString()}</Text> 
+          <Text style={styles.balanceText}>{formatCurrency(calculateTotalSaved())}</Text>
           <Text style={styles.balanceLabel}>Saldo</Text>
         </View>
         <View style={styles.divider} />
