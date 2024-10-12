@@ -18,14 +18,14 @@ import * as Font from "expo-font";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from '@react-navigation/native'; 
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { db, auth } from '../firebase'; // Asegúrate de tener configurado Firebase correctamente
+import { collection, addDoc, query, where, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 
 // Función para obtener la fecha actual
 const getTodayDate = () => {
   const today = new Date();
   const dd = String(today.getDate()).padStart(2, "0");
-  const mm = String(today.getMonth() + 1).padStart(2, "0"); // Enero es 0
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
   const yyyy = today.getFullYear();
   return `${dd}/${mm}/${yyyy}`;
 };
@@ -43,7 +43,8 @@ const Timeline = ({ transactions }) => {
   }, [transactions]);
 
   const calculateProjection = () => {
-    const projectionMonths = 6; // Proyección a 6 meses
+    console.log("Calculando proyección financiera...");
+    const projectionMonths = 6;
     let currentBalance = transactions.reduce((acc, transaction) => {
       const amount = parseFloat(transaction.amount);
       return transaction.type === "Ingreso" ? acc + amount : acc - amount;
@@ -73,6 +74,7 @@ const Timeline = ({ transactions }) => {
       });
     }
     setProjection(projectionData);
+    console.log("Proyección calculada: ", projectionData);
   };
 
   return (
@@ -98,7 +100,7 @@ const Timeline = ({ transactions }) => {
 
 export default function HomeScreen() {
   const navigation = useNavigation(); 
-  const [transactions, setTransactions] = useState([]); // Ahora se maneja aquí
+  const [transactions, setTransactions] = useState([]); 
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [totalSaved, setTotalSaved] = useState(0); 
   const [totalIngresos, setTotalIngresos] = useState(0); 
@@ -130,6 +132,7 @@ export default function HomeScreen() {
         "QuattrocentoSans-BoldItalic": require("../assets/fonts/QuattrocentoSans-BoldItalic.ttf"),
       });
       setFontsLoaded(true);
+      console.log("Fuentes cargadas");
     };
     loadFonts();
   }, []);
@@ -146,72 +149,11 @@ export default function HomeScreen() {
         ...doc.data(),
       }));
       setTransactions(transacciones);
+      console.log("Transacciones actualizadas desde Firestore: ", transacciones);
     });
   
-    return () => unsubscribe(); // Limpia el listener al desmontar
+    return () => unsubscribe(); 
   }, []);
-
-  const obtenerTransacciones = async () => {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        console.log("No hay usuario autenticado");
-        return;
-      }
-
-      const q = query(collection(db, 'transactions'), where('userId', '==', user.uid));
-      const querySnapshot = await getDocs(q);
-
-      const transacciones = [];
-      querySnapshot.forEach((doc) => {
-        transacciones.push({ id: doc.id, ...doc.data() });
-      });
-
-      setTransactions(transacciones);
-    } catch (error) {
-      console.error("Error al obtener las transacciones: ", error);
-    }
-  };
-
-  useEffect(() => {
-    obtenerTransacciones(); // Obtener transacciones de Firestore
-  }, []);
-
-  useEffect(() => {
-    if (transactions.length > 0) {
-      console.log("Transactions updated:", transactions);
-    }
-    calculateTotalSaved();
-  }, [transactions]);
-
-  const calculateTotalSaved = () => {
-    if (transactions && transactions.length > 0) {
-      const ingresos = transactions
-        .filter((transaction) => transaction.type === "Ingreso")
-        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
-
-      const gastos = transactions
-        .filter((transaction) => transaction.type === "Egreso")
-        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
-
-      setTotalIngresos(ingresos);
-      setTotalGastos(gastos);
-      setTotalSaved(ingresos - gastos); 
-    } else {
-      setTotalSaved(0); 
-      setTotalIngresos(0);
-      setTotalGastos(0);
-    }
-  };
-
-  const toggleLabel = () => {
-    setIsOpen(!isOpen);
-    Animated.timing(heightAnim, {
-      toValue: isOpen ? 0 : 100, 
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  };
 
   const handleAddTransaction = async () => {
     const parsedAmount = parseFloat(editAmount);
@@ -242,7 +184,6 @@ export default function HomeScreen() {
     try {
       const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
       console.log('Transacción añadida con ID: ', docRef.id);
-
       setTransactions((prevTransactions) => [...prevTransactions, { id: docRef.id, ...newTransaction }]);
       setEditAmount(''); 
       setEditCategory(''); 
@@ -255,9 +196,9 @@ export default function HomeScreen() {
   const handleDeleteTransaction = async (id) => {
     try {
       await deleteDoc(doc(db, 'transactions', id));
-
       const updatedTransactions = transactions.filter((item) => item.id !== id);
       setTransactions(updatedTransactions);
+      console.log(`Transacción con ID ${id} eliminada correctamente`);
     } catch (error) {
       console.error('Error al eliminar transacción: ', error);
     }
@@ -278,10 +219,46 @@ export default function HomeScreen() {
       );
       setTransactions(updatedTransactions);
       setModalVisible(false);
+      console.log("Transacción actualizada correctamente");
     } catch (error) {
       console.error('Error al actualizar transacción: ', error);
     }
   };
+
+  const toggleLabel = () => {
+    setIsOpen(!isOpen);
+    Animated.timing(heightAnim, {
+      toValue: isOpen ? 0 : 100, 
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const calculateTotalSaved = () => {
+    if (transactions && transactions.length > 0) {
+      const ingresos = transactions
+        .filter((transaction) => transaction.type === "Ingreso")
+        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+      const gastos = transactions
+        .filter((transaction) => transaction.type === "Egreso")
+        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
+
+      setTotalIngresos(ingresos);
+      setTotalGastos(gastos);
+      setTotalSaved(ingresos - gastos); 
+      console.log("Totales calculados: Ingresos =", ingresos, "Gastos =", gastos);
+    } else {
+      setTotalSaved(0); 
+      setTotalIngresos(0);
+      setTotalGastos(0);
+      console.log("No hay transacciones para calcular los totales");
+    }
+  };
+
+  useEffect(() => {
+    calculateTotalSaved();
+  }, [transactions]);
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#673072" />;
@@ -346,10 +323,7 @@ export default function HomeScreen() {
               <View style={styles.transactionItem}>
                 <View>
                   <Text
-                    style={[
-                      styles.transactionText,
-                      { color: item.type === "Ingreso" ? "green" : "red" },
-                    ]}
+                    style={[styles.transactionText, { color: item.type === "Ingreso" ? "green" : "red" }]}
                   >
                     {item.type} - {item.category} - {formatCurrency(item.amount)}
                   </Text>
