@@ -1,46 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, ScrollView } from 'react-native';
+import { LineChart, PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
+import { auth, db } from '../firebase'; // Importar Firebase auth y Firestore
+import { collection, query, where, onSnapshot } from 'firebase/firestore'; // Firestore funciones
 import moment from 'moment';
 
 export default function DatosScreen() {
   const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses' o 'Income'
+  const [transactions, setTransactions] = useState([]); // Estado para almacenar las transacciones
+  const [savings, setSavings] = useState([]); // Estado para almacenar los ahorros
   const screenWidth = Dimensions.get('window').width;
 
-  // Datos de prueba para las categorías de gastos
-  const expenseCategories = [
-    { id: '1', category: 'Comidas y Bebidas', amount: -200, date: 'Oct 10, 12:21 pm', icon: '🍔' },
-    { id: '2', category: 'Vestuario', amount: -150, date: 'Oct 9, 3:30 pm', icon: '👗' },
-    { id: '3', category: 'Alojamiento', amount: -800, date: 'Oct 7, 9:00 am', icon: '🏠' },
-    { id: '4', category: 'Salud', amount: -250, date: 'Oct 5, 11:15 am', icon: '🏥' },
-    { id: '5', category: 'Transporte', amount: -75, date: 'Oct 3, 8:00 am', icon: '🚗' },
-    { id: '6', category: 'Educación', amount: -300, date: 'Oct 1, 10:00 am', icon: '🎓' },
-  ];
-
-  // Datos de prueba para las categorías de ingresos
-  const incomeCategories = [
-    { id: '1', category: 'Salario', amount: 1500, date: 'Oct 10, 12:21 pm', icon: '💼' },
-    { id: '2', category: 'Ventas de Producto', amount: 800, date: 'Oct 9, 3:30 pm', icon: '🛒' },
-  ];
-
-  // Generar etiquetas de meses
-  const generateMonthLabels = () => {
-    const currentMonthIndex = moment().month();
-    const months = [];
-    for (let i = 0; i < 7; i++) {
-      months.push(moment().month((currentMonthIndex + i) % 12).format('MMM'));
+  // Obtener datos de Firebase
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) {
+      console.error("Usuario no autenticado");
+      return; // Si no hay usuario autenticado, no hacemos las consultas
     }
-    return months;
+
+    try {
+      // Obtener transacciones del usuario desde Firebase
+      const transactionsQuery = query(collection(db, 'transactions'), where('userId', '==', user.uid));
+      const unsubscribeTransactions = onSnapshot(transactionsQuery, (snapshot) => {
+        const userTransactions = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log("Transacciones recibidas:", userTransactions); // Log para ver las transacciones
+        setTransactions(userTransactions);
+      });
+
+      // Obtener ahorros del usuario desde Firebase
+      const savingsQuery = query(collection(db, 'savings'), where('userId', '==', user.uid));
+      const unsubscribeSavings = onSnapshot(savingsQuery, (snapshot) => {
+        const userSavings = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        console.log("Ahorros recibidos:", userSavings); // Log para ver los ahorros
+        setSavings(userSavings);
+      });
+
+      // Limpieza al desmontar el componente
+      return () => {
+        unsubscribeTransactions();
+        unsubscribeSavings();
+      };
+    } catch (error) {
+      console.error("Error al obtener los datos de Firebase:", error);
+    }
+  }, []);
+
+  // Procesar datos para el gráfico de torta
+  const processPieData = (type) => {
+    const filteredTransactions = transactions.filter((item) => item.type === type);
+    const categoryTotals = {};
+
+    filteredTransactions.forEach((transaction) => {
+      if (categoryTotals[transaction.category]) {
+        categoryTotals[transaction.category] += transaction.amount;
+      } else {
+        categoryTotals[transaction.category] = transaction.amount;
+      }
+    });
+
+    return Object.keys(categoryTotals).map((category) => ({
+      name: category,
+      amount: categoryTotals[category],
+      color: '#' + Math.floor(Math.random() * 16777215).toString(16), // Generar un color aleatorio
+      legendFontColor: '#7F7F7F',
+      legendFontSize: 15,
+    }));
   };
 
-  // Datos de prueba para el gráfico
+  // Función para generar las etiquetas del gráfico de líneas
+  const generateLabels = (period) => {
+    const labels = [];
+    const today = moment();
+    
+    switch (period) {
+      case 'day':
+        for (let i = 0; i < 7; i++) {
+          labels.push(today.subtract(6 - i, 'days').format('DD/MM'));
+        }
+        break;
+      case 'week':
+        for (let i = 0; i < 7; i++) {
+          labels.push(today.subtract(6 - i, 'days').format('ddd'));
+        }
+        break;
+      case 'month':
+        for (let i = 0; i < 4; i++) {
+          labels.push(today.subtract(3 - i, 'weeks').format('DD/MM'));
+        }
+        break;
+      case 'year':
+        for (let i = 0; i < 12; i++) {
+          labels.push(today.subtract(11 - i, 'months').format('MM/YYYY'));
+        }
+        break;
+      default:
+        break;
+    }
+    
+    return labels;
+  };
+
+  // Verificar que haya transacciones antes de generar datos del gráfico
   const chartData = {
-    labels: generateMonthLabels(),
+    labels: generateLabels('month'), // Cambia esto a 'day', 'week', o 'year' según la selección
     datasets: [
       {
-        data: selectedTab === 'Expenses' ? [500, 700, 800, 320, 900, 600, 700] : [1000, 1100, 900, 320, 1150, 920, 970],
-        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Línea en degradado morado
+        data: transactions.length > 0 ? transactions.map((transaction) => transaction.amount) : [0],
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Línea morada
         strokeWidth: 3,
       },
     ],
@@ -57,32 +131,14 @@ export default function DatosScreen() {
       strokeWidth: '2',
       stroke: '#ffffff',
     },
-    withVerticalLines: false,
-    withHorizontalLines: false,
-    withInnerLines: false,
-    propsForBackgroundLines: {
-      stroke: 'transparent',
-    },
-    withVerticalLabels: true,
-    withHorizontalLabels: true,
-    labelFontSize: 14,
-    labelFontWeight: 'bold',
-    propsForHorizontalLabels: {
-      fill: '#000',
-      fontWeight: 'bold',
-    },
-    propsForVerticalLabels: {
-      fill: '#000',
-      fontWeight: 'bold',
-    },
   };
 
   return (
-    <View style={styles.container}>
-      {/* Título de la página con el estilo de Actualidad */}
+    <ScrollView style={styles.container}>
+      {/* Título de la página */}
       <Text style={styles.screenTitle}>Datos</Text>
 
-      {/* Apartado de selección de gráfico */}
+      {/* Selección entre Gastos e Ingresos */}
       <View style={styles.segmentedControl}>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Expenses' && styles.activeTab]}
@@ -111,14 +167,24 @@ export default function DatosScreen() {
         chartConfig={chartConfig}
         bezier
         style={styles.chart}
-        withVerticalLabels={true}
-        withHorizontalLabels={true}
-        withDots={true}
-        withShadow={false}
         fromZero={true}
       />
 
-      {/* Sección de Categorías y Gastos/Ingresos */}
+      {/* Gráfico de torta */}
+      <Text style={styles.chartTitle}>Distribución por Categoría</Text>
+      <PieChart
+        data={processPieData(selectedTab === 'Expenses' ? 'Egreso' : 'Ingreso')}
+        width={screenWidth}
+        height={220}
+        chartConfig={chartConfig}
+        accessor={'amount'}
+        backgroundColor={'transparent'}
+        paddingLeft={'15'}
+        absolute
+        style={styles.pieChart}
+      />
+
+      {/* Historial de transacciones */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Última Actividad</Text>
         <TouchableOpacity>
@@ -126,26 +192,25 @@ export default function DatosScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Lista de categorías según la selección de ingresos o gastos */}
       <FlatList
-        data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
+        data={transactions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.listItem}>
             <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
-              <Text style={styles.icon}>{item.icon}</Text>
+              <Text style={styles.icon}>💸</Text>
             </LinearGradient>
             <View style={styles.details}>
               <Text style={styles.category}>{item.category}</Text>
-              <Text style={styles.date}>{item.date}</Text>
+              <Text style={styles.date}>{new Date(item.date).toLocaleDateString()}</Text>
             </View>
-            <Text style={[styles.amount, item.amount < 0 ? styles.negativeAmount : styles.positiveAmount]}>
+            <Text style={styles.amount}>
               {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
             </Text>
           </View>
         )}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -190,45 +255,50 @@ const styles = StyleSheet.create({
     color: '#6d6d6d',
   },
   activeTabText: {
-    color: 'white',
+    color: '#fff',
   },
   chart: {
-    marginVertical: 20,
     borderRadius: 16,
+    marginVertical: 20,
+  },
+  pieChart: {
+    marginVertical: 20,
+  },
+  chartTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#511496',
+    marginVertical: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginVertical: 10,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
   },
   seeAll: {
-    fontSize: 14,
-    color: '#885fd8',
+    color: '#511496',
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 10,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e2e2',
+    paddingBottom: 10,
   },
   iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    borderRadius: 50,
+    padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   icon: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#fff',
   },
   details: {
@@ -237,20 +307,14 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
   },
   date: {
     fontSize: 14,
     color: '#888',
   },
   amount: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-  },
-  negativeAmount: {
-    color: '#ff3b30',
-  },
-  positiveAmount: {
-    color: '#4cd964',
+    color: '#511496',
   },
 });
