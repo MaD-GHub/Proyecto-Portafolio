@@ -52,10 +52,30 @@ const ActualidadScreen = () => {
       const response = await fetch('https://mindicador.cl/api');
       const data = await response.json();
       setMarketData([
-        { name: 'UF', value: data.uf.valor, date: data.uf.fecha },
-        { name: 'Dólar', value: data.dolar.valor, date: data.dolar.fecha },
-        { name: 'Euro', value: data.euro.valor, date: data.euro.fecha },
-        { name: 'Bitcoin', value: data.bitcoin.valor, date: data.bitcoin.fecha },
+        { 
+          name: 'UF', 
+          value: data.uf.valor, 
+          date: data.uf.fecha, 
+          image: require('../assets/flags/chile.png') // Ruta de la bandera de Chile
+        },
+        { 
+          name: 'Dólar', 
+          value: data.dolar.valor, 
+          date: data.dolar.fecha, 
+          image: require('../assets/flags/usa.png') // Ruta de la bandera de EE.UU.
+        },
+        { 
+          name: 'Euro', 
+          value: data.euro.valor, 
+          date: data.euro.fecha, 
+          image: require('../assets/flags/europe.png') // Ruta de la bandera de Europa
+        },
+        { 
+          name: 'Bitcoin', 
+          value: data.bitcoin.valor, 
+          date: data.bitcoin.fecha, 
+          image: require('../assets/flags/bitcoin.png') // Ruta del logo de Bitcoin
+        },
       ]);
     } catch (error) {
       console.error('Error fetching market data:', error);
@@ -82,15 +102,24 @@ const ActualidadScreen = () => {
     return <ActivityIndicator size="large" color="#511496" />;
   }
 
-  // Renderiza los datos del mercado con gradiente
-  const renderMarketItem = ({ item }) => (
-    <LinearGradient colors={["#511496", "#885fd8"]} style={styles.marketCard}>
-      <FontAwesome5 name="money-bill-wave" size={24} color="#fff" />
-      <Text style={styles.marketName}>{item.name}</Text>
-      <Text style={styles.marketValue}>${item.value.toFixed(2)}</Text>
-      <Text style={styles.marketDate}>Fecha: {new Date(item.date).toLocaleDateString()}</Text>
-    </LinearGradient>
-  );
+  // Renderiza los datos del mercado con diferentes degradados
+  const renderMarketItem = ({ item, index }) => {
+    const gradients = [
+      ["#6A0DAD", "#F071A1"], // Morado a rosa
+      ["#1FCAB1", "#348AC7"], // Verde a azul
+      ["#FF8A00", "#FF3D00"], // Naranja a rojo
+      ["#F071A1", "#6A0DAD"], // Rosa a morado
+    ];
+
+    return (
+      <LinearGradient colors={gradients[index % gradients.length]} style={styles.marketCard}>
+        <FontAwesome5 name="money-bill-wave" size={24} color="#fff" />
+        <Text style={styles.marketName}>{item.name}</Text>
+        <Text style={styles.marketValue}>${item.value.toFixed(2)}</Text>
+        <Text style={styles.marketDate}>Fecha: {new Date(item.date).toLocaleDateString()}</Text>
+      </LinearGradient>
+    );
+  };
 
   // Renderiza cada noticia
   const renderNewsItem = ({ item }) => {
@@ -111,21 +140,30 @@ const ActualidadScreen = () => {
     );
   };
 
-  // Renderiza el contenido de Educación Financiera con gradiente
-  const renderEducationItem = ({ item }) => (
-    <LinearGradient colors={["#511496", "#885fd8"]} style={[styles.educationCard]}>
-      <MaterialIcons name={item.icon} size={40} color="white" />
-      <Text style={styles.educationTitle}>{item.title}</Text>
-      <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
-    </LinearGradient>
-  );
+  // Renderiza el contenido de Educación Financiera con diferentes degradados
+  const renderEducationItem = ({ item, index }) => {
+    const gradients = [
+      ["#6A0DAD", "#F071A1"], // Morado a rosa
+      ["#1FCAB1", "#348AC7"], // Verde a azul
+      ["#FF8A00", "#FF3D00"], // Naranja a rojo
+      ["#F071A1", "#6A0DAD"], // Rosa a morado
+    ];
+
+    return (
+      <LinearGradient colors={gradients[index % gradients.length]} style={[styles.educationCard]}>
+        <MaterialIcons name={item.icon} size={40} color="white" />
+        <Text style={styles.educationTitle}>{item.title}</Text>
+        <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
+      </LinearGradient>
+    );
+  };
 
   // Datos para las tarjetas de educación financiera
   const educationData = [
-    { title: 'Artículos', subtitle: 'Explora artículos sobre finanzas', icon: 'article', backgroundColor: '#A5D6FF' },
-    { title: 'Vídeos', subtitle: 'Aprende con videos interactivos', icon: 'play-circle-outline', backgroundColor: '#FFE599' },
-    { title: 'Quizzes', subtitle: 'Prueba tu conocimiento', icon: 'quiz', backgroundColor: '#B2FAB4' },
-    { title: 'Glosario', subtitle: 'Términos financieros importantes', icon: 'book', backgroundColor: '#FFC1E3' },
+    { title: 'Artículos', subtitle: 'Explora artículos sobre finanzas', icon: 'article' },
+    { title: 'Vídeos', subtitle: 'Aprende con videos interactivos', icon: 'play-circle-outline' },
+    { title: 'Quizzes', subtitle: 'Prueba tu conocimiento', icon: 'quiz' },
+    { title: 'Glosario', subtitle: 'Términos financieros importantes', icon: 'book' },
   ];
 
   return (
