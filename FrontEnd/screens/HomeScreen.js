@@ -112,7 +112,6 @@ export default function HomeScreen() {
   const [isOpen, setIsOpen] = useState(false); 
   const heightAnim = useState(new Animated.Value(0))[0];
   const [notificationsVisible, setNotificationsVisible] = useState(false);
-
   const ingresoCategorias = ["Salario", "Venta de producto"];
   const egresoCategorias = [
     "Comida y Bebidas",
