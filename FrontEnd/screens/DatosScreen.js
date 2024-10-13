@@ -1,133 +1,150 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native'; 
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
+import moment from 'moment';
 
-// Función para obtener los próximos 7 meses a partir del mes actual
-const getNextMonths = () => {
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth(); // Enero = 0
-  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  const nextMonths = [];
-
-  for (let i = 0; i < 8; i++) {
-    nextMonths.push(months[(currentMonth + i) % 12]);
-  }
-
-  return nextMonths;
-};
-
-export default function DatosScreen({ route }) {
+export default function DatosScreen() {
+  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses' o 'Income'
   const screenWidth = Dimensions.get('window').width;
 
-  // Recibe las transactions desde route.params
-  const transactions = route?.params?.transactions || []; // Manejar el caso en el que route o params es undefined
+  // Datos de prueba para las categorías de gastos
+  const expenseCategories = [
+    { id: '1', category: 'Comidas y Bebidas', amount: -200, date: 'Oct 10, 12:21 pm', icon: '🍔' },
+    { id: '2', category: 'Vestuario', amount: -150, date: 'Oct 9, 3:30 pm', icon: '👗' },
+    { id: '3', category: 'Alojamiento', amount: -800, date: 'Oct 7, 9:00 am', icon: '🏠' },
+    { id: '4', category: 'Salud', amount: -250, date: 'Oct 5, 11:15 am', icon: '🏥' },
+    { id: '5', category: 'Transporte', amount: -75, date: 'Oct 3, 8:00 am', icon: '🚗' },
+    { id: '6', category: 'Educación', amount: -300, date: 'Oct 1, 10:00 am', icon: '🎓' },
+  ];
 
-  console.log('Transactions:', transactions); // Verificar si las transacciones llegan correctamente
+  // Datos de prueba para las categorías de ingresos
+  const incomeCategories = [
+    { id: '1', category: 'Salario', amount: 1500, date: 'Oct 10, 12:21 pm', icon: '💼' },
+    { id: '2', category: 'Ventas de Producto', amount: 800, date: 'Oct 9, 3:30 pm', icon: '🛒' },
+  ];
 
-  // Asegurarse de que transactions esté definido
-  if (!transactions || transactions.length === 0) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Progreso Financiero</Text>
-        <Text style={styles.description}>No hay datos de transacciones disponibles.</Text>
-      </View>
-    );
-  }
-
-  // Filtramos los datos de ingresos y egresos para los próximos 8 meses
-  const filteredData = getNextMonths().map((month, index) => {
-    const ingresos = transactions
-      .filter(t => t.type === 'Ingreso' && new Date(t.date).getMonth() === (new Date().getMonth() + index) % 12)
-      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
-
-    const egresos = transactions
-      .filter(t => t.type === 'Egreso' && new Date(t.date).getMonth() === (new Date().getMonth() + index) % 12)
-      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
-
-    return { month, ingresos, egresos };
-  });
-
-  console.log('Filtered Data:', filteredData); // Verificar los datos filtrados para depuración
-
-  // Extraemos los ingresos y egresos por separado para el gráfico
-  const ingresosData = filteredData.map(data => data.ingresos);
-  const egresosData = filteredData.map(data => data.egresos);
-
-  const data = {
-    labels: getNextMonths(),  // Meses en el eje X
-    datasets: [
-      {
-        data: ingresosData, // Valores en el eje Y para los ingresos
-        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Color de la línea de ingresos
-        strokeWidth: 3, // Ancho de la línea
-      },
-      {
-        data: egresosData, // Valores en el eje Y para los egresos
-        color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // Color de la línea de egresos
-        strokeWidth: 3, // Ancho de la línea
-      },
-    ],
-    legend: ['Ingresos', 'Egresos'], // Nombres para las líneas
+  // Generar etiquetas de meses
+  const generateMonthLabels = () => {
+    const currentMonthIndex = moment().month();
+    const months = [];
+    for (let i = 0; i < 7; i++) {
+      months.push(moment().month((currentMonthIndex + i) % 12).format('MMM'));
+    }
+    return months;
   };
 
-  // Calcular totales
-  const totalIngresos = ingresosData.reduce((acc, value) => acc + value, 0);
-  const totalEgresos = egresosData.reduce((acc, value) => acc + value, 0);
+  // Datos de prueba para el gráfico
+  const chartData = {
+    labels: generateMonthLabels(),
+    datasets: [
+      {
+        data: selectedTab === 'Expenses' ? [500, 700, 800, 320, 900, 600, 700] : [1000, 1100, 900, 320, 1150, 920, 970],
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Línea en degradado morado
+        strokeWidth: 3,
+      },
+    ],
+  };
+
+  const chartConfig = {
+    backgroundGradientFrom: '#fff',
+    backgroundGradientTo: '#fff',
+    color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
+    strokeWidth: 2,
+    decimalPlaces: 0,
+    propsForDots: {
+      r: '6',
+      strokeWidth: '2',
+      stroke: '#ffffff',
+    },
+    withVerticalLines: false,
+    withHorizontalLines: false,
+    withInnerLines: false,
+    propsForBackgroundLines: {
+      stroke: 'transparent',
+    },
+    withVerticalLabels: true,
+    withHorizontalLabels: true,
+    labelFontSize: 14,
+    labelFontWeight: 'bold',
+    propsForHorizontalLabels: {
+      fill: '#000',
+      fontWeight: 'bold',
+    },
+    propsForVerticalLabels: {
+      fill: '#000',
+      fontWeight: 'bold',
+    },
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Progreso Financiero</Text>
+      {/* Título de la página con el estilo de Actualidad */}
+      <Text style={styles.screenTitle}>Datos</Text>
 
+      {/* Apartado de selección de gráfico */}
+      <View style={styles.segmentedControl}>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Expenses' && styles.activeTab]}
+          onPress={() => setSelectedTab('Expenses')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Expenses' && styles.activeTabText]}>
+            Gastos
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Income' && styles.activeTab]}
+          onPress={() => setSelectedTab('Income')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Income' && styles.activeTabText]}>
+            Ingresos
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Gráfico de líneas */}
       <LineChart
-        data={data}
-        width={screenWidth} // Ancho del gráfico ahora ocupa toda la pantalla
-        height={300} // Altura del gráfico
-        yAxisLabel="$" // Etiqueta en el eje Y
-        chartConfig={{
-          backgroundColor: '#1c1c1e',
-          backgroundGradientFrom: '#673072',
-          backgroundGradientTo: '#885fd8',
-          decimalPlaces: 2, // Mostrar 2 decimales para las cantidades monetarias
-          color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
-          propsForDots: {
-            r: '6',
-            strokeWidth: '2',
-            stroke: '#ffa726',
-          },
-        }}
-        bezier // Añadir curvas suaves
-        style={{
-          marginVertical: 20,
-          borderRadius: 16,
-        }}
+        data={chartData}
+        width={screenWidth * 0.95}
+        height={220}
+        chartConfig={chartConfig}
+        bezier
+        style={styles.chart}
+        withVerticalLabels={true}
+        withHorizontalLabels={true}
+        withDots={true}
+        withShadow={false}
+        fromZero={true}
       />
 
-      <View style={styles.transactionDetails}>
-        <LinearGradient
-          colors={['#511496', '#885fd8']}
-          style={styles.totalItem}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Text style={styles.totalLabel}>Ingresos Totales</Text>
-          <Text style={styles.totalAmount}>${totalIngresos}</Text>
-        </LinearGradient>
-
-        <LinearGradient
-          colors={['#511496', '#885fd8']}
-          style={styles.totalItem}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Text style={styles.totalLabel}>Egresos Totales</Text>
-          <Text style={styles.totalAmount}>${totalEgresos}</Text>
-        </LinearGradient>
+      {/* Sección de Categorías y Gastos/Ingresos */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Última Actividad</Text>
+        <TouchableOpacity>
+          <Text style={styles.seeAll}>Ver Todo</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Lista de categorías según la selección de ingresos o gastos */}
+      <FlatList
+        data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.listItem}>
+            <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
+              <Text style={styles.icon}>{item.icon}</Text>
+            </LinearGradient>
+            <View style={styles.details}>
+              <Text style={styles.category}>{item.category}</Text>
+              <Text style={styles.date}>{item.date}</Text>
+            </View>
+            <Text style={[styles.amount, item.amount < 0 ? styles.negativeAmount : styles.positiveAmount]}>
+              {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
+            </Text>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -135,40 +152,105 @@ export default function DatosScreen({ route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F6F6F6',
-    alignItems: 'center',
-    padding: 20,
+    backgroundColor: '#ffffff',
+    padding: 10,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#673072',
-    marginBottom: 10,
+  screenTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#511496',
+    textAlign: 'center',
+    marginVertical: 10,
+    paddingTop: 25,
   },
-  description: {
-    fontSize: 16,
-    color: '#555',
-  },
-  transactionDetails: {
+  segmentedControl: {
     flexDirection: 'row',
-    justifyContent: 'space-around', // Ajuste para el espaciado de los elementos
-    width: '100%', // Ocupar todo el ancho de la pantalla
-    marginTop: 20,
-  },
-  totalItem: {
-    width: '45%', // Ajuste de ancho para los gradientes
-    borderRadius: 10, // Bordes redondeados
-    padding: 15,
+    justifyContent: 'space-evenly',
     alignItems: 'center',
+    backgroundColor: '#ececec',
+    borderRadius: 30,
+    marginHorizontal: 20,
+    marginVertical: 10,
+    padding: 5,
   },
-  totalLabel: {
-    fontSize: 18,
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+  },
+  activeTab: {
+    backgroundColor: '#511496',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#6d6d6d',
+  },
+  activeTabText: {
+    color: 'white',
+  },
+  chart: {
+    marginVertical: 20,
+    borderRadius: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: 'white', // Texto en blanco
+    color: '#000',
   },
-  totalAmount: {
+  seeAll: {
+    fontSize: 14,
+    color: '#885fd8',
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+  },
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  icon: {
     fontSize: 24,
+    color: '#fff',
+  },
+  details: {
+    flex: 1,
+  },
+  category: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: 'white', // Texto en blanco
+    color: '#000',
+  },
+  date: {
+    fontSize: 14,
+    color: '#888',
+  },
+  amount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  negativeAmount: {
+    color: '#ff3b30',
+  },
+  positiveAmount: {
+    color: '#4cd964',
   },
 });
