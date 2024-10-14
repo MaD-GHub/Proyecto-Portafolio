@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, TextInput } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import moment from 'moment';
+import { Picker } from '@react-native-picker/picker';  // Cambiado aquí
 
 export default function DatosScreen() {
-  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses' o 'Income'
+  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses', 'Income', o 'Simulation'
+  const [electrodomestico, setElectrodomestico] = useState('');
+  const [clasificacion, setClasificacion] = useState('');
+  const [horasUso, setHorasUso] = useState('');
+  const [totalCost, setTotalCost] = useState(0);
+  
   const screenWidth = Dimensions.get('window').width;
 
   // Datos de prueba para las categorías de gastos
@@ -77,6 +83,77 @@ export default function DatosScreen() {
     },
   };
 
+// Cálculo del costo mensual basado en el tipo de electrodoméstico, clasificación y horas de uso
+const calcularCostoMensual = () => {
+  let consumoBaseKWh;
+
+  // Define consumo básico de acuerdo al tipo de electrodoméstico
+  switch (electrodomestico) {
+    case 'refrigerador':
+      consumoBaseKWh = 1; // Consumo por día en kWh
+      break;
+    case 'lavadora':
+      consumoBaseKWh = 0.5; // Consumo por ciclo en kWh
+      break;
+    case 'televisor':
+      consumoBaseKWh = 0.1; // Consumo por hora en kWh
+      break;
+    case 'microondas':
+      consumoBaseKWh = 1.2; // Consumo por hora en kWh
+      break;
+    default:
+      consumoBaseKWh = 0;
+  }
+
+  // Define multiplicador basado en clasificación energética
+  let multiplicadorClasificacion;
+  switch (clasificacion) {
+    case 'A+++':
+      multiplicadorClasificacion = 0.8;
+      break;
+    case 'A++':
+      multiplicadorClasificacion = 0.85;
+      break;
+    case 'A+':
+      multiplicadorClasificacion = 0.9;
+      break;
+    case 'A':
+      multiplicadorClasificacion = 1;
+      break;
+    case 'B':
+      multiplicadorClasificacion = 1.1;
+      break;
+    case 'C':
+      multiplicadorClasificacion = 1.2;
+      break;
+    case 'D':
+      multiplicadorClasificacion = 1.3;
+      break;
+    case 'E':
+      multiplicadorClasificacion = 1.4;
+      break;
+    case 'F':
+      multiplicadorClasificacion = 1.5;
+      break;
+    case 'G':
+      multiplicadorClasificacion = 1.6;
+      break;
+    default:
+      multiplicadorClasificacion = 1;
+  }
+
+  // Cálculo del costo basado en horas de uso y consumo
+  const horas = parseFloat(horasUso);
+  if (!isNaN(horas) && consumoBaseKWh > 0) {
+    const consumoMensual = consumoBaseKWh * horas * 30 * multiplicadorClasificacion;
+    const costoPorKWh = 150; // Precio en CLP por kWh
+    const costoMensual = consumoMensual * costoPorKWh;
+    setTotalCost(costoMensual);
+  } else {
+    setTotalCost(0);
+  }
+};
+
   return (
     <View style={styles.container}>
       {/* Título de la página con el estilo de Actualidad */}
@@ -101,50 +178,111 @@ export default function DatosScreen() {
             Ingresos
           </Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Gráfico de líneas */}
-      <LineChart
-        data={chartData}
-        width={screenWidth * 0.95}
-        height={220}
-        chartConfig={chartConfig}
-        bezier
-        style={styles.chart}
-        withVerticalLabels={true}
-        withHorizontalLabels={true}
-        withDots={true}
-        withShadow={false}
-        fromZero={true}
-      />
-
-      {/* Sección de Categorías y Gastos/Ingresos */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Última Actividad</Text>
-        <TouchableOpacity>
-          <Text style={styles.seeAll}>Ver Todo</Text>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Simulation' && styles.activeTab]}
+          onPress={() => setSelectedTab('Simulation')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Simulation' && styles.activeTabText]}>
+            Simulación
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Lista de categorías según la selección de ingresos o gastos */}
-      <FlatList
-        data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
-              <Text style={styles.icon}>{item.icon}</Text>
-            </LinearGradient>
-            <View style={styles.details}>
-              <Text style={styles.category}>{item.category}</Text>
-              <Text style={styles.date}>{item.date}</Text>
-            </View>
-            <Text style={[styles.amount, item.amount < 0 ? styles.negativeAmount : styles.positiveAmount]}>
-              {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
-            </Text>
+      {/* Mostrar el gráfico o simulación según la pestaña seleccionada */}
+      {selectedTab === 'Simulation' ? (
+        <View style={styles.simulationContainer}>
+          <Text style={styles.simulationTitle}>Simular consumo de electrodoméstico</Text>
+
+          <Picker
+            selectedValue={electrodomestico}
+            onValueChange={(itemValue) => setElectrodomestico(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Seleccione un electrodoméstico" value="" />
+            <Picker.Item label="Refrigerador" value="refrigerador" />
+            <Picker.Item label="Lavadora" value="lavadora" />
+            <Picker.Item label="Televisor" value="televisor" />
+            <Picker.Item label="Microondas" value="microondas" />
+          </Picker>
+
+          <Picker
+            selectedValue={clasificacion}
+            onValueChange={(itemValue) => setClasificacion(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Seleccione una clasificación energética" value="" />
+            <Picker.Item label="A+++" value="A+++" />
+            <Picker.Item label="A++" value="A++" />
+            <Picker.Item label="A+" value="A+" />
+            <Picker.Item label="A" value="A" />
+            <Picker.Item label="B" value="B" />
+            <Picker.Item label="C" value="C" />
+            <Picker.Item label="D" value="D" />
+            <Picker.Item label="E" value="E" />
+            <Picker.Item label="F" value="F" />
+            <Picker.Item label="G" value="G" />
+          </Picker>
+
+          <TextInput
+            style={styles.input}
+            keyboardType="numeric"
+            placeholder="Ingrese horas de uso al día"
+            value={horasUso}
+            onChangeText={setHorasUso}
+          />
+
+          <TouchableOpacity style={styles.calculateButton} onPress={calcularCostoMensual}>
+            <Text style={styles.calculateButtonText}>Calcular Costo</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.totalCost}>Costo Mensual: {totalCost.toFixed(2)} CLP</Text>
+        </View>
+      ) : (
+        <>
+          <LineChart
+            data={chartData}
+            width={screenWidth * 0.95}
+            height={220}
+            chartConfig={chartConfig}
+            bezier
+            style={styles.chart}
+            withVerticalLabels={true}
+            withHorizontalLabels={true}
+            withDots={true}
+            withShadow={false}
+            fromZero={true}
+          />
+
+          {/* Sección de Categorías y Gastos/Ingresos */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Última Actividad</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>Ver Todo</Text>
+            </TouchableOpacity>
           </View>
-        )}
-      />
+
+          {/* Lista de categorías según la selección de ingresos o gastos */}
+          <FlatList
+            data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.listItem}>
+                <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
+                  <Text style={styles.icon}>{item.icon}</Text>
+                </LinearGradient>
+                <View style={styles.details}>
+                  <Text style={styles.category}>{item.category}</Text>
+                  <Text style={styles.date}>{item.date}</Text>
+                </View>
+                <Text style={[styles.amount, item.amount < 0 ? styles.negativeAmount : styles.positiveAmount]}>
+                  {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
+                </Text>
+              </View>
+            )}
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -252,5 +390,49 @@ const styles = StyleSheet.create({
   },
   positiveAmount: {
     color: '#4cd964',
+  },
+  simulationContainer: {
+    marginTop: 20,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 300,
+  },
+  simulationTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  picker: {
+    width: '100%',
+    height: 50,
+    marginBottom: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    width: '100%',
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  calculateButton: {
+    backgroundColor: '#511496',
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  calculateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  totalCost: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
