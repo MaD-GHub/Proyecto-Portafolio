@@ -27,15 +27,6 @@ export default function DatosScreen() {
 >>>>>>> d50809b41a823fa934e07436044d9faba9a5d2fa
   const screenWidth = Dimensions.get('window').width;
 
-  // Datos de prueba para las categorías de gastos
-  const expenseCategories = [
-    { id: '1', category: 'Comidas y Bebidas', amount: -200, date: 'Oct 10, 12:21 pm', icon: '🍔' },
-    { id: '2', category: 'Vestuario', amount: -150, date: 'Oct 9, 3:30 pm', icon: '👗' },
-    { id: '3', category: 'Alojamiento', amount: -800, date: 'Oct 7, 9:00 am', icon: '🏠' },
-    { id: '4', category: 'Salud', amount: -250, date: 'Oct 5, 11:15 am', icon: '🏥' },
-    { id: '5', category: 'Transporte', amount: -75, date: 'Oct 3, 8:00 am', icon: '🚗' },
-    { id: '6', category: 'Educación', amount: -300, date: 'Oct 1, 10:00 am', icon: '🎓' },
-  ];
   // Obtener datos de Firebase
   useEffect(() => {
     const user = auth.currentUser;
@@ -56,11 +47,6 @@ export default function DatosScreen() {
         setTransactions(userTransactions);
       });
 
-  // Datos de prueba para las categorías de ingresos
-  const incomeCategories = [
-    { id: '1', category: 'Salario', amount: 1500, date: 'Oct 10, 12:21 pm', icon: '💼' },
-    { id: '2', category: 'Ventas de Producto', amount: 800, date: 'Oct 9, 3:30 pm', icon: '🛒' },
-  ];
       // Obtener ahorros del usuario desde Firebase
       const savingsQuery = query(collection(db, 'savings'), where('userId', '==', user.uid));
       const unsubscribeSavings = onSnapshot(savingsQuery, (snapshot) => {
@@ -72,12 +58,6 @@ export default function DatosScreen() {
         setSavings(userSavings);
       });
 
-  // Generar etiquetas de meses
-  const generateMonthLabels = () => {
-    const currentMonthIndex = moment().month();
-    const months = [];
-    for (let i = 0; i < 7; i++) {
-      months.push(moment().month((currentMonthIndex + i) % 12).format('MMM'));
       // Limpieza al desmontar el componente
       return () => {
         unsubscribeTransactions();
@@ -86,7 +66,6 @@ export default function DatosScreen() {
     } catch (error) {
       console.error("Error al obtener los datos de Firebase:", error);
     }
-    return months;
   }, []);
 
   // Procesar datos para el gráfico de torta
@@ -111,7 +90,6 @@ export default function DatosScreen() {
     }));
   };
 
-  // Datos de prueba para el gráfico
   // Función para generar las etiquetas del gráfico de líneas
   const generateLabels = (period) => {
     const labels = [];
@@ -147,12 +125,9 @@ export default function DatosScreen() {
 
   // Verificar que haya transacciones antes de generar datos del gráfico
   const chartData = {
-    labels: generateMonthLabels(),
     labels: generateLabels('month'), // Cambia esto a 'day', 'week', o 'year' según la selección
     datasets: [
       {
-        data: selectedTab === 'Expenses' ? [500, 700, 800, 320, 900, 600, 700] : [1000, 1100, 900, 320, 1150, 920, 970],
-        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Línea en degradado morado
         data: transactions.length > 0 ? transactions.map((transaction) => transaction.amount) : [0],
         color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Línea morada
         strokeWidth: 3,
@@ -170,24 +145,6 @@ export default function DatosScreen() {
       r: '6',
       strokeWidth: '2',
       stroke: '#ffffff',
-    },
-    withVerticalLines: false,
-    withHorizontalLines: false,
-    withInnerLines: false,
-    propsForBackgroundLines: {
-      stroke: 'transparent',
-    },
-    withVerticalLabels: true,
-    withHorizontalLabels: true,
-    labelFontSize: 14,
-    labelFontWeight: 'bold',
-    propsForHorizontalLabels: {
-      fill: '#000',
-      fontWeight: 'bold',
-    },
-    propsForVerticalLabels: {
-      fill: '#000',
-      fontWeight: 'bold',
     },
   };
 
@@ -263,13 +220,10 @@ const calcularCostoMensual = () => {
 };
 
   return (
-    <View style={styles.container}>
-      {/* Título de la página con el estilo de Actualidad */}
     <ScrollView style={styles.container}>
       {/* Título de la página */}
       <Text style={styles.screenTitle}>Datos</Text>
 
-      {/* Apartado de selección de gráfico */}
       {/* Selección entre Gastos e Ingresos */}
       <View style={styles.segmentedControl}>
         <TouchableOpacity
@@ -494,11 +448,9 @@ const styles = StyleSheet.create({
     color: '#6d6d6d',
   },
   activeTabText: {
-    color: 'white',
     color: '#fff',
   },
   chart: {
-    marginVertical: 20,
     borderRadius: 16,
     marginVertical: 20,
   },
@@ -514,35 +466,24 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginVertical: 10,
   },
   headerTitle: {
-    fontSize: 20,
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#000',
   },
   seeAll: {
-    fontSize: 14,
-    color: '#885fd8',
     color: '#511496',
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 10,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#e2e2e2',
     paddingBottom: 10,
   },
   iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
     borderRadius: 50,
     padding: 10,
     justifyContent: 'center',
@@ -550,7 +491,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   icon: {
-    fontSize: 24,
     fontSize: 20,
     color: '#fff',
   },
@@ -560,22 +500,14 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
   },
   date: {
     fontSize: 14,
     color: '#888',
   },
   amount: {
-    fontSize: 16,
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  negativeAmount: {
-    color: '#ff3b30',
-  },
-  positiveAmount: {
-    color: '#4cd964',
     color: '#511496',
   },
   simulationContainer: {
