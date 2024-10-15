@@ -6,65 +6,58 @@
   <title>Usuarios - Admin Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16rem;
+      height: 100%;
+      background-color: #6b21a8;
+    }
+    .main-content {
+      margin-left: 16rem;
+      padding: 2rem;
+    }
+    .dark-mode {
+      background-color: #1a202c;
+      color: white;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <style>
-        /* Fondo en gradiente para el dashboard */
-        .gradient-bg {
-          background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
-        }
-    
-        /* Hacer que el sidebar sea fijo y ocupe toda la altura */
-        .sidebar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 16rem; /* Ancho de la sidebar */
-          height: 100%;
-          background-color: #6b21a8; /* Color de fondo (morado oscuro) */
-        }
-    
-        /* Ajuste del contenido principal */
-        .main-content {
-          margin-left: 16rem; /* Espacio para la sidebar */
-          padding: 2rem; /* Espaciado interno */
-        }
-      </style>
-<aside class="sidebar text-white flex flex-col">
-    <!-- Logo Section -->
+<body class="bg-gray-100 font-sans" id="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar text-white flex flex-col">
     <div class="p-6 flex items-center justify-center border-b border-purple-700">
       <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
     </div>
-
-    <!-- Sidebar Links -->
     <nav class="flex-grow p-6">
-      <a href="index.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i>Inicio</a>
-      <a href="usuarios.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i>Usuarios</a>
-      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff; "></i>Estadísticas</a>
-      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i>Configuración</a>
+      <a href="index.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i><span id="menu-inicio">Inicio</span></a>
+      <a href="usuarios.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i><span id="menu-usuarios">Usuarios</span></a>
+      <a href="estadisticas.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff;"></i><span id="menu-estadisticas">Estadísticas</span></a>
+      <a href="configuracion.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i><span id="menu-configuracion">Configuración</span></a>
     </nav>
-
-    <!-- Logout -->
     <div class="p-6">
-      <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300">Cerrar sesión<i class="fa-solid fa-right-from-bracket pl-3"></i></button>
+      <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300"><span id="menu-cerrar-sesion">Cerrar sesión</span><i class="fa-solid fa-right-from-bracket pl-3"></i></button>
     </div>
   </aside>
 
-  <!-- Main Content -->
-  <div class="main-content p-8">
-    <!-- Header -->
+  <div class="main-content">
     <header class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold text-gray-700">Progreso de Usuarios</h1>
+      <h1 class="text-3xl font-bold text-gray-700" id="titulo-usuarios">Progreso de Usuarios</h1>
     </header>
 
-    <!-- Tabla de Usuarios -->
     <div class="bg-white p-0 rounded-lg shadow-lg">
       <table class="min-w-full bg-white rounded-lg shadow-lg">
         <thead class="bg-gray-100">
           <tr>
-            <th class="py-2 px-4 text-white bg-purple-600 rounded-tl-xl">Usuario</th>
-            <th class="py-2 px-4 text-white bg-purple-500">Progreso (%)</th>
-            <th class="py-2 px-4 text-white bg-purple-600 rounded-tr-xl">Última Actividad</th>
+            <th class="py-2 px-4 text-white bg-purple-600 rounded-tl-xl" id="tabla-usuario">Usuario</th>
+            <th class="py-2 px-4 text-white bg-purple-500" id="tabla-progreso">Progreso (%)</th>
+            <th class="py-2 px-4 text-white bg-purple-600 rounded-tr-xl" id="tabla-ultima-actividad">Última Actividad</th>
           </tr>
         </thead>
         <tbody>
@@ -87,5 +80,53 @@
       </table>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const body = document.getElementById('body');
+      const darkMode = localStorage.getItem('darkMode') === 'true';
+      const lang = localStorage.getItem('lang') || 'es';
+      
+      if (darkMode) {
+        body.classList.add('dark-mode');
+      }
+
+      const translate = (lang) => {
+        if (lang === 'es') {
+          document.getElementById('menu-inicio').textContent = 'Inicio';
+          document.getElementById('menu-usuarios').textContent = 'Usuarios';
+          document.getElementById('menu-estadisticas').textContent = 'Estadísticas';
+          document.getElementById('menu-configuracion').textContent = 'Configuración';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Cerrar sesión';
+          document.getElementById('titulo-usuarios').textContent = 'Progreso de Usuarios';
+          document.getElementById('tabla-usuario').textContent = 'Usuario';
+          document.getElementById('tabla-progreso').textContent = 'Progreso (%)';
+          document.getElementById('tabla-ultima-actividad').textContent = 'Última Actividad';
+        } else if (lang === 'en') {
+          document.getElementById('menu-inicio').textContent = 'Home';
+          document.getElementById('menu-usuarios').textContent = 'Users';
+          document.getElementById('menu-estadisticas').textContent = 'Statistics';
+          document.getElementById('menu-configuracion').textContent = 'Settings';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Log out';
+          document.getElementById('titulo-usuarios').textContent = 'User Progress';
+          document.getElementById('tabla-usuario').textContent = 'User';
+          document.getElementById('tabla-progreso').textContent = 'Progress (%)';
+          document.getElementById('tabla-ultima-actividad').textContent = 'Last Activity';
+        } else if (lang === 'fr') {
+          document.getElementById('menu-inicio').textContent = 'Accueil';
+          document.getElementById('menu-usuarios').textContent = 'Utilisateurs';
+          document.getElementById('menu-estadisticas').textContent = 'Statistiques';
+          document.getElementById('menu-configuracion').textContent = 'Configuration';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Se déconnecter';
+          document.getElementById('titulo-usuarios').textContent = 'Progrès des Utilisateurs';
+          document.getElementById('tabla-usuario').textContent = 'Utilisateur';
+          document.getElementById('tabla-progreso').textContent = 'Progrès (%)';
+          document.getElementById('tabla-ultima-actividad').textContent = 'Dernière Activité';
+        }
+      };
+
+      translate(lang);
+    });
+  </script>
 </body>
 </html>

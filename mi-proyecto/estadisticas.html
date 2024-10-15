@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16rem;
+      height: 100%;
+      background-color: #6b21a8;
+    }
+    .main-content {
+      margin-left: 16rem;
+      padding: 2rem;
+    }
+    .dark-mode {
+      background-color: #1a202c;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans" id="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar text-white flex flex-col">
+    <div class="p-6 flex items-center justify-center border-b border-purple-700">
+      <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
+    </div>
+    <nav class="flex-grow p-6">
+      <a href="index.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i><span id="menu-inicio">Inicio</span></a>
+      <a href="usuarios.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i><span id="menu-usuarios">Usuarios</span></a>
+      <a href="estadisticas.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff;"></i><span id="menu-estadisticas">Estadísticas</span></a>
+      <a href="configuracion.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i><span id="menu-configuracion">Configuración</span></a>
+    </nav>
+    <div class="p-6">
+      <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300"><span id="menu-cerrar-sesion">Cerrar sesión</span><i class="fa-solid fa-right-from-bracket pl-3"></i></button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-700" id="titulo-estadisticas">Estadísticas</h1>
+    </header>
+
+    <div class="mb-6">
+      <label for="userSelect" class="block text-gray-700 font-bold mb-2" id="label-seleccionar-usuario">Seleccionar Usuario:</label>
+      <select id="userSelect" class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+        <option value="usuario1">Juan Pérez</option>
+        <option value="usuario2">María García</option>
+        <option value="usuario3">Luis López</option>
+      </select>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4" id="label-manejo-dinero-mes">Dinero por Mes</h2>
+        <canvas id="monthlyChart"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-semibold mb-4" id="label-manejo-dinero-ano">Dinero por Año</h2>
+        <canvas id="yearlyChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const body = document.getElementById('body');
+      const darkMode = localStorage.getItem('darkMode') === 'true';
+      const lang = localStorage.getItem('lang') || 'es';
+      
+      if (darkMode) {
+        body.classList.add('dark-mode');
+      }
+
+      const translate = (lang) => {
+        if (lang === 'es') {
+          document.getElementById('menu-inicio').textContent = 'Inicio';
+          document.getElementById('menu-usuarios').textContent = 'Usuarios';
+          document.getElementById('menu-estadisticas').textContent = 'Estadísticas';
+          document.getElementById('menu-configuracion').textContent = 'Configuración';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Cerrar sesión';
+          document.getElementById('titulo-estadisticas').textContent = 'Estadísticas';
+          document.getElementById('label-seleccionar-usuario').textContent = 'Seleccionar Usuario:';
+          document.getElementById('label-manejo-dinero-mes').textContent = 'Manejo del Dinero por Mes';
+          document.getElementById('label-manejo-dinero-ano').textContent = 'Manejo del Dinero por Año';
+        } else if (lang === 'en') {
+          document.getElementById('menu-inicio').textContent = 'Home';
+          document.getElementById('menu-usuarios').textContent = 'Users';
+          document.getElementById('menu-estadisticas').textContent = 'Statistics';
+          document.getElementById('menu-configuracion').textContent = 'Settings';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Log out';
+          document.getElementById('titulo-estadisticas').textContent = 'Statistics';
+          document.getElementById('label-seleccionar-usuario').textContent = 'Select User:';
+          document.getElementById('label-dinero-mes').textContent = 'Money Management per Month';
+          document.getElementById('label-dinero-ano').textContent = 'Money Management per Year';
+        } else if (lang === 'fr') {
+          document.getElementById('menu-inicio').textContent = 'Accueil';
+          document.getElementById('menu-usuarios').textContent = 'Utilisateurs';
+          document.getElementById('menu-estadisticas').textContent = 'Statistiques';
+          document.getElementById('menu-configuracion').textContent = 'Configuration';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Se déconnecter';
+          document.getElementById('titulo-estadisticas').textContent = 'Statistiques';
+          document.getElementById('label-seleccionar-usuario').textContent = 'Sélectionner Utilisateur:';
+          document.getElementById('label-dinero-mes').textContent = 'Gestion de l\'argent par mois';
+          document.getElementById('label-dinero-ano').textContent = 'Gestion de l\'argent par an';
+        }
+      };
+
+      translate(lang);
+    });
+
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(monthlyCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        datasets: [{
+          label: 'Ingresos',
+          data: [1200, 1900, 3000, 5000, 2300, 4200, 3200, 2100, 4300, 3000, 2500, 2800],
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Gastos',
+          data: [800, 1400, 2200, 4000, 2100, 3500, 2700, 1800, 3800, 2400, 2000, 2500],
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+    new Chart(yearlyCtx, {
+      type: 'line',
+      data: {
+        labels: ['2019', '2020', '2021', '2022', '2023'],
+        datasets: [{
+          label: 'Ingresos',
+          data: [15000, 21000, 23000, 25000, 28000],
+          borderColor: 'rgba(75, 192, 192, 1)',
+          tension: 0.1
+        },
+        {
+          label: 'Gastos',
+          data: [10000, 17000, 19000, 22000, 24000],
+          borderColor: 'rgba(255, 99, 132, 1)',
+          tension: 0.1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+

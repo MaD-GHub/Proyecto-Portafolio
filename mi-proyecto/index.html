@@ -42,8 +42,8 @@
     <nav class="flex-grow p-6">
       <a href="index.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i>Inicio</a>
       <a href="usuarios.html" class=" block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i>Usuarios</a>
-      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff; "></i>Estadísticas</a>
-      <a href="#" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i>Configuración</a>
+      <a href="estadisticas.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff; "></i>Estadísticas</a>
+      <a href="configuracion.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i>Configuración</a>
     </nav>
 
     <!-- Logout -->
@@ -136,32 +136,48 @@
   </div>
 
   <script>
-    // Placeholder data for charts
-    const ctx1 = document.getElementById('newUsersChart').getContext('2d');
-    new Chart(ctx1, {
-      type: 'line',
-      data: {
-        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-        datasets: [{
-          label: 'Nuevos Usuarios',
-          data: [12, 19, 10, 5, 6, 8, 15],
-          borderColor: 'rgb(75, 192, 192)',
-          tension: 0.1
-        }]
-      }
-    });
 
-    const ctx2 = document.getElementById('expensesChart').getContext('2d');
-    new Chart(ctx2, {
-      type: 'doughnut',
-      data: {
-        labels: ['Comida', 'Transporte', 'Servicios', 'Entretenimiento'],
-        datasets: [{
-          data: [30, 20, 25, 25],
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
-        }]
-      }
-    });
+      document.addEventListener('DOMContentLoaded', () => {
+        const body = document.getElementById('body');
+        const darkMode = localStorage.getItem('darkMode') === 'true';
+        const lang = localStorage.getItem('lang') || 'es';
+        
+        if (darkMode) {
+          body.classList.add('dark-mode');
+        }
+    
+        const translate = (lang) => {
+          if (lang === 'es') {
+            document.getElementById('menu-inicio').textContent = 'Inicio';
+            document.getElementById('menu-usuarios').textContent = 'Usuarios';
+            document.getElementById('menu-estadisticas').textContent = 'Estadísticas';
+            document.getElementById('menu-configuracion').textContent = 'Configuración';
+            document.getElementById('menu-cerrar-sesion').textContent = 'Cerrar sesión';
+            document.getElementById('titulo-dashboard').textContent = 'Dashboard Administrativo';
+            document.getElementById('btn-agregar-datos').textContent = 'Agregar Datos';
+          } else if (lang === 'en') {
+            document.getElementById('menu-inicio').textContent = 'Home';
+            document.getElementById('menu-usuarios').textContent = 'Users';
+            document.getElementById('menu-estadisticas').textContent = 'Statistics';
+            document.getElementById('menu-configuracion').textContent = 'Settings';
+            document.getElementById('menu-cerrar-sesion').textContent = 'Log out';
+            document.getElementById('titulo-dashboard').textContent = 'Admin Dashboard';
+            document.getElementById('btn-agregar-datos').textContent = 'Add Data';
+          } else if (lang === 'fr') {
+            document.getElementById('menu-inicio').textContent = 'Accueil';
+            document.getElementById('menu-usuarios').textContent = 'Utilisateurs';
+            document.getElementById('menu-estadisticas').textContent = 'Statistiques';
+            document.getElementById('menu-configuracion').textContent = 'Configuration';
+            document.getElementById('menu-cerrar-sesion').textContent = 'Se déconnecter';
+            document.getElementById('titulo-dashboard').textContent = 'Tableau de Bord Administratif';
+            document.getElementById('btn-agregar-datos').textContent = 'Ajouter des Données';
+          }
+        };
+    
+        translate(lang);
+      });    
+    
   </script>
+  
 </body>
 </html>

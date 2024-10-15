@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16rem;
+      height: 100%;
+      background-color: #6b21a8;
+    }
+    .main-content {
+      margin-left: 16rem;
+      padding: 2rem;
+    }
+    .dark-mode {
+      background-color: #1a202c;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans" id="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar text-white flex flex-col">
+    <div class="p-6 flex items-center justify-center border-b border-purple-700">
+      <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
+    </div>
+    <nav class="flex-grow p-6">
+      <a href="index.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i><span id="menu-inicio">Inicio</span></a>
+      <a href="usuarios.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i><span id="menu-usuarios">Usuarios</span></a>
+      <a href="estadisticas.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff;"></i><span id="menu-estadisticas">Estadísticas</span></a>
+      <a href="configuracion.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i><span id="menu-configuracion">Configuración</span></a>
+    </nav>
+    <div class="p-6">
+      <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300"><span id="menu-cerrar-sesion">Cerrar sesión</span><i class="fa-solid fa-right-from-bracket pl-3"></i></button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-700" id="config-title">Configuración</h1>
+    </header>
+
+    <div class="mb-6">
+      <label for="languageSelect" class="block text-gray-700 font-bold mb-2" id="language-label">Cambiar Idioma:</label>
+      <select id="languageSelect" class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+        <option value="es">Español</option>
+        <option value="en">Inglés</option>
+        <option value="fr">Francés</option>
+      </select>
+    </div>
+
+    <div class="mb-6">
+      <label for="volumeControl" class="block text-gray-700 font-bold mb-2" id="volume-label">Volumen:</label>
+      <input type="range" id="volumeControl" min="0" max="100" class="w-full">
+    </div>
+
+    <div class="mb-6 flex items-center">
+      <label for="darkMode" class="block text-gray-700 font-bold mb-2 mr-2" id="dark-mode-label">Modo Oscuro:</label>
+      <input type="checkbox" id="darkMode" class="form-checkbox h-5 w-5 text-purple-600">
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const body = document.getElementById('body');
+      const darkMode = localStorage.getItem('darkMode') === 'true';
+      const lang = localStorage.getItem('lang') || 'es';
+
+      if (darkMode) {
+        body.classList.add('dark-mode');
+        document.getElementById('darkMode').checked = true;
+      }
+
+      const translate = (lang) => {
+        if (lang === 'es') {
+          document.getElementById('config-title').textContent = 'Configuración';
+          document.getElementById('language-label').textContent = 'Cambiar Idioma:';
+          document.getElementById('volume-label').textContent = 'Volumen:';
+          document.getElementById('dark-mode-label').textContent = 'Modo Oscuro:';
+        } else if (lang === 'en') {
+          document.getElementById('config-title').textContent = 'Settings';
+          document.getElementById('language-label').textContent = 'Change Language:';
+          document.getElementById('volume-label').textContent = 'Volume:';
+          document.getElementById('dark-mode-label').textContent = 'Dark Mode:';
+        } else if (lang === 'fr') {
+          document.getElementById('config-title').textContent = 'Configuration';
+          document.getElementById('language-label').textContent = 'Changer de Langue:';
+          document.getElementById('volume-label').textContent = 'Volume:';
+          document.getElementById('dark-mode-label').textContent = 'Mode Sombre:';
+        }
+      };
+
+      translate(lang);
+
+      document.getElementById('languageSelect').addEventListener('change', function() {
+        const selectedLang = this.value;
+        localStorage.setItem('lang', selectedLang);
+        translate(selectedLang);
+
+        // Llamar a la función de traducción en otras páginas
+        const pages = ['index.html', 'estadisticas.html', 'usuarios.html'];
+        pages.forEach(page => {
+          fetch(page)
+            .then(response => response.text())
+            .then(data => {
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = data;
+              const script = tempDiv.querySelector('script');
+              if (script) {
+                eval(script.textContent);
+              }
+            });
+        });
+      });
+
+      document.getElementById('darkMode').addEventListener('change', function() {
+        if (this.checked) {
+          body.classList.add('dark-mode');
+          localStorage.setItem('darkMode', true);
+        } else {
+          body.classList.remove('dark-mode');
+          localStorage.setItem('darkMode', false);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
