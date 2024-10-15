@@ -61,7 +61,7 @@ export default function LoginScreen() {
         </View>
         {/* Botón de volver */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('StartScreen')}>
-          <FontAwesome5 name="angle-left" size={24} color="#fff" />
+          <FontAwesome5 name="angle-left" size={24} color="#fff"/>
         </TouchableOpacity>
       </LinearGradient>
 
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 20,
+    top: 40,
     left: 20,
     padding: 10,
   },
