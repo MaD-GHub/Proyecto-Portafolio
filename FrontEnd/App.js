@@ -10,13 +10,13 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  Animated // Importamos Alert para la confirmación
+  Animated
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore'; // Importar Firebase deleteDoc para eliminar
-import { db, auth } from './firebase'; // Importar Firebase auth y firestore
+import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db, auth } from './firebase'; 
 import HomeScreen from './screens/HomeScreen';
 import AhorroScreen from './screens/AhorroScreen';
 import ActualidadScreen from './screens/ActualidadScreen';
@@ -24,7 +24,7 @@ import DatosScreen from './screens/DatosScreen';
 import StartScreen from './screens/StartScreen';
 import LoginScreen from './screens/Login';
 import RegisterScreen from './screens/Register';
-import ProfileScreen from './screens/ProfileScreen'; // Importa ProfileScreen
+import ProfileScreen from './screens/ProfileScreen'; 
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
@@ -70,7 +70,6 @@ function CustomTabBarButton({ children, onPress }) {
 
 function HomeTabs({ openModal, transactions, setTransactions }) {
   const handleDeleteTransaction = (transactionId) => {
-    // Mostrar alerta de confirmación
     Alert.alert(
       'Eliminar transacción',
       '¿Estás seguro de que quieres eliminar esta transacción?',
@@ -83,10 +82,7 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
           text: 'Eliminar',
           onPress: async () => {
             try {
-              // Eliminar la transacción de Firestore
               await deleteDoc(doc(db, 'transactions', transactionId));
-
-              // Actualizar el estado local después de eliminar
               setTransactions((prevTransactions) =>
                 prevTransactions.filter((item) => item.id !== transactionId)
               );
@@ -171,7 +167,8 @@ export default function App() {
   const [amount, setAmount] = React.useState('');
   const [transactionType, setTransactionType] = React.useState('Ingreso');
   const [category, setCategory] = React.useState('');
-  const [date, setDate] = React.useState(new Date());
+  const [description, setDescription] = React.useState(''); // Nuevo estado para la descripción
+  const [date, setDate] = React.useState(new Date()); // Fecha seleccionada por el usuario
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [transactions, setTransactions] = React.useState([]);
   const slideAnim = React.useRef(new Animated.Value(600)).current;
@@ -227,27 +224,26 @@ export default function App() {
     }
 
     const newTransaction = {
-      type: transactionType, // Asumiendo que se escoge el tipo en algún punto
+      type: transactionType,
       amount: parsedAmount,
       category: category,
-      date: new Date().toLocaleDateString(), // Fecha actual
-      userId: user.uid, // ID del usuario actual
+      description: description, // Guardar la descripción ingresada
+      selectedDate: date.toLocaleDateString(), // Guardar la fecha seleccionada por el usuario
+      creationDate: new Date().toLocaleDateString(), // Fecha de creación
+      userId: user.uid,
     };
 
     try {
-      // Añadir la transacción a Firestore
       const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
       console.log('Transacción añadida con ID: ', docRef.id);
 
-      // Actualizar el estado local con la nueva transacción
       setTransactions((prevTransactions) => [...prevTransactions, { id: docRef.id, ...newTransaction }]);
 
-      // Limpiar los campos después de guardar
       setAmount('');
       setCategory('');
-      setDate(new Date()); // Restablecemos la fecha
+      setDescription(''); // Limpiar descripción
+      setDate(new Date()); // Restablecer fecha
 
-      // Cerrar el modal (si lo tienes)
       closeModal();
     } catch (error) {
       console.error('Error al añadir transacción: ', error);
@@ -335,6 +331,14 @@ export default function App() {
                 keyboardType="numeric"
                 value={amount}
                 onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ''))}
+                style={styles.inputBox}
+              />
+
+              <Text style={styles.sectionTitle}>Ingrese descripción</Text>
+              <TextInput
+                placeholder="Descripción de la transacción"
+                value={description}
+                onChangeText={setDescription}
                 style={styles.inputBox}
               />
 
