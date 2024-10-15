@@ -12,6 +12,7 @@ import {
   StyleSheet,
   ScrollView,
   Animated,
+  Alert // Importamos Alert para la confirmación
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Font from "expo-font";
@@ -43,7 +44,6 @@ const Timeline = ({ transactions }) => {
   }, [transactions]);
 
   const calculateProjection = () => {
-    console.log("Calculando proyección financiera...");
     const projectionMonths = 6;
     let currentBalance = transactions.reduce((acc, transaction) => {
       const amount = parseFloat(transaction.amount);
@@ -74,27 +74,26 @@ const Timeline = ({ transactions }) => {
       });
     }
     setProjection(projectionData);
-    console.log("Proyección calculada: ", projectionData);
   };
 
   return (
     <View style={styles.timelineContainer}>
-    <Text style={styles.timelineTitle}>Proyección Financiera</Text>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      <View style={styles.timeline}>
-        <View style={styles.timelineLine} />
-        <View style={styles.timelineMonths}>
-          {projection.map((item, index) => (
-            <View key={index} style={styles.timelineItem}>
-              <View style={styles.timelineVerticalLine} />
-              <Text style={styles.timelineMonth}>{item.month}</Text>
-              <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
-            </View>
-          ))}
+      <Text style={styles.timelineTitle}>Proyección Financiera</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.timeline}>
+          <View style={styles.timelineLine} />
+          <View style={styles.timelineMonths}>
+            {projection.map((item, index) => (
+              <View key={index} style={styles.timelineItem}>
+                <View style={styles.timelineVerticalLine} />
+                <Text style={styles.timelineMonth}>{item.month}</Text>
+                <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
-    </ScrollView>
-  </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -132,7 +131,6 @@ export default function HomeScreen() {
         "QuattrocentoSans-BoldItalic": require("../assets/fonts/QuattrocentoSans-BoldItalic.ttf"),
       });
       setFontsLoaded(true);
-      console.log("Fuentes cargadas");
     };
     loadFonts();
   }, []);
@@ -149,59 +147,30 @@ export default function HomeScreen() {
         ...doc.data(),
       }));
       setTransactions(transacciones);
-      console.log("Transacciones actualizadas desde Firestore: ", transacciones);
     });
   
     return () => unsubscribe(); 
   }, []);
 
-  const handleAddTransaction = async () => {
-    const parsedAmount = parseFloat(editAmount);
-
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      alert('Por favor ingrese un monto válido.');
-      return;
-    }
-    if (!editCategory) {
-      alert('Por favor seleccione una categoría.');
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (!user) {
-      alert('Por favor inicie sesión.');
-      return;
-    }
-
-    const newTransaction = {
-      type: editingTransaction ? editingTransaction.type : 'Ingreso',
-      amount: parsedAmount,
-      category: editCategory,
-      date: new Date().toLocaleDateString(), 
-      userId: user.uid, 
-    };
-
-    try {
-      const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
-      console.log('Transacción añadida con ID: ', docRef.id);
-      setTransactions((prevTransactions) => [...prevTransactions, { id: docRef.id, ...newTransaction }]);
-      setEditAmount(''); 
-      setEditCategory(''); 
-      setModalVisible(false); 
-    } catch (error) {
-      console.error('Error al añadir transacción: ', error);
-    }
-  };
-
+  // Función para manejar la eliminación de transacciones con confirmación
   const handleDeleteTransaction = async (id) => {
-    try {
-      await deleteDoc(doc(db, 'transactions', id));
-      const updatedTransactions = transactions.filter((item) => item.id !== id);
-      setTransactions(updatedTransactions);
-      console.log(`Transacción con ID ${id} eliminada correctamente`);
-    } catch (error) {
-      console.error('Error al eliminar transacción: ', error);
-    }
+    Alert.alert(
+      'Eliminar transacción',
+      '¿Estás seguro de que quieres eliminar esta transacción?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar', style: 'destructive', onPress: async () => {
+          try {
+            await deleteDoc(doc(db, 'transactions', id));
+            const updatedTransactions = transactions.filter((item) => item.id !== id);
+            setTransactions(updatedTransactions);
+          } catch (error) {
+            console.error('Error al eliminar transacción: ', error);
+          }
+        }}
+      ],
+      { cancelable: true }
+    );
   };
 
   const handleSaveEdit = async () => {
@@ -219,7 +188,6 @@ export default function HomeScreen() {
       );
       setTransactions(updatedTransactions);
       setModalVisible(false);
-      console.log("Transacción actualizada correctamente");
     } catch (error) {
       console.error('Error al actualizar transacción: ', error);
     }
@@ -238,12 +206,10 @@ export default function HomeScreen() {
       setTotalIngresos(ingresos);
       setTotalGastos(gastos);
       setTotalSaved(ingresos - gastos); 
-      console.log("Totales calculados: Ingresos =", ingresos, "Gastos =", gastos);
     } else {
       setTotalSaved(0); 
       setTotalIngresos(0);
       setTotalGastos(0);
-      console.log("No hay transacciones para calcular los totales");
     }
   };
 
@@ -263,6 +229,7 @@ export default function HomeScreen() {
   const toggleNotifications = () => {
     setNotificationsVisible(!notificationsVisible);
   };
+
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#673072" />;
   }

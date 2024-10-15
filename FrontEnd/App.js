@@ -1,4 +1,3 @@
-// App.js
 import * as React from 'react';
 import {
   View,
@@ -10,12 +9,13 @@ import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
-  Animated,
+  Alert,
+  Animated // Importamos Alert para la confirmación
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore'; // Importar Firebase deleteDoc para eliminar
 import { db, auth } from './firebase'; // Importar Firebase auth y firestore
 import HomeScreen from './screens/HomeScreen';
 import AhorroScreen from './screens/AhorroScreen';
@@ -69,6 +69,39 @@ function CustomTabBarButton({ children, onPress }) {
 }
 
 function HomeTabs({ openModal, transactions, setTransactions }) {
+  const handleDeleteTransaction = (transactionId) => {
+    // Mostrar alerta de confirmación
+    Alert.alert(
+      'Eliminar transacción',
+      '¿Estás seguro de que quieres eliminar esta transacción?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          onPress: async () => {
+            try {
+              // Eliminar la transacción de Firestore
+              await deleteDoc(doc(db, 'transactions', transactionId));
+
+              // Actualizar el estado local después de eliminar
+              setTransactions((prevTransactions) =>
+                prevTransactions.filter((item) => item.id !== transactionId)
+              );
+              console.log('Transacción eliminada con éxito');
+            } catch (error) {
+              console.error('Error al eliminar la transacción:', error);
+            }
+          },
+          style: 'destructive',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -112,19 +145,13 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
         },
       })}
     >
-      <Tab.Screen 
-        name="Inicio" 
-        options={{ headerShown: false }} 
-        component={HomeScreen}
-      />
+      <Tab.Screen name="Inicio" options={{ headerShown: false }} component={HomeScreen} />
       <Tab.Screen name="Ahorro" component={AhorroScreen} options={{ headerShown: false }} />
       <Tab.Screen
         name="Agregar"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <Text style={{ color: 'white', fontSize: 28 }}>+</Text>
-          ),
+          tabBarIcon: ({ focused }) => <Text style={{ color: 'white', fontSize: 28 }}>+</Text>,
           tabBarButton: (props) => (
             <CustomTabBarButton {...props} onPress={openModal}>
               <Text style={{ color: 'white', fontSize: 28 }}>+</Text>
@@ -175,7 +202,7 @@ export default function App() {
   };
 
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false); 
+    setShowDatePicker(false);
     if (selectedDate) {
       setDate(selectedDate);
     }
@@ -183,7 +210,7 @@ export default function App() {
 
   const handleAddTransaction = async () => {
     const parsedAmount = parseFloat(amount);
-  
+
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert('Por favor ingrese un monto válido.');
       return;
@@ -192,13 +219,13 @@ export default function App() {
       alert('Por favor seleccione una categoría.');
       return;
     }
-  
+
     const user = auth.currentUser;
     if (!user) {
       alert('Por favor inicie sesión.');
       return;
     }
-  
+
     const newTransaction = {
       type: transactionType, // Asumiendo que se escoge el tipo en algún punto
       amount: parsedAmount,
@@ -206,32 +233,26 @@ export default function App() {
       date: new Date().toLocaleDateString(), // Fecha actual
       userId: user.uid, // ID del usuario actual
     };
-  
+
     try {
       // Añadir la transacción a Firestore
       const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
       console.log('Transacción añadida con ID: ', docRef.id);
-  
+
       // Actualizar el estado local con la nueva transacción
-      setTransactions((prevTransactions) => [
-        ...prevTransactions, 
-        { id: docRef.id, ...newTransaction }
-      ]);
-  
+      setTransactions((prevTransactions) => [...prevTransactions, { id: docRef.id, ...newTransaction }]);
+
       // Limpiar los campos después de guardar
       setAmount('');
       setCategory('');
       setDate(new Date()); // Restablecemos la fecha
-  
+
       // Cerrar el modal (si lo tienes)
       closeModal();
     } catch (error) {
       console.error('Error al añadir transacción: ', error);
     }
   };
-  
-  
-
 
   React.useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -273,7 +294,6 @@ export default function App() {
               />
             )}
           </Stack.Screen>
-          {/* Agrega ProfileScreen al Stack Navigator */}
           <Stack.Screen
             name="ProfileScreen"
             component={ProfileScreen}
@@ -343,12 +363,7 @@ export default function App() {
               </TouchableOpacity>
 
               {showDatePicker && (
-                <DateTimePicker
-                  value={date}
-                  mode="date"
-                  display="default"
-                  onChange={handleDateChange}
-                />
+                <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
               )}
 
               <View style={styles.modalButtons}>
@@ -468,7 +483,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-
-
-
