@@ -86,7 +86,6 @@ const ProfileScreen = ({ route }) => {
     };
   }, []);
 
-
   const openModal = () => {
     setModalVisible(true);
     Animated.timing(slideAnim, {
@@ -203,19 +202,32 @@ const ProfileScreen = ({ route }) => {
     return ingresos - gastos;
   };
 
-  // Función para cerrar sesión
-  const handleLogout = async () => {
-    try {
-      if (unsubscribe) {
-        unsubscribe(); // Detenemos el listener cuando el usuario cierra sesión
-      }
-      await auth.signOut(); // Cierra sesión en Firebase Auth
-      navigation.replace('StartScreen'); // Navegar a la pantalla de inicio de sesión o pantalla inicial después del logout
-    } catch (error) {
-      console.error("Error al cerrar sesión: ", error);
-    }
+  // Función para cerrar sesión con confirmación
+  const handleLogout = () => {
+    Alert.alert(
+      'Cerrar sesión',
+      '¿Estás seguro de que deseas cerrar sesión?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cerrar sesión',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (unsubscribe) {
+                unsubscribe(); // Detenemos el listener cuando el usuario cierra sesión
+              }
+              await auth.signOut(); // Cierra sesión en Firebase Auth
+              navigation.replace('StartScreen'); // Navegar a la pantalla de inicio de sesión
+            } catch (error) {
+              console.error("Error al cerrar sesión: ", error);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
-  
 
   if (isLoading) {
     return (
