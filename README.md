@@ -13,7 +13,6 @@ FinaWise permite a los usuarios:
 - Recibir notificaciones sobre eventos financieros importantes (como superar límites de gasto o fechas de vencimiento de deudas).
 - Generar proyecciones de su situación financiera futura basadas en datos históricos.
 - Acceder a gráficos interactivos y análisis detallados de sus finanzas.
-- Exportar datos en formato CSV y PDF para revisión o archivo externo.
 - Editar su perfil, cambiar su contraseña y gestionar la seguridad de la cuenta.
 
 ---
