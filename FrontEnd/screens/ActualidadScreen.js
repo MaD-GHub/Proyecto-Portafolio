@@ -27,6 +27,8 @@ const ActualidadScreen = () => {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [quizData, setQuizData] = useState([]);
   const [modalVisible, setModalVisible] = useState(null);
+  const [correctAnswers, setCorrectAnswers] = useState(0); // Contador para respuestas correctas
+  const [showResult, setShowResult] = useState(false); // Mostrar el resultado del quiz
 
   // Términos financieros importantes
   const financialTerms = [
@@ -175,6 +177,18 @@ const ActualidadScreen = () => {
       return quiz;
     });
     setQuizData(updatedQuizData);
+  };
+
+  // Manejar el envío de respuestas del quiz
+  const handleSubmitQuiz = () => {
+    let correctCount = 0;
+    quizData.forEach((quiz) => {
+      if (quiz.selectedOption === quiz.correctAnswer) {
+        correctCount++;
+      }
+    });
+    setCorrectAnswers(correctCount);
+    setShowResult(true);
   };
 
   if (!fontsLoaded) {
@@ -337,23 +351,31 @@ const ActualidadScreen = () => {
                 ))
               )}
               {modalVisible === 'quizzes' && quizData.length > 0 && (
-                quizData.map((quiz, index) => (
-                  <View key={index} style={styles.termCard}>
-                    <Text style={styles.quizQuestion}>{quiz.question}</Text>
-                    {quiz.options.map((option, optionIndex) => (
-                      <TouchableOpacity
-                        key={optionIndex}
-                        style={[
-                          styles.optionButton,
-                          quiz.selectedOption === option && styles.selectedOptionButton,
-                        ]}
-                        onPress={() => handleSelectOption(index, option)}
-                      >
-                        <Text style={styles.optionText}>{option}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                ))
+                <>
+                  {quizData.map((quiz, index) => (
+                    <View key={index} style={styles.termCard}>
+                      <Text style={styles.quizQuestion}>{quiz.question}</Text>
+                      {quiz.options.map((option, optionIndex) => (
+                        <TouchableOpacity
+                          key={optionIndex}
+                          style={[
+                            styles.optionButton,
+                            quiz.selectedOption === option && styles.selectedOptionButton,
+                          ]}
+                          onPress={() => handleSelectOption(index, option)}
+                        >
+                          <Text style={styles.optionText}>{option}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ))}
+                  <TouchableOpacity style={styles.submitButton} onPress={handleSubmitQuiz}>
+                    <Text style={styles.submitButtonText}>Enviar respuestas</Text>
+                  </TouchableOpacity>
+                  {showResult && (
+                    <Text style={styles.resultText}>Respuestas correctas: {correctAnswers} de {quizData.length}</Text>
+                  )}
+                </>
               )}
               {modalVisible === 'quizzes' && quizData.length === 0 && (
                 <Text style={styles.modalTitle}>No hay quizzes disponibles.</Text>
@@ -551,6 +573,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#333',
+  },
+  submitButton: {
+    backgroundColor: '#511496',
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  submitButtonText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    color: '#fff',
+  },
+  resultText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    color: '#511496',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
 
