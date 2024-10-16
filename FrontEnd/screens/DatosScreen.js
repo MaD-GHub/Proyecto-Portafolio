@@ -362,50 +362,45 @@ const styles = StyleSheet.create({
     color: '#6d6d6d',
   },
   activeTabText: {
-    color: '#fff',
+    color: 'white',
   },
   chart: {
+    marginVertical: 20,
     borderRadius: 16,
-    marginVertical: 20,
-  },
-  pieChart: {
-    marginVertical: 20,
-  },
-  chartTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#511496',
-    marginVertical: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginVertical: 10,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#000',
   },
   seeAll: {
-    color: '#511496',
+    fontSize: 14,
+    color: '#885fd8',
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e2e2',
-    paddingBottom: 10,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
   },
   iconContainer: {
-    borderRadius: 50,
-    padding: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   icon: {
-    fontSize: 20,
+    fontSize: 24,
     color: '#fff',
   },
   details: {
@@ -414,13 +409,14 @@ const styles = StyleSheet.create({
   category: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#000',
   },
   date: {
     fontSize: 14,
     color: '#888',
   },
   amount: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#511496',
   },

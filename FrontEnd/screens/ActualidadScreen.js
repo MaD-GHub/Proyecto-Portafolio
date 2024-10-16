@@ -9,10 +9,12 @@ import {
   ImageBackground,
   Dimensions,
   SafeAreaView,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import * as Font from 'expo-font';
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient'; // Importar LinearGradient
+import { FontAwesome5, MaterialIcons, AntDesign } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const NoHayNoticiaImage = require('../assets/Nonoticia.png');
@@ -23,6 +25,27 @@ const ActualidadScreen = () => {
   const [marketData, setMarketData] = useState([]);
   const [newsData, setNewsData] = useState([]);
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [quizData, setQuizData] = useState([]);
+  const [modalVisible, setModalVisible] = useState(null);
+
+  // Términos financieros importantes
+  const financialTerms = [
+    { term: 'Activo', definition: 'Cualquier recurso con valor económico que una persona o empresa posee.' },
+    { term: 'Pasivo', definition: 'Obligaciones financieras que una persona o empresa debe a otras.' },
+    { term: 'Capital', definition: 'Dinero o activos que se utilizan para generar ingresos o invertir.' },
+    { term: 'Tasa de interés', definition: 'El costo de pedir prestado dinero, generalmente expresado como un porcentaje anual.' },
+    { term: 'Liquidez', definition: 'La facilidad con la que se puede convertir un activo en efectivo sin afectar su precio.' },
+    { term: 'Riesgo', definition: 'La posibilidad de que ocurra una pérdida financiera.' },
+    { term: 'Diversificación', definition: 'Estrategia de inversión que distribuye el capital en diferentes activos para minimizar riesgos.' },
+    { term: 'Inversiones', definition: 'Colocación de capital en proyectos o activos con la expectativa de generar ganancias.' },
+    { term: 'Ahorro', definition: 'Parte de los ingresos que no se consume y se reserva para usos futuros.' },
+    { term: 'Deuda', definition: 'Cantidad de dinero que se debe a una entidad o individuo.' },
+    { term: 'Flujo de caja', definition: 'Movimiento neto de efectivo dentro y fuera de una empresa o persona.' },
+    { term: 'Crédito', definition: 'Capacidad de una persona o empresa para pedir prestado dinero.' },
+    { term: 'Tasa de retorno', definition: 'Beneficio o ganancia obtenida de una inversión.' },
+    { term: 'Presupuesto', definition: 'Plan financiero que estima ingresos y gastos para un período de tiempo.' },
+    { term: 'Amortización', definition: 'Proceso de pagar una deuda en cuotas a lo largo del tiempo.' },
+  ];
 
   // Cargar fuentes personalizadas
   useEffect(() => {
@@ -43,8 +66,10 @@ const ActualidadScreen = () => {
       fetchMarketData();
     } else if (selectedTab === 'Noticias') {
       fetchNews();
+    } else if (selectedTab === 'Educación' && modalVisible === 'quizzes') {
+      generateRandomQuiz();
     }
-  }, [selectedTab]);
+  }, [selectedTab, modalVisible]);
 
   const fetchMarketData = async () => {
     setLoading(true);
@@ -56,25 +81,25 @@ const ActualidadScreen = () => {
           name: 'UF', 
           value: data.uf.valor, 
           date: data.uf.fecha, 
-          image: require('../assets/flags/chile.png') // Ruta de la bandera de Chile
+          image: require('../assets/flags/chile.png') 
         },
         { 
           name: 'Dólar', 
           value: data.dolar.valor, 
           date: data.dolar.fecha, 
-          image: require('../assets/flags/usa.png') // Ruta de la bandera de EE.UU.
+          image: require('../assets/flags/usa.png') 
         },
         { 
           name: 'Euro', 
           value: data.euro.valor, 
           date: data.euro.fecha, 
-          image: require('../assets/flags/europe.png') // Ruta de la bandera de Europa
+          image: require('../assets/flags/europe.png') 
         },
         { 
           name: 'Bitcoin', 
           value: data.bitcoin.valor, 
           date: data.bitcoin.fecha, 
-          image: require('../assets/flags/bitcoin.png') // Ruta del logo de Bitcoin
+          image: require('../assets/flags/bitcoin.png') 
         },
       ]);
     } catch (error) {
@@ -88,7 +113,7 @@ const ActualidadScreen = () => {
     setLoading(true);
     try {
       const apiKey = 'pub_558981038471f3f656bfac49834a162deb6af';
-      const response = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&country=cl&category=business,technology`);
+      const response = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&country=cl&category=business`);
       const data = await response.json();
       setNewsData(data.results);
     } catch (error) {
@@ -98,17 +123,71 @@ const ActualidadScreen = () => {
     }
   };
 
+  // Generar preguntas aleatorias
+  const generateRandomQuiz = () => {
+    const quizQuestions = [
+      {
+        question: '¿Qué es un activo?',
+        options: ['Recurso económico', 'Deuda adquirida', 'Crédito a favor'],
+        correctAnswer: 'Recurso económico',
+      },
+      {
+        question: '¿Qué es un pasivo?',
+        options: ['Deuda', 'Ingreso', 'Activo'],
+        correctAnswer: 'Deuda',
+      },
+      {
+        question: '¿Qué es el capital?',
+        options: ['Inversiones', 'Dinero o activos', 'Deuda'],
+        correctAnswer: 'Dinero o activos',
+      },
+      {
+        question: '¿Qué es la tasa de interés?',
+        options: ['Precio del dinero', 'Deuda adquirida', 'Inversión realizada'],
+        correctAnswer: 'Precio del dinero',
+      },
+      {
+        question: '¿Qué es la liquidez?',
+        options: ['Capacidad de pago', 'Deuda', 'Facilidad para convertir a efectivo'],
+        correctAnswer: 'Facilidad para convertir a efectivo',
+      },
+      {
+        question: '¿Qué es el riesgo?',
+        options: ['Pérdida financiera', 'Ganancia', 'Crédito solicitado'],
+        correctAnswer: 'Pérdida financiera',
+      },
+      {
+        question: '¿Qué es la diversificación?',
+        options: ['Distribución de capital', 'Tener varios créditos', 'Deuda bancaria'],
+        correctAnswer: 'Distribución de capital',
+      },
+    ];
+
+    const shuffledQuestions = quizQuestions.sort(() => 0.5 - Math.random());
+    setQuizData(shuffledQuestions.slice(0, 7));
+  };
+
+  const handleSelectOption = (questionIndex, selectedOption) => {
+    const updatedQuizData = quizData.map((quiz, index) => {
+      if (index === questionIndex) {
+        return { ...quiz, selectedOption };
+      }
+      return quiz;
+    });
+    setQuizData(updatedQuizData);
+  };
+
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#511496" />;
   }
 
-  // Renderiza los datos del mercado con diferentes degradados
+  // Renderiza los datos del mercado
   const renderMarketItem = ({ item, index }) => {
     const gradients = [
-      ["#6A0DAD", "#F071A1"], // Morado a rosa
-      ["#1FCAB1", "#348AC7"], // Verde a azul
-      ["#FF8A00", "#FF3D00"], // Naranja a rojo
-      ["#F071A1", "#6A0DAD"], // Rosa a morado
+      ["#6A0DAD", "#F071A1"],
+      ["#1FCAB1", "#348AC7"],
+      ["#FF8A00", "#FF3D00"],
+      ["#F071A1", "#6A0DAD"],
     ];
 
     return (
@@ -140,21 +219,23 @@ const ActualidadScreen = () => {
     );
   };
 
-  // Renderiza el contenido de Educación Financiera con diferentes degradados
+  // Renderiza el contenido de Educación Financiera
   const renderEducationItem = ({ item, index }) => {
     const gradients = [
-      ["#6A0DAD", "#F071A1"], // Morado a rosa
-      ["#1FCAB1", "#348AC7"], // Verde a azul
-      ["#FF8A00", "#FF3D00"], // Naranja a rojo
-      ["#F071A1", "#6A0DAD"], // Rosa a morado
+      ["#6A0DAD", "#F071A1"],
+      ["#1FCAB1", "#348AC7"],
+      ["#FF8A00", "#FF3D00"],
+      ["#F071A1", "#6A0DAD"],
     ];
 
     return (
-      <LinearGradient colors={gradients[index % gradients.length]} style={[styles.educationCard]}>
-        <MaterialIcons name={item.icon} size={40} color="white" />
-        <Text style={styles.educationTitle}>{item.title}</Text>
-        <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
-      </LinearGradient>
+      <TouchableOpacity onPress={() => setModalVisible(item.title.toLowerCase())}>
+        <LinearGradient colors={gradients[index % gradients.length]} style={[styles.educationCard]}>
+          <MaterialIcons name={item.icon} size={40} color="white" />
+          <Text style={styles.educationTitle}>{item.title}</Text>
+          <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     );
   };
 
@@ -175,27 +256,21 @@ const ActualidadScreen = () => {
           style={[styles.tabButton, selectedTab === 'Valor Mercado' && styles.activeTab]}
           onPress={() => setSelectedTab('Valor Mercado')}
         >
-          <Text style={[styles.tabText, selectedTab === 'Valor Mercado' && styles.activeTabText]}>
-            Mercado
-          </Text>
+          <Text style={[styles.tabText, selectedTab === 'Valor Mercado' && styles.activeTabText]}>Mercado</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Noticias' && styles.activeTab]}
           onPress={() => setSelectedTab('Noticias')}
         >
-          <Text style={[styles.tabText, selectedTab === 'Noticias' && styles.activeTabText]}>
-            Noticias
-          </Text>
+          <Text style={[styles.tabText, selectedTab === 'Noticias' && styles.activeTabText]}>Noticias</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Educación' && styles.activeTab]}
           onPress={() => setSelectedTab('Educación')}
         >
-          <Text style={[styles.tabText, selectedTab === 'Educación' && styles.activeTabText]}>
-            Educación
-          </Text>
+          <Text style={[styles.tabText, selectedTab === 'Educación' && styles.activeTabText]}>Educación</Text>
         </TouchableOpacity>
       </View>
 
@@ -238,6 +313,55 @@ const ActualidadScreen = () => {
           )}
         </>
       )}
+
+      {/* Modal para cada apartado de educación financiera */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible !== null}
+        onRequestClose={() => setModalVisible(null)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(null)}>
+              <AntDesign name="close" size={24} color="black" />
+            </TouchableOpacity>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+              <Text style={styles.modalTitle}>{modalVisible?.charAt(0).toUpperCase() + modalVisible?.slice(1)}</Text>
+              {modalVisible === 'glosario' && (
+                financialTerms.map((term, index) => (
+                  <View key={index} style={styles.termCard}>
+                    <Text style={styles.termTitle}>{term.term}</Text>
+                    <Text style={styles.termDefinition}>{term.definition}</Text>
+                  </View>
+                ))
+              )}
+              {modalVisible === 'quizzes' && quizData.length > 0 && (
+                quizData.map((quiz, index) => (
+                  <View key={index} style={styles.termCard}>
+                    <Text style={styles.quizQuestion}>{quiz.question}</Text>
+                    {quiz.options.map((option, optionIndex) => (
+                      <TouchableOpacity
+                        key={optionIndex}
+                        style={[
+                          styles.optionButton,
+                          quiz.selectedOption === option && styles.selectedOptionButton,
+                        ]}
+                        onPress={() => handleSelectOption(index, option)}
+                      >
+                        <Text style={styles.optionText}>{option}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ))
+              )}
+              {modalVisible === 'quizzes' && quizData.length === 0 && (
+                <Text style={styles.modalTitle}>No hay quizzes disponibles.</Text>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -320,6 +444,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 10,
     overflow: 'hidden',
+    backgroundColor: '#fff',
+    padding: 10,
+    elevation: 3,
   },
   newsImage: {
     height: 200,
@@ -356,6 +483,74 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     textAlign: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'transparent',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    width: '100%',
+    maxHeight: '80%',
+  },
+  closeIcon: {
+    alignSelf: 'flex-end',
+    padding: 10,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  modalTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 22,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  termCard: {
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#f4f9ff',
+    borderRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+  },
+  termTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    color: '#511496',
+    marginBottom: 5,
+  },
+  termDefinition: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#333',
+  },
+  quizQuestion: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 18,
+    color: '#511496',
+    marginBottom: 5,
+  },
+  optionButton: {
+    backgroundColor: '#f4f9ff',
+    borderRadius: 10,
+    padding: 10,
+    marginVertical: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  selectedOptionButton: {
+    backgroundColor: '#6A0DAD',
+  },
+  optionText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#333',
   },
 });
 
