@@ -1,100 +1,52 @@
 import React, { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, TextInput, ScrollView } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-=======
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, ScrollView } from 'react-native';
-import { LineChart, PieChart } from 'react-native-chart-kit';
->>>>>>> d50809b41a823fa934e07436044d9faba9a5d2fa
 import { LinearGradient } from 'expo-linear-gradient';
-import { auth, db } from '../firebase'; // Importar Firebase auth y Firestore
-import { collection, query, where, onSnapshot } from 'firebase/firestore'; // Firestore funciones
+import { auth, db } from '../firebase';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import moment from 'moment';
-import { Picker } from '@react-native-picker/picker';  // Cambiado aquí
+import { Picker } from '@react-native-picker/picker';
 
 export default function DatosScreen() {
-<<<<<<< HEAD
-  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses', 'Income', o 'Simulation'
+  const [selectedTab, setSelectedTab] = useState('Expenses');
+  const [transactions, setTransactions] = useState([]);
   const [electrodomestico, setElectrodomestico] = useState('');
   const [clasificacion, setClasificacion] = useState('');
   const [horasUso, setHorasUso] = useState('');
   const [totalCost, setTotalCost] = useState(0);
-  
-=======
-  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses' o 'Income'
-  const [transactions, setTransactions] = useState([]); // Estado para almacenar las transacciones
-  const [savings, setSavings] = useState([]); // Estado para almacenar los ahorros
->>>>>>> d50809b41a823fa934e07436044d9faba9a5d2fa
+
   const screenWidth = Dimensions.get('window').width;
 
-  // Obtener datos de Firebase
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) {
       console.error("Usuario no autenticado");
-      return; // Si no hay usuario autenticado, no hacemos las consultas
+      return;
     }
 
     try {
-      // Obtener transacciones del usuario desde Firebase
       const transactionsQuery = query(collection(db, 'transactions'), where('userId', '==', user.uid));
       const unsubscribeTransactions = onSnapshot(transactionsQuery, (snapshot) => {
         const userTransactions = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        console.log("Transacciones recibidas:", userTransactions); // Log para ver las transacciones
+        console.log("Transacciones recibidas:", userTransactions);
         setTransactions(userTransactions);
       });
 
-      // Obtener ahorros del usuario desde Firebase
-      const savingsQuery = query(collection(db, 'savings'), where('userId', '==', user.uid));
-      const unsubscribeSavings = onSnapshot(savingsQuery, (snapshot) => {
-        const userSavings = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        console.log("Ahorros recibidos:", userSavings); // Log para ver los ahorros
-        setSavings(userSavings);
-      });
-
-      // Limpieza al desmontar el componente
       return () => {
         unsubscribeTransactions();
-        unsubscribeSavings();
       };
     } catch (error) {
       console.error("Error al obtener los datos de Firebase:", error);
     }
   }, []);
 
-  // Procesar datos para el gráfico de torta
-  const processPieData = (type) => {
-    const filteredTransactions = transactions.filter((item) => item.type === type);
-    const categoryTotals = {};
-
-    filteredTransactions.forEach((transaction) => {
-      if (categoryTotals[transaction.category]) {
-        categoryTotals[transaction.category] += transaction.amount;
-      } else {
-        categoryTotals[transaction.category] = transaction.amount;
-      }
-    });
-
-    return Object.keys(categoryTotals).map((category) => ({
-      name: category,
-      amount: categoryTotals[category],
-      color: '#' + Math.floor(Math.random() * 16777215).toString(16), // Generar un color aleatorio
-      legendFontColor: '#7F7F7F',
-      legendFontSize: 15,
-    }));
-  };
-
-  // Función para generar las etiquetas del gráfico de líneas
   const generateLabels = (period) => {
     const labels = [];
     const today = moment();
-    
+
     switch (period) {
       case 'day':
         for (let i = 0; i < 7; i++) {
@@ -119,17 +71,16 @@ export default function DatosScreen() {
       default:
         break;
     }
-    
+
     return labels;
   };
 
-  // Verificar que haya transacciones antes de generar datos del gráfico
   const chartData = {
-    labels: generateLabels('month'), // Cambia esto a 'day', 'week', o 'year' según la selección
+    labels: generateLabels('month'),
     datasets: [
       {
         data: transactions.length > 0 ? transactions.map((transaction) => transaction.amount) : [0],
-        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Línea morada
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
         strokeWidth: 3,
       },
     ],
@@ -148,83 +99,77 @@ export default function DatosScreen() {
     },
   };
 
-// Cálculo del costo mensual basado en el tipo de electrodoméstico, clasificación y horas de uso
-const calcularCostoMensual = () => {
-  let consumoBaseKWh;
+  const calcularCostoMensual = () => {
+    let consumoBaseKWh;
 
-  // Define consumo básico de acuerdo al tipo de electrodoméstico
-  switch (electrodomestico) {
-    case 'refrigerador':
-      consumoBaseKWh = 1; // Consumo por día en kWh
-      break;
-    case 'lavadora':
-      consumoBaseKWh = 0.5; // Consumo por ciclo en kWh
-      break;
-    case 'televisor':
-      consumoBaseKWh = 0.1; // Consumo por hora en kWh
-      break;
-    case 'microondas':
-      consumoBaseKWh = 1.2; // Consumo por hora en kWh
-      break;
-    default:
-      consumoBaseKWh = 0;
-  }
+    switch (electrodomestico) {
+      case 'refrigerador':
+        consumoBaseKWh = 1;
+        break;
+      case 'lavadora':
+        consumoBaseKWh = 0.5;
+        break;
+      case 'televisor':
+        consumoBaseKWh = 0.1;
+        break;
+      case 'microondas':
+        consumoBaseKWh = 1.2;
+        break;
+      default:
+        consumoBaseKWh = 0;
+    }
 
-  // Define multiplicador basado en clasificación energética
-  let multiplicadorClasificacion;
-  switch (clasificacion) {
-    case 'A+++':
-      multiplicadorClasificacion = 0.8;
-      break;
-    case 'A++':
-      multiplicadorClasificacion = 0.85;
-      break;
-    case 'A+':
-      multiplicadorClasificacion = 0.9;
-      break;
-    case 'A':
-      multiplicadorClasificacion = 1;
-      break;
-    case 'B':
-      multiplicadorClasificacion = 1.1;
-      break;
-    case 'C':
-      multiplicadorClasificacion = 1.2;
-      break;
-    case 'D':
-      multiplicadorClasificacion = 1.3;
-      break;
-    case 'E':
-      multiplicadorClasificacion = 1.4;
-      break;
-    case 'F':
-      multiplicadorClasificacion = 1.5;
-      break;
-    case 'G':
-      multiplicadorClasificacion = 1.6;
-      break;
-    default:
-      multiplicadorClasificacion = 1;
-  }
+    let multiplicadorClasificacion;
+    switch (clasificacion) {
+      case 'A+++':
+        multiplicadorClasificacion = 0.8;
+        break;
+      case 'A++':
+        multiplicadorClasificacion = 0.85;
+        break;
+      case 'A+':
+        multiplicadorClasificacion = 0.9;
+        break;
+      case 'A':
+        multiplicadorClasificacion = 1;
+        break;
+      case 'B':
+        multiplicadorClasificacion = 1.1;
+        break;
+      case 'C':
+        multiplicadorClasificacion = 1.2;
+        break;
+      case 'D':
+        multiplicadorClasificacion = 1.3;
+        break;
+      case 'E':
+        multiplicadorClasificacion = 1.4;
+        break;
+      case 'F':
+        multiplicadorClasificacion = 1.5;
+        break;
+      case 'G':
+        multiplicadorClasificacion = 1.6;
+        break;
+      default:
+        multiplicadorClasificacion = 1;
+    }
 
-  // Cálculo del costo basado en horas de uso y consumo
-  const horas = parseFloat(horasUso);
-  if (!isNaN(horas) && consumoBaseKWh > 0) {
-    const consumoMensual = consumoBaseKWh * horas * 30 * multiplicadorClasificacion;
-    const costoPorKWh = 150; // Precio en CLP por kWh
-    const costoMensual = consumoMensual * costoPorKWh;
-    setTotalCost(costoMensual);
-  } else {
-    setTotalCost(0);
-  }
-};
+    const horas = parseFloat(horasUso);
+    if (!isNaN(horas) && consumoBaseKWh > 0) {
+      const consumoMensual = consumoBaseKWh * horas * 30 * multiplicadorClasificacion;
+      const costoPorKWh = 150;
+      const costoMensual = consumoMensual * costoPorKWh;
+      setTotalCost(costoMensual);
+    } else {
+      setTotalCost(0);
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Título de la página */}
       <Text style={styles.screenTitle}>Datos</Text>
 
-      {/* Selección entre Gastos e Ingresos */}
       <View style={styles.segmentedControl}>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Expenses' && styles.activeTab]}
@@ -244,7 +189,6 @@ const calcularCostoMensual = () => {
           </Text>
         </TouchableOpacity>
 
-<<<<<<< HEAD
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Simulation' && styles.activeTab]}
           onPress={() => setSelectedTab('Simulation')}
@@ -255,7 +199,6 @@ const calcularCostoMensual = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Mostrar el gráfico o simulación según la pestaña seleccionada */}
       {selectedTab === 'Simulation' ? (
         <View style={styles.simulationContainer}>
           <Text style={styles.simulationTitle}>Simular consumo de electrodoméstico</Text>
@@ -320,7 +263,6 @@ const calcularCostoMensual = () => {
             fromZero={true}
           />
 
-          {/* Sección de Categorías y Gastos/Ingresos */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Última Actividad</Text>
             <TouchableOpacity>
@@ -328,82 +270,27 @@ const calcularCostoMensual = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Lista de categorías según la selección de ingresos o gastos */}
           <FlatList
-            data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
+            data={transactions}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.listItem}>
                 <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
-                  <Text style={styles.icon}>{item.icon}</Text>
+                  <Text style={styles.icon}>{item.type === "Ingreso" ? "💰" : "🛒"}</Text>
                 </LinearGradient>
                 <View style={styles.details}>
                   <Text style={styles.category}>{item.category}</Text>
-                  <Text style={styles.date}>{item.date}</Text>
+                  <Text style={styles.date}>{moment(item.selectedDate).format('DD/MM/YYYY')}</Text>
                 </View>
-                <Text style={[styles.amount, item.amount < 0 ? styles.negativeAmount : styles.positiveAmount]}>
-                  {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
+                <Text style={[styles.amount, item.type === "Ingreso" ? styles.positiveAmount : styles.negativeAmount]}>
+                  {item.type === "Ingreso" ? `+$${item.amount}` : `-$${item.amount}`}
                 </Text>
               </View>
             )}
           />
         </>
       )}
-    </View>
-=======
-      {/* Gráfico de líneas */}
-      <LineChart
-        data={chartData}
-        width={screenWidth * 0.95}
-        height={220}
-        chartConfig={chartConfig}
-        bezier
-        style={styles.chart}
-        fromZero={true}
-      />
-
-      {/* Gráfico de torta */}
-      <Text style={styles.chartTitle}>Distribución por Categoría</Text>
-      <PieChart
-        data={processPieData(selectedTab === 'Expenses' ? 'Egreso' : 'Ingreso')}
-        width={screenWidth}
-        height={220}
-        chartConfig={chartConfig}
-        accessor={'amount'}
-        backgroundColor={'transparent'}
-        paddingLeft={'15'}
-        absolute
-        style={styles.pieChart}
-      />
-
-      {/* Historial de transacciones */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Última Actividad</Text>
-        <TouchableOpacity>
-          <Text style={styles.seeAll}>Ver Todo</Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={transactions}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
-              <Text style={styles.icon}>💸</Text>
-            </LinearGradient>
-            <View style={styles.details}>
-              <Text style={styles.category}>{item.category}</Text>
-              <Text style={styles.date}>{new Date(item.date).toLocaleDateString()}</Text>
-            </View>
-            <Text style={styles.amount}>
-              {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
-            </Text>
-          </View>
-        )}
-      />
     </ScrollView>
->>>>>>> d50809b41a823fa934e07436044d9faba9a5d2fa
   );
 }
 
@@ -509,6 +396,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#511496',
+  },
+  positiveAmount: {
+    color: 'green',
+  },
+  negativeAmount: {
+    color: 'red',
   },
   simulationContainer: {
     marginTop: 20,

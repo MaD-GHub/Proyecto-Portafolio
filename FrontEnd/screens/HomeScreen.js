@@ -1,3 +1,4 @@
+// HomeScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -114,6 +115,7 @@ const Timeline = ({ transactions }) => {
       });
     }
     setProjection(projectionData);
+    console.log("Proyección calculada:", projectionData);
   };
 
   return (
@@ -150,6 +152,8 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editAmount, setEditAmount] = useState("");
   const [editCategory, setEditCategory] = useState("");
+  const [editDescription, setEditDescription] = useState(""); // Nuevo estado para la descripción
+  const [editFixed, setEditFixed] = useState(""); // Nuevo estado para saber si es fijo
   const [isOpen, setIsOpen] = useState(false);
   const heightAnim = useState(new Animated.Value(0))[0];
   const [notificationsVisible, setNotificationsVisible] = useState(false);
@@ -165,6 +169,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const loadFonts = async () => {
+      console.log("Cargando fuentes...");
       await Font.loadAsync({
         "ArchivoBlack-Regular": require("../assets/fonts/ArchivoBlack-Regular.ttf"),
         "QuattrocentoSans-Bold": require("../assets/fonts/QuattrocentoSans-Bold.ttf"),
@@ -173,6 +178,7 @@ export default function HomeScreen() {
         "QuattrocentoSans-BoldItalic": require("../assets/fonts/QuattrocentoSans-BoldItalic.ttf"),
       });
       setFontsLoaded(true);
+      console.log("Fuentes cargadas correctamente");
     };
     loadFonts();
   }, []);
@@ -180,7 +186,12 @@ export default function HomeScreen() {
   // Obtener transacciones desde Firebase
   useEffect(() => {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      console.log("Usuario no autenticado");
+      return;
+    }
+
+    console.log("Consultando transacciones para el usuario:", user.uid);
 
     const q = query(
       collection(db, "transactions"),
@@ -193,12 +204,14 @@ export default function HomeScreen() {
         ...doc.data(),
       }));
       setTransactions(transacciones);
+      console.log("Transacciones obtenidas:", transacciones);
     });
 
     return () => unsubscribe();
   }, []);
 
   const handleDeleteTransaction = async (id) => {
+    console.log("Intentando eliminar transacción con ID:", id);
     Alert.alert(
       "Eliminar transacción",
       "¿Estás seguro de que quieres eliminar esta transacción?",
@@ -214,8 +227,9 @@ export default function HomeScreen() {
                 (item) => item.id !== id
               );
               setTransactions(updatedTransactions);
+              console.log("Transacción eliminada con éxito:", id);
             } catch (error) {
-              console.error("Error al eliminar transacción: ", error);
+              console.error("Error al eliminar transacción:", error);
             }
           },
         },
@@ -225,26 +239,31 @@ export default function HomeScreen() {
   };
 
   const handleSaveEdit = async () => {
+    console.log("Guardando edición para la transacción:", editingTransaction);
     try {
       const transactionRef = doc(db, "transactions", editingTransaction.id);
       await updateDoc(transactionRef, {
         amount: editAmount,
         category: editCategory,
+        description: editDescription, // Guardar la descripción editada
+        isFixed: editFixed // Guardar el estado de fijo
       });
 
       const updatedTransactions = transactions.map((item) =>
         item.id === editingTransaction.id
-          ? { ...item, amount: editAmount, category: editCategory }
+          ? { ...item, amount: editAmount, category: editCategory, description: editDescription, isFixed: editFixed }
           : item
       );
       setTransactions(updatedTransactions);
       setModalVisible(false);
+      console.log("Transacción actualizada:", editingTransaction.id);
     } catch (error) {
-      console.error("Error al actualizar transacción: ", error);
+      console.error("Error al actualizar transacción:", error);
     }
   };
 
   const calculateTotalSaved = () => {
+    console.log("Calculando totales...");
     if (transactions && transactions.length > 0) {
       const ingresos = transactions
         .filter((transaction) => transaction.type === "Ingreso")
@@ -257,15 +276,17 @@ export default function HomeScreen() {
       setTotalIngresos(ingresos);
       setTotalGastos(gastos);
       setTotalSaved(ingresos - gastos);
+      console.log("Totales calculados: Ingresos =", ingresos, "Gastos =", gastos);
     } else {
       setTotalSaved(0);
       setTotalIngresos(0);
       setTotalGastos(0);
+      console.log("No hay transacciones disponibles para calcular.");
     }
   };
 
   useEffect(() => {
-    calculateTotalSaved(); // Se recalculan los totales cada vez que cambian las transacciones
+    calculateTotalSaved();
   }, [transactions]);
 
   const toggleLabel = () => {
@@ -377,12 +398,9 @@ export default function HomeScreen() {
                     <View key={item.id} style={styles.transactionItem}>
                       <View>
                         <Text
-                          style={[
-                            styles.transactionText,
-                            {
-                              color: item.type === "Ingreso" ? "green" : "red",
-                            },
-                          ]}
+                          style={[styles.transactionText, {
+                            color: item.type === "Ingreso" ? "green" : "red",
+                          }]}
                         >
                           {item.category} - {formatCurrency(item.amount)}
                         </Text>
@@ -392,7 +410,14 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.transactionActions}>
                         <TouchableOpacity
-                          onPress={() => setEditingTransaction(item)}
+                          onPress={() => {
+                            setEditingTransaction(item);
+                            setEditAmount(item.amount.toString());
+                            setEditCategory(item.category);
+                            setEditDescription(item.description); // Cargar la descripción para editar
+                            setEditFixed(item.isFixed); // Cargar el estado de fijo para editar
+                            setModalVisible(true); // Abrir el modal
+                          }}
                         >
                           <MaterialCommunityIcons
                             name="pencil"
@@ -412,7 +437,7 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                       </View>
                     </View>
-                  ))}
+                  ))} 
               </View>
             )}
           />
@@ -448,6 +473,21 @@ export default function HomeScreen() {
                 : gastoCategorias.map((cat) => (
                     <Picker.Item key={cat} label={cat} value={cat} />
                   ))}
+            </Picker>
+            <TextInput
+              style={styles.input}
+              value={editDescription} // Añadido para la descripción
+              onChangeText={setEditDescription}
+              placeholder="Descripción (opcional)"
+            />
+            <Picker
+              selectedValue={editFixed}
+              style={styles.picker}
+              onValueChange={(itemValue) => setEditFixed(itemValue)}
+            >
+              <Picker.Item label="Seleccione tipo" value="" />
+              <Picker.Item label="Fijo" value="Fijo" />
+              <Picker.Item label="Variable" value="Variable" />
             </Picker>
             <View style={styles.buttonRow}>
               <TouchableOpacity
@@ -485,6 +525,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F6F6F6",
     padding: 0,
+    marginBottom: 110, // Añadido margen inferior
   },
   balanceContainer: {
     padding: 20,
