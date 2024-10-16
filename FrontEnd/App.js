@@ -10,13 +10,14 @@ import {
   StyleSheet,
   TextInput,
   ActivityIndicator,
+  Alert,
   Animated,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { collection, addDoc } from 'firebase/firestore';
-import { db, auth } from './firebase'; // Importar Firebase auth y firestore
+import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db, auth } from './firebase'; 
 import HomeScreen from './screens/HomeScreen';
 import AhorroScreen from './screens/AhorroScreen';
 import ActualidadScreen from './screens/ActualidadScreen';
@@ -24,7 +25,7 @@ import DatosScreen from './screens/DatosScreen';
 import StartScreen from './screens/StartScreen';
 import LoginScreen from './screens/Login';
 import RegisterScreen from './screens/Register';
-import ProfileScreen from './screens/ProfileScreen'; // Importa ProfileScreen
+import ProfileScreen from './screens/ProfileScreen'; 
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
@@ -69,6 +70,35 @@ function CustomTabBarButton({ children, onPress }) {
 }
 
 function HomeTabs({ openModal, transactions, setTransactions }) {
+  const handleDeleteTransaction = (transactionId) => {
+    Alert.alert(
+      'Eliminar transacción',
+      '¿Estás seguro de que quieres eliminar esta transacción?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, 'transactions', transactionId));
+              setTransactions((prevTransactions) =>
+                prevTransactions.filter((item) => item.id !== transactionId)
+              );
+              console.log('Transacción eliminada con éxito');
+            } catch (error) {
+              console.error('Error al eliminar la transacción:', error);
+            }
+          },
+          style: 'destructive',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -110,21 +140,14 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
           fontSize: 12,
           fontFamily: 'QuattrocentoSans-Regular',
         },
-      })}
-    >
-      <Tab.Screen 
-        name="Inicio" 
-        options={{ headerShown: false }} 
-        component={HomeScreen}
-      />
+      })}>
+      <Tab.Screen name="Inicio" options={{ headerShown: false }} component={HomeScreen} />
       <Tab.Screen name="Ahorro" component={AhorroScreen} options={{ headerShown: false }} />
       <Tab.Screen
         name="Agregar"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <Text style={{ color: 'white', fontSize: 28 }}>+</Text>
-          ),
+          tabBarIcon: ({ focused }) => <Text style={{ color: 'white', fontSize: 28 }}>+</Text>,
           tabBarButton: (props) => (
             <CustomTabBarButton {...props} onPress={openModal}>
               <Text style={{ color: 'white', fontSize: 28 }}>+</Text>
@@ -144,16 +167,17 @@ export default function App() {
   const [amount, setAmount] = React.useState('');
   const [transactionType, setTransactionType] = React.useState('Ingreso');
   const [category, setCategory] = React.useState('');
+  const [description, setDescription] = React.useState(''); // Campo de descripción
+  const [isFixed, setIsFixed] = React.useState('No'); // Nuevo estado para tipo fijo
   const [date, setDate] = React.useState(new Date());
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [transactions, setTransactions] = React.useState([]);
-  const slideAnim = React.useRef(new Animated.Value(600)).current;
-
   const [user, setUser] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const slideAnim = React.useRef(new Animated.Value(600)).current;
 
   const ingresoCategorias = ['Salario', 'Venta de producto'];
-  const egresoCategorias = ['Comida y Bebidas', 'Vestuario', 'Alojamiento', 'Salud', 'Transporte', 'Educación'];
+  const gastoCategorias = ['Comida y Bebidas', 'Vestuario', 'Alojamiento', 'Salud', 'Transporte', 'Educación'];
 
   const openModal = () => {
     setModalVisible(true);
@@ -171,11 +195,17 @@ export default function App() {
       useNativeDriver: true,
     }).start(() => {
       setModalVisible(false);
+      // Reiniciar el estado del formulario al cerrar el modal
+      setAmount('');
+      setCategory('');
+      setDescription('');
+      setIsFixed('No'); // Reiniciar el campo de fijo
+      setDate(new Date());
     });
   };
 
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(false); 
+    setShowDatePicker(false);
     if (selectedDate) {
       setDate(selectedDate);
     }
@@ -183,7 +213,7 @@ export default function App() {
 
   const handleAddTransaction = async () => {
     const parsedAmount = parseFloat(amount);
-  
+
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert('Por favor ingrese un monto válido.');
       return;
@@ -192,46 +222,35 @@ export default function App() {
       alert('Por favor seleccione una categoría.');
       return;
     }
-  
+
     const user = auth.currentUser;
     if (!user) {
       alert('Por favor inicie sesión.');
       return;
     }
-  
+
     const newTransaction = {
-      type: transactionType, // Asumiendo que se escoge el tipo en algún punto
+      type: transactionType,
       amount: parsedAmount,
       category: category,
-      date: new Date().toLocaleDateString(), // Fecha actual
-      userId: user.uid, // ID del usuario actual
+      description: description, // Agregamos la descripción aquí
+      isFixed: isFixed, // Agregamos el campo fijo
+      selectedDate: date.toISOString(),
+      creationDate: new Date().toLocaleDateString(),
+      userId: user.uid,
     };
-  
+
     try {
-      // Añadir la transacción a Firestore
       const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
       console.log('Transacción añadida con ID: ', docRef.id);
-  
-      // Actualizar el estado local con la nueva transacción
-      setTransactions((prevTransactions) => [
-        ...prevTransactions, 
-        { id: docRef.id, ...newTransaction }
-      ]);
-  
-      // Limpiar los campos después de guardar
-      setAmount('');
-      setCategory('');
-      setDate(new Date()); // Restablecemos la fecha
-  
-      // Cerrar el modal (si lo tienes)
+
+      setTransactions((prevTransactions) => [...prevTransactions, { id: docRef.id, ...newTransaction }]);
+
       closeModal();
     } catch (error) {
       console.error('Error al añadir transacción: ', error);
     }
   };
-  
-  
-
 
   React.useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -273,7 +292,6 @@ export default function App() {
               />
             )}
           </Stack.Screen>
-          {/* Agrega ProfileScreen al Stack Navigator */}
           <Stack.Screen
             name="ProfileScreen"
             component={ProfileScreen}
@@ -285,31 +303,34 @@ export default function App() {
         </Stack.Navigator>
 
         <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={closeModal}>
-          <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.modalContent}>
-              <Text style={styles.sectionTitle}>Seleccione tipo de transacción</Text>
-              <View style={styles.buttonGroup}>
+          <View style={styles.modalBackground}>
+            <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
+              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Nueva Transacción</Text>
+
+              {/* Selector de Ingreso/Gasto */}
+              <View style={styles.segmentedControlContainer}>
                 <TouchableOpacity
-                  style={[styles.typeButton, transactionType === 'Ingreso' ? styles.activeButton : {}]}
-                  onPress={() => {
-                    setTransactionType('Ingreso');
-                    setCategory('');
-                  }}
+                  style={[styles.segmentedControlButton, transactionType === 'Ingreso' && styles.segmentedControlButtonActive]}
+                  onPress={() => setTransactionType('Ingreso')}
                 >
-                  <Text style={styles.buttonText}>Ingreso</Text>
+                  <Text style={[styles.segmentedControlText, transactionType === 'Ingreso' && styles.segmentedControlTextActive]}>
+                    Ingreso
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.typeButton, transactionType === 'Egreso' ? styles.activeButton : {}]}
-                  onPress={() => {
-                    setTransactionType('Egreso');
-                    setCategory('');
-                  }}
+                  style={[styles.segmentedControlButton, transactionType === 'Gasto' && styles.segmentedControlButtonActive]}
+                  onPress={() => setTransactionType('Gasto')}
                 >
-                  <Text style={styles.buttonText}>Egreso</Text>
+                  <Text style={[styles.segmentedControlText, transactionType === 'Gasto' && styles.segmentedControlTextActive]}>
+                    Gasto
+                  </Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.sectionTitle}>Ingrese cantidad</Text>
+              {/* Campo de monto */}
               <TextInput
                 placeholder="Ingrese monto"
                 keyboardType="numeric"
@@ -318,8 +339,8 @@ export default function App() {
                 style={styles.inputBox}
               />
 
-              <Text style={styles.sectionTitle}>Seleccione Categoría</Text>
-              <View style={styles.inputBox}>
+              {/* Picker de Categorías */}
+              <View style={styles.inputBox2}>
                 <Picker
                   selectedValue={category}
                   onValueChange={(itemValue) => setCategory(itemValue)}
@@ -330,38 +351,51 @@ export default function App() {
                     ? ingresoCategorias.map((cat, index) => (
                         <Picker.Item key={index} label={cat} value={cat} />
                       ))
-                    : egresoCategorias.map((cat, index) => (
+                    : gastoCategorias.map((cat, index) => (
                         <Picker.Item key={index} label={cat} value={cat} />
                       ))}
                 </Picker>
               </View>
 
-              <Text style={styles.sectionTitle}>Seleccione Fecha</Text>
+              {/* Campo de descripción */}
+              <TextInput
+                placeholder="Descripción (opcional)"
+                value={description}
+                onChangeText={setDescription}
+                style={styles.inputBox}
+              />
+
+              {/* Picker para tipo fijo o variable */}
+              <View style={styles.inputBox2}>
+                <Picker
+                  selectedValue={isFixed}
+                  onValueChange={(itemValue) => setIsFixed(itemValue)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Seleccione tipo" value="No" />
+                  <Picker.Item label="Fijo" value="Fijo" />
+                  <Picker.Item label="Variable" value="Variable" />
+                </Picker>
+              </View>
+
+              {/* Selector de fecha */}
               <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-                <MaterialCommunityIcons name="calendar" size={24} color="#555" />
+                <MaterialCommunityIcons name="calendar" size={24} color="#511496" />
                 <Text style={styles.dateText}>{date.toLocaleDateString()}</Text>
               </TouchableOpacity>
 
               {showDatePicker && (
-                <DateTimePicker
-                  value={date}
-                  mode="date"
-                  display="default"
-                  onChange={handleDateChange}
-                />
+                <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
               )}
 
-              <View style={styles.modalButtons}>
+              {/* Botón de Confirmar */}
+              <LinearGradient colors={['#511496', '#885FD8']} style={styles.pickerContainer}>
                 <TouchableOpacity onPress={handleAddTransaction} style={styles.confirmButton}>
                   <Text style={styles.confirmText}>Confirmar</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                  <Text style={styles.closeText}>Cerrar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
+              </LinearGradient>
+            </Animated.View>
+          </View>
         </Modal>
       </KeyboardAvoidingView>
     </NavigationContainer>
@@ -369,96 +403,112 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '100%',
-    justifyContent: 'flex-end',
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo oscuro con 50% de opacidad
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalContent: {
-    width: '100%',
+  modalContainer: {
+    width: '90%',
     padding: 25,
-    backgroundColor: '#f9f9f9',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: '#fff',
+    borderRadius: 30,
     alignItems: 'center',
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
   },
-  sectionTitle: {
-    fontSize: 18,
-    color: '#8f539b',
-    marginBottom: 10,
+  closeButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#673072',
+    paddingRight: 15,
+    paddingTop: 7,
     fontWeight: 'bold',
   },
-  buttonGroup: {
+  modalTitle: {
+    fontSize: 20,
+    color: '#673072',
+    marginBottom: 20,
+    fontWeight: 'bold',
+  },
+  segmentedControlContainer: {
     flexDirection: 'row',
+    backgroundColor: '#eeeeee',
+    borderRadius: 25,
+    padding: 4,
     marginBottom: 20,
   },
-  typeButton: {
-    padding: 15,
-    marginHorizontal: 10,
-    backgroundColor: '#cccccc',
-    borderRadius: 10,
-    width: '40%',
+  pickerContainer: {
+    backgroundColor: '#fff',
+    padding: 10,
+    paddingLeft: 25,
+    paddingRight: 25,
+    marginBottom: 17,
+    borderWidth: 2,
+    borderColor: '#fff',
+    borderRadius: 25,
+    fontWeight: 'bold',
+  },
+  segmentedControlButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  activeButton: {
-    backgroundColor: '#8f539b',
+  segmentedControlButtonActive: {
+    backgroundColor: '#511496',
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
+  segmentedControlText: {
+    color: '#6d6d6d',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  segmentedControlTextActive: {
+    color: '#fff',
+  },
+  inputBox2: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    padding: 2,
+    borderRadius: 25,
+    width: '100%',
+    marginBottom: 20,
+    borderColor: '#f0f0f0',
+    borderWidth: 1,
   },
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eeeeee',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#f1f1f1',
+    padding: 15,
+    borderRadius: 25,
     width: '100%',
     marginBottom: 20,
+    borderColor: '#f0f0f0',
+    borderWidth: 1,
   },
   picker: {
-    height: 50,
+    height: 20,
     width: '100%',
-    backgroundColor: 'transparent',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  confirmButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 10,
-    flex: 1,
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  confirmText: {
-    color: 'white',
-    fontSize: 18,
-  },
-  closeButton: {
-    backgroundColor: '#FF6347',
-    padding: 15,
-    borderRadius: 10,
-    flex: 1,
-    alignItems: 'center',
-  },
-  closeText: {
-    color: 'white',
-    fontSize: 18,
   },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eeeeee',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    borderRadius: 25,
     width: '100%',
     marginBottom: 20,
   },
@@ -467,8 +517,10 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 16,
   },
+  confirmText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
-
-
-
 

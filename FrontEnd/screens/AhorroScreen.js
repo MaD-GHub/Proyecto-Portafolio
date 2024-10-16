@@ -1,251 +1,610 @@
 import React, { useState, useEffect } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   Modal,
+  StatusBar,
+  Animated,
+  StyleSheet,
+  TextInput,
 } from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker"; // Selector de fechas
-import { auth, db } from "../firebase"; // Importar Firebase auth y Firestore
-import { collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc } from "firebase/firestore"; // Firestore funciones
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // Importar íconos
-
-// Función para formatear a CLP
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    minimumFractionDigits: 0, // Sin decimales, como es común en Chile
-  }).format(amount);
-};
+import { MaterialCommunityIcons } from "@expo/vector-icons"; // Icons
+import { LinearGradient } from "expo-linear-gradient"; // Para degradados
+import { auth, db } from "../firebase"; // Firebase auth y Firestore
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  doc,
+  deleteDoc,
+} from "firebase/firestore"; // Funciones Firestore
 
 export default function AhorroScreen() {
-  const [goalName, setGoalName] = useState(""); // Estado para el nombre de la meta
-  const [savingsGoal, setSavingsGoal] = useState("");
-  const [startDate, setStartDate] = useState(null); // Nueva fecha de inicio
-  const [endDate, setEndDate] = useState(null); // Nueva fecha de fin
-  const [isDatePickerVisible, setDatePickerVisible] = useState(false); // Estado para controlar el picker
-  const [isEndDatePickerVisible, setEndDatePickerVisible] = useState(false);
   const [goals, setGoals] = useState([]);
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [currentGoal, setCurrentGoal] = useState(null); // Meta actual para editar
+  const [modalVisible, setModalVisible] = useState(false);
+  const [slideAnim] = useState(new Animated.Value(600));
+  const [goalName, setGoalName] = useState("");
+  const [amount, setAmount] = useState("");
+  const [startDate, setStartDate] = useState(new Date()); // Estado para fecha de inicio
+  const [endDate, setEndDate] = useState(new Date()); // Estado para fecha de fin
+  const [deductionDay, setDeductionDay] = useState("");
+  const [showAllGoals, setShowAllGoals] = useState(false);
+  const [showStartDate, setShowStartDate] = useState(false); // Para mostrar el picker de fecha de inicio
+  const [showEndDate, setShowEndDate] = useState(false); // Para mostrar el picker de fecha de fin
 
-  // Obtener ahorros desde Firestore
+  // Fetch metas desde Firestore (por usuario autenticado)
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
-      console.log("Usuario autenticado:", user.uid);
-      const q = query(collection(db, "savings"), where("userId", "==", user.uid));
+      const q = query(
+        collection(db, "savings"),
+        where("userId", "==", user.uid)
+      );
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const userGoals = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        console.log("Metas obtenidas:", userGoals);
         setGoals(userGoals);
       });
       return () => unsubscribe(); // Limpiar listener
-    } else {
-      console.log("No se encontró un usuario autenticado");
     }
   }, []);
 
-  // Manejar agregar metas
+  // Abrir Modal
+  const openModal = () => {
+    setModalVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  // Cerrar Modal
+  const closeModal = () => {
+    Animated.timing(slideAnim, {
+      toValue: 600,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalVisible(false);
+    });
+  };
+
+  // Añadir una nueva meta de ahorro a Firestore
   const handleAddGoal = async () => {
-    if (goalName && savingsGoal && startDate && endDate) {
-      const user = auth.currentUser;
-      const newGoal = {
-        userId: user.uid,
-        name: goalName,
-        goal: parseInt(savingsGoal, 10),
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      };
+    const user = auth.currentUser;
+    if (user) {
       try {
-        console.log("Intentando agregar nueva meta:", newGoal);
-        await addDoc(collection(db, "savings"), newGoal); // Guardar meta en Firestore
-        Alert.alert("Éxito", "Meta de ahorro agregada correctamente.");
-        console.log("Meta agregada exitosamente");
-        // Limpiar campos
-        setGoalName("");
-        setSavingsGoal("");
-        setStartDate(null);
-        setEndDate(null);
-      } catch (error) {
-        console.error("Error al agregar la meta:", error);
-        Alert.alert("Error", "No se pudo guardar la meta.");
-      }
-    } else {
-      console.log("Faltan campos por completar al intentar agregar meta");
-      Alert.alert("Error", "Por favor, completa todos los campos.");
-    }
-  };
-
-  // Manejar eliminar metas
-  const handleDeleteGoal = async (goalId) => {
-    try {
-      console.log("Intentando eliminar meta con ID:", goalId);
-      await deleteDoc(doc(db, "savings", goalId));
-      Alert.alert("Éxito", "Meta eliminada correctamente.");
-      console.log("Meta eliminada exitosamente");
-    } catch (error) {
-      console.error("Error al eliminar la meta:", error);
-      Alert.alert("Error", "No se pudo eliminar la meta.");
-    }
-  };
-
-  // Manejar edición de metas
-  const handleEditGoal = async () => {
-    if (currentGoal && currentGoal.name && currentGoal.goal && startDate && endDate) {
-      try {
-        console.log("Intentando actualizar meta:", currentGoal);
-        await updateDoc(doc(db, "savings", currentGoal.id), {
-          name: currentGoal.name,
-          goal: parseInt(currentGoal.goal, 10),
+        await addDoc(collection(db, "savings"), {
+          userId: user.uid,
+          goalName,
+          amount: parseFloat(amount),
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
+          deductionDay,
+          status: "En progreso", // Nueva meta en progreso
         });
-        Alert.alert("Éxito", "Meta de ahorro actualizada correctamente.");
-        console.log("Meta actualizada exitosamente");
-        setIsEditModalVisible(false); // Cerrar modal
+        closeModal(); // Cerrar modal después de añadir
+        resetForm(); // Resetear formulario
       } catch (error) {
-        console.error("Error al actualizar la meta:", error);
-        Alert.alert("Error", "No se pudo actualizar la meta.");
+        console.error("Error al añadir meta:", error);
       }
-    } else {
-      console.log("Faltan campos por completar al intentar editar meta");
-      Alert.alert("Error", "Por favor, completa todos los campos.");
     }
   };
 
-  // Mostrar y ocultar DatePicker para la fecha de inicio
-  const showDatePicker = () => setDatePickerVisible(true);
-  const hideDatePicker = () => setDatePickerVisible(false);
-  const handleConfirmStartDate = (date) => {
-    console.log("Fecha de inicio seleccionada:", date);
-    setStartDate(date);
-    hideDatePicker();
+  const resetForm = () => {
+    setGoalName("");
+    setAmount("");
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setDeductionDay("");
   };
 
-  // Mostrar y ocultar DatePicker para la fecha de fin
-  const showEndDatePicker = () => setEndDatePickerVisible(true);
-  const hideEndDatePicker = () => setEndDatePickerVisible(false);
-  const handleConfirmEndDate = (date) => {
-    console.log("Fecha de fin seleccionada:", date);
-    setEndDate(date);
-    hideEndDatePicker();
+  // Calcular el ahorro mensual y la cantidad de meses
+  const calculateMonthlySavings = (goalAmount, start, end) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const months =
+      (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+      (endDate.getMonth() - startDate.getMonth());
+    return months > 0 ? (goalAmount / months).toFixed(2) : goalAmount;
   };
 
-  const calculateMonthlySavings = (goal, startDate, endDate) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
-    const monthlySavings = months > 0 ? Math.ceil(goal / months) : goal;
-    console.log("Ahorro mensual calculado:", monthlySavings);
-    return monthlySavings;
+  // Pausar una meta
+  const pauseGoal = async (goalId) => {
+    await updateDoc(doc(db, "savings", goalId), {
+      status: "Pausada",
+    });
   };
 
-  // Mostrar modal para editar
-  const openEditModal = (goal) => {
-    console.log("Abriendo modal de edición para la meta:", goal);
-    setCurrentGoal(goal);
-    setStartDate(new Date(goal.startDate)); // Establecer fecha inicial de edición
-    setEndDate(new Date(goal.endDate)); // Establecer fecha final de edición
-    setIsEditModalVisible(true);
+  // Eliminar una meta
+  const deleteGoal = async (goalId) => {
+    await deleteDoc(doc(db, "savings", goalId));
+  };
+
+  // Alternar entre mostrar una o todas las metas
+  const toggleShowGoals = () => {
+    setShowAllGoals(!showAllGoals);
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-100" contentContainerStyle={{ paddingBottom: 120 }}>
-      {/* Encabezado */}
-      <View className="bg-white py-4 px-6 shadow-md rounded-bl-3xl rounded-br-3xl pt-10">
-        <Text style={{ fontFamily: "ArchivoBlack-Regular", fontSize: 20, color: "black" }} className="text-2xl font-bold text-black">
-          Plan de Ahorro
-        </Text>
-        <Text style={{ fontFamily: "QuattrocentoSans-Regular" }} className="text-md text-gray-500 mt-2">
-          Organiza tus objetivos de ahorro
-        </Text>
-      </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <StatusBar backgroundColor="#511496" barStyle="light-content" />
 
-      {/* Formulario para agregar metas de ahorro */}
-      <View className="mt-6 mx-4 p-4 bg-white rounded-xl shadow-md">
-        <Text className="text-lg font-semibold text-black mb-4">Nueva Meta</Text>
-        <TextInput placeholder="Nombre de la Meta" value={goalName} onChangeText={setGoalName} className="border border-gray-300 rounded-md px-4 py-2 mb-3" />
-        <TextInput placeholder="Cantidad total a ahorrar" value={savingsGoal} onChangeText={setSavingsGoal} keyboardType="numeric" className="border border-gray-300 rounded-md px-4 py-2 mb-3" />
-        
-        <TouchableOpacity onPress={showDatePicker} className="border border-gray-300 rounded-md px-4 py-2 mb-3">
-          <Text>{startDate ? startDate.toDateString() : "Seleccionar fecha de inicio"}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={showEndDatePicker} className="border border-gray-300 rounded-md px-4 py-2 mb-3">
-          <Text>{endDate ? endDate.toDateString() : "Seleccionar fecha de fin"}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleAddGoal} className="bg-[#8f539b] py-3 rounded-full">
-          <Text className="text-center text-white text-lg font-bold">Agregar Meta</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <MaterialCommunityIcons name="piggy-bank" size={28} color="white" />
+        <View style={styles.headerInfo}>
+          <Text style={styles.headerTitle}>Mis Metas</Text>
+          <Text style={styles.headerSubtitle}>
+            Tienes {goals.length} metas en progreso
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.payButton} onPress={openModal}>
+          <Text style={styles.payButtonText}>Agregar Meta</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Lista de Metas de Ahorro */}
-      <View className="mt-6 mx-4 p-4 bg-white rounded-xl shadow-md">
-        <Text className="text-lg font-semibold text-black mb-2">Metas de Ahorro</Text>
-        {goals.length === 0 ? (
-          <Text className="text-center text-gray-500">Aquí aparecerán tus metas de ahorro</Text>
-        ) : (
-          goals.map((item) => (
-            <View key={item.id} className="flex-row justify-between items-center bg-white p-4 mb-3 rounded-xl shadow-md">
-              <View className="flex-1">
-                <Text className="text-lg font-semibold text-black">Nombre: <Text className="text-blue-500">{item.name}</Text></Text>
-                <Text className="text-lg font-semibold text-black">Meta: <Text className="text-green-500">{formatCurrency(item.goal)}</Text></Text>
-                <Text className="text-lg font-semibold text-black">Desde: <Text className="text-gray-600">{new Date(item.startDate).toLocaleDateString()}</Text></Text>
-                <Text className="text-lg font-semibold text-black">Hasta: <Text className="text-gray-600">{new Date(item.endDate).toLocaleDateString()}</Text></Text>
-                <Text className="text-lg font-semibold text-black">Ahorro Mensual: <Text className="text-yellow-500">{formatCurrency(calculateMonthlySavings(item.goal, item.startDate, item.endDate))}</Text></Text>
+      {/* Estado de las Metas */}
+      <View style={styles.statusContainer}>
+        <View style={styles.statusBox}>
+          <Text style={styles.statusNumber}>{goals.length}</Text>
+          <Text style={styles.statusLabel}>Todas</Text>
+        </View>
+        <View style={styles.statusBox}>
+          <Text style={styles.statusNumber}>
+            {goals.filter((goal) => goal.status === "En progreso").length}
+          </Text>
+          <Text style={styles.statusLabel}>Activas</Text>
+        </View>
+        <View style={styles.statusBox}>
+          <Text style={styles.statusNumber}>
+            {goals.filter((goal) => goal.status === "Pausada").length}
+          </Text>
+          <Text style={styles.statusLabel}>En pausa</Text>
+        </View>
+        <View style={styles.statusBox}>
+          <Text style={styles.statusNumber}>
+            {goals.filter((goal) => goal.status === "Completada").length}
+          </Text>
+          <Text style={styles.statusLabel}>Completadas</Text>
+        </View>
+      </View>
+
+      {/* Lista de Metas */}
+      <View style={styles.goalListContainer}>
+        {goals.length > 0 ? (
+          <>
+            {/* Mostrar solo una meta inicialmente */}
+            <View style={styles.goalCard}>
+              <View style={styles.goalInfo}>
+                <Text style={styles.goalAmount}>
+                  CLP {goals[0]?.amount?.toLocaleString() || '0'}
+                </Text>
+                <Text style={styles.goalDates}>
+                  Desde: {goals[0]?.startDate ? new Date(goals[0].startDate).toLocaleDateString() : 'N/A'} -
+                  Hasta: {goals[0]?.endDate ? new Date(goals[0].endDate).toLocaleDateString() : 'N/A'}
+                </Text>
+                <Text style={styles.goalDates}>
+                  Ahorro mensual: CLP{" "}
+                  {goals[0]?.amount && goals[0]?.startDate && goals[0]?.endDate
+                    ? calculateMonthlySavings(goals[0].amount, goals[0].startDate, goals[0].endDate)
+                    : '0'}
+                </Text>
               </View>
-              {/* Botones de edición y eliminación */}
-              <View className="flex-row">
-                <TouchableOpacity onPress={() => openEditModal(item)} className="mr-3">
-                  <MaterialCommunityIcons name="pencil" size={24} color="blue" />
+              {/* Acciones */}
+              <View style={styles.goalActions}>
+                <TouchableOpacity onPress={() => pauseGoal(goals[0].id)}>
+                  <MaterialCommunityIcons
+                    name="pause-circle-outline"
+                    size={24}
+                    color="orange"
+                  />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteGoal(item.id)}>
-                  <MaterialCommunityIcons name="delete" size={24} color="red" />
+                <TouchableOpacity>
+                  <MaterialCommunityIcons
+                    name="pencil"
+                    size={24}
+                    color="purple"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteGoal(goals[0].id)}>
+                  <MaterialCommunityIcons
+                    name="trash-can-outline"
+                    size={24}
+                    color="red"
+                  />
                 </TouchableOpacity>
               </View>
             </View>
-          ))
+
+            {/* Botón para mostrar todas las metas */}
+            <TouchableOpacity
+              style={styles.expandButton}
+              onPress={toggleShowGoals}
+            >
+              <Text style={styles.expandButtonText}>
+                {showAllGoals ? "Ver menos" : "Ver todas las metas"}
+              </Text>
+              <MaterialCommunityIcons
+                name={showAllGoals ? "chevron-up" : "chevron-down"}
+                size={24}
+                color="gray"
+              />
+            </TouchableOpacity>
+
+            {/* Mostrar todas las metas si está expandido */}
+            {showAllGoals &&
+              goals.slice(1).map((goal) => (
+                <View key={goal.id} style={styles.goalCard}>
+                  <View style={styles.goalInfo}>
+                    <Text style={styles.goalAmount}>
+                      CLP {goal?.amount?.toLocaleString() || '0'}
+                    </Text>
+                    <Text style={styles.goalDates}>
+                      Desde: {goal?.startDate ? new Date(goal.startDate).toLocaleDateString() : 'N/A'} -
+                      Hasta: {goal?.endDate ? new Date(goal.endDate).toLocaleDateString() : 'N/A'}
+                    </Text>
+                    <Text style={styles.goalDates}>
+                      Ahorro mensual: CLP{" "}
+                      {goal?.amount && goal?.startDate && goal?.endDate
+                        ? calculateMonthlySavings(goal.amount, goal.startDate, goal.endDate)
+                        : '0'}
+                    </Text>
+                  </View>
+                  {/* Acciones */}
+                  <View style={styles.goalActions}>
+                    {/* Botón de Pausar */}
+                    <TouchableOpacity onPress={() => pauseGoal(goal.id)}>
+                      <MaterialCommunityIcons
+                        name="pause-circle-outline"
+                        size={24}
+                        color="orange"
+                      />
+                    </TouchableOpacity>
+
+                    {/* Botón de Modificar */}
+                    <TouchableOpacity>
+                      <MaterialCommunityIcons
+                        name="pencil"
+                        size={24}
+                        color="purple"
+                      />
+                    </TouchableOpacity>
+
+                    {/* Botón de Eliminar */}
+                    <TouchableOpacity onPress={() => deleteGoal(goal.id)}>
+                      <MaterialCommunityIcons
+                        name="trash-can-outline"
+                        size={24}
+                        color="red"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+          </>
+        ) : (
+          <Text style={styles.noGoalsText}>No tienes metas de ahorro aún.</Text>
         )}
       </View>
 
-      {/* DatePicker modales */}
-      <DateTimePickerModal isVisible={isDatePickerVisible} mode="date" onConfirm={handleConfirmStartDate} onCancel={hideDatePicker} />
-      <DateTimePickerModal isVisible={isEndDatePickerVisible} mode="date" onConfirm={handleConfirmEndDate} onCancel={hideEndDatePicker} />
+      {/* Modal para añadir una nueva meta */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalBackground}>
+          <Animated.View
+            style={[
+              styles.modalContainer,
+              { transform: [{ translateY: slideAnim }] },
+            ]}
+          >
+            <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
 
-      {/* Modal para editar meta */}
-      <Modal visible={isEditModalVisible} animationType="slide">
-        <View className="p-4">
-          <Text className="text-lg font-semibold">Editar Meta</Text>
-          <TextInput
-            placeholder="Nombre de la Meta"
-            value={currentGoal?.name || ""}
-            onChangeText={(text) => setCurrentGoal({ ...currentGoal, name: text })}
-            className="border border-gray-300 rounded-md px-4 py-2 mb-3"
-          />
-          <TextInput
-            placeholder="Cantidad total a ahorrar"
-            value={currentGoal?.goal?.toString() || ""}
-            onChangeText={(text) => setCurrentGoal({ ...currentGoal, goal: text })}
-            keyboardType="numeric"
-            className="border border-gray-300 rounded-md px-4 py-2 mb-3"
-          />
-          <TouchableOpacity onPress={handleEditGoal} className="bg-[#8f539b] py-3 rounded-full">
-            <Text className="text-center text-white text-lg font-bold">Guardar Cambios</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsEditModalVisible(false)} className="bg-gray-300 py-3 rounded-full mt-3">
-            <Text className="text-center text-black text-lg">Cancelar</Text>
-          </TouchableOpacity>
+            <Text style={styles.modalTitle}>Nueva Meta de Ahorro</Text>
+
+            {/* Campo de descripción */}
+            <TextInput
+              placeholder="Descripción"
+              value={goalName}
+              onChangeText={(text) => setGoalName(text)}
+              style={styles.inputBox}
+            />
+
+            {/* Campo de monto total */}
+            <TextInput
+              placeholder="Monto total (CLP)"
+              keyboardType="numeric"
+              value={amount}
+              onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ""))}
+              style={styles.inputBox}
+            />
+
+            {/* Fecha de inicio */}
+            <TouchableOpacity
+              onPress={() => setShowStartDate(true)}
+              style={styles.dateButton}
+            >
+              <MaterialCommunityIcons
+                name="calendar"
+                size={24}
+                color="#511496"
+              />
+              <Text style={styles.dateText}>
+                Fecha de Inicio: {startDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            {showStartDate && (
+              <DateTimePicker
+                value={startDate}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  const currentDate = selectedDate || startDate;
+                  setShowStartDate(false); // Ocultar el picker después de seleccionar
+                  setStartDate(currentDate); // Actualizar la fecha de inicio
+                }}
+              />
+            )}
+
+            {/* Fecha de término */}
+            <TouchableOpacity
+              onPress={() => setShowEndDate(true)}
+              style={styles.dateButton}
+            >
+              <MaterialCommunityIcons
+                name="calendar"
+                size={24}
+                color="#511496"
+              />
+              <Text style={styles.dateText}>
+                Fecha de Término: {endDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            {showEndDate && (
+              <DateTimePicker
+                value={endDate}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  const currentDate = selectedDate || endDate;
+                  setShowEndDate(false); // Ocultar el picker después de seleccionar
+                  setEndDate(currentDate); // Actualizar la fecha de término
+                }}
+              />
+            )}
+
+            {/* Día de deducción */}
+            <TextInput
+              placeholder="Día de deducción"
+              keyboardType="numeric"
+              value={deductionDay}
+              onChangeText={(text) =>
+                setDeductionDay(text.replace(/[^0-9]/g, ""))
+              }
+              style={styles.inputBox}
+            />
+
+            {/* Botón de Confirmar */}
+            <LinearGradient
+              colors={["#511496", "#885FD8"]}
+              style={styles.pickerContainer}
+            >
+              <TouchableOpacity
+                onPress={handleAddGoal}
+                style={styles.confirmButton}
+              >
+                <Text style={styles.confirmText}>Confirmar</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </Animated.View>
         </View>
       </Modal>
     </ScrollView>
   );
 }
+
+
+const styles = StyleSheet.create({
+  container: {
+    paddingBottom: 200,
+    backgroundColor: "#f1f1f1", // Fondo claro para toda la pantalla
+  },
+  header: {
+    backgroundColor: "#511496", // Color morado para el encabezado
+    padding: 24,
+    paddingTop: 28,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerInfo: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  headerTitle: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  headerSubtitle: {
+    color: "#e0e0e0", // Subtítulo en gris claro
+    fontSize: 14,
+  },
+  payButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  payButtonText: {
+    color: "#2D2D2D",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  statusContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: 23,
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    marginHorizontal: 10,
+    marginTop: 12,
+  },
+  statusBox: {
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#eaeaea",
+    borderRadius: 15,
+    width: 70,
+  },
+  statusNumber: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2D2D2D",
+  },
+  statusLabel: {
+    fontSize: 14,
+    color: "#2D2D2D",
+  },
+  goalListContainer: {
+    marginTop: 20,
+  },
+  goalCard: {
+    backgroundColor: "#2D2D2D", // Fondo oscuro para las tarjetas de metas
+    padding: 15,
+    marginVertical: 10,
+    marginHorizontal: 20,
+    borderRadius: 15,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  goalInfo: {
+    flex: 1,
+  },
+  goalAmount: {
+    fontSize: 18,
+    color: "white",
+    fontWeight: "bold",
+  },
+  goalDates: {
+    fontSize: 14,
+    color: "gray",
+    marginTop: 5,
+  },
+  goalActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: 90,
+  },
+  expandButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  expandButtonText: {
+    color: "gray",
+    fontSize: 16,
+    marginRight: 5,
+  },
+  noGoalsText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "gray",
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Fondo semitransparente
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "90%",
+    padding: 25,
+    backgroundColor: "#fff",
+    borderRadius: 30,
+    alignItems: "center",
+    elevation: 5,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 15,
+    right: 15,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: "#673072",
+    fontWeight: "bold",
+  },
+  modalTitle: {
+    fontSize: 20,
+    color: "#673072",
+    marginBottom: 20,
+    fontWeight: "bold",
+  },
+  inputBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f1f1",
+    padding: 15,
+    borderRadius: 25,
+    width: "100%",
+    marginBottom: 20,
+    borderColor: "#f0f0f0",
+    borderWidth: 1,
+  },
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
+    padding: 15,
+    borderRadius: 25,
+    width: "100%",
+    marginBottom: 20,
+  },
+  dateText: {
+    marginLeft: 10,
+    color: "#555",
+    fontSize: 16,
+  },
+  pickerContainer: {
+    backgroundColor: "#fff",
+    padding: 10,
+    paddingLeft: 25,
+    paddingRight: 25,
+    marginBottom: 17,
+    borderWidth: 2,
+    borderColor: "#fff",
+    borderRadius: 25,
+    fontWeight: "bold",
+  },
+  confirmButton: {
+    paddingVertical: 15,
+    borderRadius: 25,
+    width: "100%",
+    alignItems: "center",
+  },
+  confirmText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+});
