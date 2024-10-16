@@ -1,4 +1,3 @@
-// HomeScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -178,6 +177,7 @@ export default function HomeScreen() {
     loadFonts();
   }, []);
 
+  // Obtener transacciones desde Firebase
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
@@ -265,7 +265,7 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    calculateTotalSaved();
+    calculateTotalSaved(); // Se recalculan los totales cada vez que cambian las transacciones
   }, [transactions]);
 
   const toggleLabel = () => {
@@ -317,6 +317,7 @@ export default function HomeScreen() {
             </Text>
           </View>
         )}
+
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
         <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
 
