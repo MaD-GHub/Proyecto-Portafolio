@@ -14,7 +14,7 @@ export default function DatosScreen() {
   const [clasificacion, setClasificacion] = useState('');
   const [horasUso, setHorasUso] = useState('');
   const [totalCost, setTotalCost] = useState(0);
-
+  
   const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -75,11 +75,33 @@ export default function DatosScreen() {
     return labels;
   };
 
+  const aggregateDataByMonth = (type) => {
+    const monthlyData = {};
+    transactions.forEach(transaction => {
+      if (transaction.type !== type) return; // Filtra por tipo (Gasto o Ingreso)
+      const date = moment(transaction.selectedDate).format('MM/YYYY'); // Formato de mes/año
+      const amount = parseFloat(transaction.amount);
+
+      if (!monthlyData[date]) {
+        monthlyData[date] = 0; // Inicializa si no existe
+      }
+
+      // Sumar o restar según el tipo de transacción
+      if (transaction.type === 'Ingreso') {
+        monthlyData[date] += amount;
+      } else if (transaction.type === 'Gasto') {
+        monthlyData[date] -= amount; // Restar para gastos
+      }
+    });
+
+    return monthlyData;
+  };
+
   const chartData = {
     labels: generateLabels('month'),
     datasets: [
       {
-        data: transactions.length > 0 ? transactions.map((transaction) => transaction.amount) : [0],
+        data: selectedTab === 'Expenses' ? Object.values(aggregateDataByMonth('Gasto')) : Object.values(aggregateDataByMonth('Ingreso')),
         color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
         strokeWidth: 3,
       },
@@ -165,6 +187,11 @@ export default function DatosScreen() {
       setTotalCost(0);
     }
   };
+
+  // Filtrar transacciones según la pestaña seleccionada
+  const filteredTransactions = transactions.filter(transaction => 
+    selectedTab === 'Expenses' ? transaction.type === 'Gasto' : transaction.type === 'Ingreso'
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -271,7 +298,7 @@ export default function DatosScreen() {
           </View>
 
           <FlatList
-            data={transactions}
+            data={filteredTransactions} // Filtrar transacciones según la pestaña seleccionada
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <View style={styles.listItem}>
