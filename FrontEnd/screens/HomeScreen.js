@@ -91,11 +91,14 @@ const Timeline = ({ transactions }) => {
       return transaction.type === "Ingreso" ? acc + amount : acc - amount;
     }, 0);
 
-    const monthlyIncome = transactions
+    // Filtramos las transacciones fijas
+    const fixedTransactions = transactions.filter(t => t.isFixed === "Fijo");
+
+    const monthlyIncome = fixedTransactions
       .filter((t) => t.type === "Ingreso")
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
-    const monthlyExpense = transactions
+    const monthlyExpense = fixedTransactions
       .filter((t) => t.type === "Gasto")
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
