@@ -10,6 +10,7 @@ import {
   Animated,
   StyleSheet,
   TextInput,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons"; // Icons
 import { LinearGradient } from "expo-linear-gradient"; // Para degradados
@@ -28,17 +29,18 @@ import {
 export default function AhorroScreen() {
   const [goals, setGoals] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [slideAnim] = useState(new Animated.Value(600));
   const [goalName, setGoalName] = useState("");
   const [amount, setAmount] = useState("");
-  const [startDate, setStartDate] = useState(new Date()); // Estado para fecha de inicio
-  const [endDate, setEndDate] = useState(new Date()); // Estado para fecha de fin
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
   const [deductionDay, setDeductionDay] = useState("");
+  const [selectedGoalId, setSelectedGoalId] = useState(null); // Estado para el ID del objetivo seleccionado
   const [showAllGoals, setShowAllGoals] = useState(false);
-  const [showStartDate, setShowStartDate] = useState(false); // Para mostrar el picker de fecha de inicio
-  const [showEndDate, setShowEndDate] = useState(false); // Para mostrar el picker de fecha de fin
+  const [showStartDate, setShowStartDate] = useState(false);
+  const [showEndDate, setShowEndDate] = useState(false);
 
-  // Fetch metas desde Firestore (por usuario autenticado)
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
@@ -53,11 +55,10 @@ export default function AhorroScreen() {
         }));
         setGoals(userGoals);
       });
-      return () => unsubscribe(); // Limpiar listener
+      return () => unsubscribe();
     }
   }, []);
 
-  // Abrir Modal
   const openModal = () => {
     setModalVisible(true);
     Animated.timing(slideAnim, {
@@ -67,7 +68,6 @@ export default function AhorroScreen() {
     }).start();
   };
 
-  // Cerrar Modal
   const closeModal = () => {
     Animated.timing(slideAnim, {
       toValue: 600,
@@ -78,7 +78,29 @@ export default function AhorroScreen() {
     });
   };
 
-  // Añadir una nueva meta de ahorro a Firestore
+  const openEditModal = (goal) => {
+    setSelectedGoalId(goal.id);
+    setGoalName(goal.goalName);
+    setAmount(goal.amount.toString());
+    setStartDate(new Date(goal.startDate));
+    setEndDate(new Date(goal.endDate));
+    setDeductionDay(goal.deductionDay);
+    setEditModalVisible(true);
+  };
+
+  const closeEditModal = () => {
+    setEditModalVisible(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setGoalName("");
+    setAmount("");
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setDeductionDay("");
+  };
+
   const handleAddGoal = async () => {
     const user = auth.currentUser;
     if (user) {
@@ -90,25 +112,34 @@ export default function AhorroScreen() {
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
           deductionDay,
-          status: "En progreso", // Nueva meta en progreso
+          status: "En progreso",
         });
-        closeModal(); // Cerrar modal después de añadir
-        resetForm(); // Resetear formulario
+        closeModal();
+        resetForm();
       } catch (error) {
         console.error("Error al añadir meta:", error);
       }
     }
   };
 
-  const resetForm = () => {
-    setGoalName("");
-    setAmount("");
-    setStartDate(new Date());
-    setEndDate(new Date());
-    setDeductionDay("");
+  const handleEditGoal = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        await updateDoc(doc(db, "savings", selectedGoalId), {
+          goalName,
+          amount: parseFloat(amount),
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          deductionDay,
+        });
+        closeEditModal();
+      } catch (error) {
+        console.error("Error al editar meta:", error);
+      }
+    }
   };
 
-  // Calcular el ahorro mensual y la cantidad de meses
   const calculateMonthlySavings = (goalAmount, start, end) => {
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -118,19 +149,35 @@ export default function AhorroScreen() {
     return months > 0 ? (goalAmount / months).toFixed(2) : goalAmount;
   };
 
-  // Pausar una meta
-  const pauseGoal = async (goalId) => {
+  const toggleGoalStatus = async (goalId, currentStatus) => {
+    const newStatus =
+      currentStatus === "En progreso" ? "Pausada" : "En progreso";
     await updateDoc(doc(db, "savings", goalId), {
-      status: "Pausada",
+      status: newStatus,
     });
   };
 
-  // Eliminar una meta
-  const deleteGoal = async (goalId) => {
-    await deleteDoc(doc(db, "savings", goalId));
+  const deleteGoal = (goalId) => {
+    Alert.alert(
+      "Confirmar Eliminación",
+      "¿Estás seguro de que deseas eliminar esta meta?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Eliminar",
+          onPress: async () => {
+            await deleteDoc(doc(db, "savings", goalId));
+          },
+          style: "destructive",
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
-  // Alternar entre mostrar una o todas las metas
   const toggleShowGoals = () => {
     setShowAllGoals(!showAllGoals);
   };
@@ -139,7 +186,6 @@ export default function AhorroScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <StatusBar backgroundColor="#511496" barStyle="light-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <MaterialCommunityIcons name="piggy-bank" size={28} color="white" />
         <View style={styles.headerInfo}>
@@ -153,7 +199,6 @@ export default function AhorroScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Estado de las Metas */}
       <View style={styles.statusContainer}>
         <View style={styles.statusBox}>
           <Text style={styles.statusNumber}>{goals.length}</Text>
@@ -179,37 +224,52 @@ export default function AhorroScreen() {
         </View>
       </View>
 
-      {/* Lista de Metas */}
       <View style={styles.goalListContainer}>
         {goals.length > 0 ? (
           <>
-            {/* Mostrar solo una meta inicialmente */}
             <View style={styles.goalCard}>
               <View style={styles.goalInfo}>
                 <Text style={styles.goalAmount}>
-                  CLP {goals[0]?.amount?.toLocaleString() || '0'}
+                  CLP {goals[0]?.amount?.toLocaleString() || "0"}
                 </Text>
                 <Text style={styles.goalDates}>
-                  Desde: {goals[0]?.startDate ? new Date(goals[0].startDate).toLocaleDateString() : 'N/A'} -
-                  Hasta: {goals[0]?.endDate ? new Date(goals[0].endDate).toLocaleDateString() : 'N/A'}
+                  Desde:{" "}
+                  {goals[0]?.startDate
+                    ? new Date(goals[0].startDate).toLocaleDateString()
+                    : "N/A"}{" "}
+                  - Hasta:{" "}
+                  {goals[0]?.endDate
+                    ? new Date(goals[0].endDate).toLocaleDateString()
+                    : "N/A"}
                 </Text>
                 <Text style={styles.goalDates}>
                   Ahorro mensual: CLP{" "}
                   {goals[0]?.amount && goals[0]?.startDate && goals[0]?.endDate
-                    ? calculateMonthlySavings(goals[0].amount, goals[0].startDate, goals[0].endDate)
-                    : '0'}
+                    ? calculateMonthlySavings(
+                        goals[0].amount,
+                        goals[0].startDate,
+                        goals[0].endDate
+                      )
+                    : "0"}
                 </Text>
               </View>
-              {/* Acciones */}
               <View style={styles.goalActions}>
-                <TouchableOpacity onPress={() => pauseGoal(goals[0].id)}>
+                <TouchableOpacity
+                  onPress={() => toggleGoalStatus(goals[0].id, goals[0].status)}
+                >
                   <MaterialCommunityIcons
-                    name="pause-circle-outline"
+                    name={
+                      goals[0].status === "En progreso"
+                        ? "pause-circle-outline"
+                        : "play-circle-outline"
+                    }
                     size={24}
-                    color="orange"
+                    color={
+                      goals[0].status === "En progreso" ? "orange" : "green"
+                    }
                   />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => openEditModal(goals[0])}>
                   <MaterialCommunityIcons
                     name="pencil"
                     size={24}
@@ -226,7 +286,6 @@ export default function AhorroScreen() {
               </View>
             </View>
 
-            {/* Botón para mostrar todas las metas */}
             <TouchableOpacity
               style={styles.expandButton}
               onPress={toggleShowGoals}
@@ -241,46 +300,57 @@ export default function AhorroScreen() {
               />
             </TouchableOpacity>
 
-            {/* Mostrar todas las metas si está expandido */}
             {showAllGoals &&
               goals.slice(1).map((goal) => (
                 <View key={goal.id} style={styles.goalCard}>
                   <View style={styles.goalInfo}>
                     <Text style={styles.goalAmount}>
-                      CLP {goal?.amount?.toLocaleString() || '0'}
+                      CLP {goal?.amount?.toLocaleString() || "0"}
                     </Text>
                     <Text style={styles.goalDates}>
-                      Desde: {goal?.startDate ? new Date(goal.startDate).toLocaleDateString() : 'N/A'} -
-                      Hasta: {goal?.endDate ? new Date(goal.endDate).toLocaleDateString() : 'N/A'}
+                      Desde:{" "}
+                      {goal?.startDate
+                        ? new Date(goal.startDate).toLocaleDateString()
+                        : "N/A"}{" "}
+                      - Hasta:{" "}
+                      {goal?.endDate
+                        ? new Date(goal.endDate).toLocaleDateString()
+                        : "N/A"}
                     </Text>
                     <Text style={styles.goalDates}>
                       Ahorro mensual: CLP{" "}
                       {goal?.amount && goal?.startDate && goal?.endDate
-                        ? calculateMonthlySavings(goal.amount, goal.startDate, goal.endDate)
-                        : '0'}
+                        ? calculateMonthlySavings(
+                            goal.amount,
+                            goal.startDate,
+                            goal.endDate
+                          )
+                        : "0"}
                     </Text>
                   </View>
-                  {/* Acciones */}
                   <View style={styles.goalActions}>
-                    {/* Botón de Pausar */}
-                    <TouchableOpacity onPress={() => pauseGoal(goal.id)}>
+                    <TouchableOpacity
+                      onPress={() => toggleGoalStatus(goal.id, goal.status)}
+                    >
                       <MaterialCommunityIcons
-                        name="pause-circle-outline"
+                        name={
+                          goal.status === "En progreso"
+                            ? "pause-circle-outline"
+                            : "play-circle-outline"
+                        }
                         size={24}
-                        color="orange"
+                        color={
+                          goal.status === "En progreso" ? "orange" : "green"
+                        }
                       />
                     </TouchableOpacity>
-
-                    {/* Botón de Modificar */}
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => openEditModal(goal)}>
                       <MaterialCommunityIcons
                         name="pencil"
                         size={24}
                         color="purple"
                       />
                     </TouchableOpacity>
-
-                    {/* Botón de Eliminar */}
                     <TouchableOpacity onPress={() => deleteGoal(goal.id)}>
                       <MaterialCommunityIcons
                         name="trash-can-outline"
@@ -317,7 +387,6 @@ export default function AhorroScreen() {
 
             <Text style={styles.modalTitle}>Nueva Meta de Ahorro</Text>
 
-            {/* Campo de descripción */}
             <TextInput
               placeholder="Descripción"
               value={goalName}
@@ -325,7 +394,6 @@ export default function AhorroScreen() {
               style={styles.inputBox}
             />
 
-            {/* Campo de monto total */}
             <TextInput
               placeholder="Monto total (CLP)"
               keyboardType="numeric"
@@ -334,7 +402,6 @@ export default function AhorroScreen() {
               style={styles.inputBox}
             />
 
-            {/* Fecha de inicio */}
             <TouchableOpacity
               onPress={() => setShowStartDate(true)}
               style={styles.dateButton}
@@ -355,13 +422,12 @@ export default function AhorroScreen() {
                 display="default"
                 onChange={(event, selectedDate) => {
                   const currentDate = selectedDate || startDate;
-                  setShowStartDate(false); // Ocultar el picker después de seleccionar
-                  setStartDate(currentDate); // Actualizar la fecha de inicio
+                  setShowStartDate(false);
+                  setStartDate(currentDate);
                 }}
               />
             )}
 
-            {/* Fecha de término */}
             <TouchableOpacity
               onPress={() => setShowEndDate(true)}
               style={styles.dateButton}
@@ -382,13 +448,12 @@ export default function AhorroScreen() {
                 display="default"
                 onChange={(event, selectedDate) => {
                   const currentDate = selectedDate || endDate;
-                  setShowEndDate(false); // Ocultar el picker después de seleccionar
-                  setEndDate(currentDate); // Actualizar la fecha de término
+                  setShowEndDate(false);
+                  setEndDate(currentDate);
                 }}
               />
             )}
 
-            {/* Día de deducción */}
             <TextInput
               placeholder="Día de deducción"
               keyboardType="numeric"
@@ -399,7 +464,6 @@ export default function AhorroScreen() {
               style={styles.inputBox}
             />
 
-            {/* Botón de Confirmar */}
             <LinearGradient
               colors={["#511496", "#885FD8"]}
               style={styles.pickerContainer}
@@ -414,18 +478,127 @@ export default function AhorroScreen() {
           </Animated.View>
         </View>
       </Modal>
+
+      {/* Modal para editar una meta */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={closeEditModal}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={closeEditModal}
+            >
+              <Text style={styles.closeButtonText}>✕</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Editar Meta de Ahorro</Text>
+
+            <TextInput
+              placeholder="Descripción"
+              value={goalName}
+              onChangeText={(text) => setGoalName(text)}
+              style={styles.inputBox}
+            />
+
+            <TextInput
+              placeholder="Monto total (CLP)"
+              keyboardType="numeric"
+              value={amount}
+              onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ""))}
+              style={styles.inputBox}
+            />
+
+            <TouchableOpacity
+              onPress={() => setShowStartDate(true)}
+              style={styles.dateButton}
+            >
+              <MaterialCommunityIcons
+                name="calendar"
+                size={24}
+                color="#511496"
+              />
+              <Text style={styles.dateText}>
+                Fecha de Inicio: {startDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            {showStartDate && (
+              <DateTimePicker
+                value={startDate}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  const currentDate = selectedDate || startDate;
+                  setShowStartDate(false);
+                  setStartDate(currentDate);
+                }}
+              />
+            )}
+
+            <TouchableOpacity
+              onPress={() => setShowEndDate(true)}
+              style={styles.dateButton}
+            >
+              <MaterialCommunityIcons
+                name="calendar"
+                size={24}
+                color="#511496"
+              />
+              <Text style={styles.dateText}>
+                Fecha de Término: {endDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            {showEndDate && (
+              <DateTimePicker
+                value={endDate}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  const currentDate = selectedDate || endDate;
+                  setShowEndDate(false);
+                  setEndDate(currentDate);
+                }}
+              />
+            )}
+
+            <TextInput
+              placeholder="Día de deducción"
+              keyboardType="numeric"
+              value={deductionDay}
+              onChangeText={(text) =>
+                setDeductionDay(text.replace(/[^0-9]/g, ""))
+              }
+              style={styles.inputBox}
+            />
+
+            <LinearGradient
+              colors={["#511496", "#885FD8"]}
+              style={styles.pickerContainer}
+            >
+              <TouchableOpacity
+                onPress={handleEditGoal}
+                style={styles.confirmButton}
+              >
+                <Text style={styles.confirmText}>Guardar Cambios</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     paddingBottom: 200,
-    backgroundColor: "#f1f1f1", // Fondo claro para toda la pantalla
+    backgroundColor: "#f1f1f1",
   },
   header: {
-    backgroundColor: "#511496", // Color morado para el encabezado
+    backgroundColor: "#511496",
     padding: 24,
     paddingTop: 28,
     borderBottomLeftRadius: 25,
@@ -443,7 +616,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   headerSubtitle: {
-    color: "#e0e0e0", // Subtítulo en gris claro
+    color: "#e0e0e0",
     fontSize: 14,
   },
   payButton: {
@@ -486,7 +659,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   goalCard: {
-    backgroundColor: "#2D2D2D", // Fondo oscuro para las tarjetas de metas
+    backgroundColor: "#2D2D2D",
     padding: 15,
     marginVertical: 10,
     marginHorizontal: 20,
@@ -532,7 +705,7 @@ const styles = StyleSheet.create({
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Fondo semitransparente
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
