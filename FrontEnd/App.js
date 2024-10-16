@@ -168,14 +168,13 @@ export default function App() {
   const [amount, setAmount] = React.useState('');
   const [transactionType, setTransactionType] = React.useState('Ingreso');
   const [category, setCategory] = React.useState('');
-  const [description, setDescription] = React.useState(''); // Nuevo estado para la descripción
-  const [date, setDate] = React.useState(new Date()); // Fecha seleccionada por el usuario
+  const [description, setDescription] = React.useState('');
+  const [date, setDate] = React.useState(new Date());
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [transactions, setTransactions] = React.useState([]);
-  const slideAnim = React.useRef(new Animated.Value(600)).current;
-
   const [user, setUser] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(true); // Agregado el estado loading
+  const slideAnim = React.useRef(new Animated.Value(600)).current;
 
   const ingresoCategorias = ['Salario', 'Venta de producto'];
   const gastoCategorias = ['Comida y Bebidas', 'Vestuario', 'Alojamiento', 'Salud', 'Transporte', 'Educación'];
@@ -228,9 +227,9 @@ export default function App() {
       type: transactionType,
       amount: parsedAmount,
       category: category,
-      description: description, // Guardar la descripción ingresada
-      selectedDate: date.toISOString(), // Guardar la fecha seleccionada por el usuario
-      creationDate: new Date().toLocaleDateString(), // Fecha de creación
+      description: description,
+      selectedDate: date.toISOString(),
+      creationDate: new Date().toLocaleDateString(),
       userId: user.uid,
     };
 
@@ -242,8 +241,8 @@ export default function App() {
 
       setAmount('');
       setCategory('');
-      setDescription(''); // Limpiar descripción
-      setDate(new Date()); // Restablecer fecha
+      setDescription('');
+      setDate(new Date());
 
       closeModal();
     } catch (error) {
@@ -258,7 +257,7 @@ export default function App() {
       } else {
         setUser(null);
       }
-      setLoading(false);
+      setLoading(false); // Asegúrate de que se actualice loading cuando termine
     });
 
     return () => unsubscribe();
@@ -301,32 +300,52 @@ export default function App() {
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
 
+        {/* Modal para agregar nueva transacción */}
         <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={closeModal}>
-          <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
-            <View style={styles.modalContent}>
-              <Text style={styles.sectionTitle}>Seleccione tipo de transacción</Text>
-              <View style={styles.buttonGroup}>
+          <View style={styles.modalBackground}>
+            <Animated.View style={[styles.modalContainer, { transform: [{ translateY: slideAnim }] }]}>
+              <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Nueva Transacción</Text>
+
+              {/* Selector de Ingreso/Gasto */}
+              <View style={styles.segmentedControlContainer}>
                 <TouchableOpacity
-                  style={[styles.typeButton, transactionType === 'Ingreso' ? styles.activeButton : {}]}
-                  onPress={() => {
-                    setTransactionType('Ingreso');
-                    setCategory('');
-                  }}
+                  style={[
+                    styles.segmentedControlButton,
+                    transactionType === 'Ingreso' && styles.segmentedControlButtonActive,
+                  ]}
+                  onPress={() => setTransactionType('Ingreso')}
                 >
-                  <Text style={styles.buttonText}>Ingreso</Text>
+                  <Text
+                    style={[
+                      styles.segmentedControlText,
+                      transactionType === 'Ingreso' && styles.segmentedControlTextActive,
+                    ]}
+                  >
+                    Ingreso
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.typeButton, transactionType === 'Gasto' ? styles.activeButton : {}]}
-                  onPress={() => {
-                    setTransactionType('Gasto');
-                    setCategory('');
-                  }}
+                  style={[
+                    styles.segmentedControlButton,
+                    transactionType === 'Gasto' && styles.segmentedControlButtonActive,
+                  ]}
+                  onPress={() => setTransactionType('Gasto')}
                 >
-                  <Text style={styles.buttonText}>Gasto</Text>
+                  <Text
+                    style={[
+                      styles.segmentedControlText,
+                      transactionType === 'Gasto' && styles.segmentedControlTextActive,
+                    ]}
+                  >
+                    Gasto
+                  </Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.sectionTitle}>Ingrese cantidad</Text>
+              {/* Campo de monto */}
               <TextInput
                 placeholder="Ingrese monto"
                 keyboardType="numeric"
@@ -335,16 +354,8 @@ export default function App() {
                 style={styles.inputBox}
               />
 
-              <Text style={styles.sectionTitle}>Ingrese descripción</Text>
-              <TextInput
-                placeholder="Descripción de la transacción"
-                value={description}
-                onChangeText={setDescription}
-                style={styles.inputBox}
-              />
-
-              <Text style={styles.sectionTitle}>Seleccione Categoría</Text>
-              <View style={styles.inputBox}>
+              {/* Picker de Categorías */}
+              <View style={styles.inputBox2}>
                 <Picker
                   selectedValue={category}
                   onValueChange={(itemValue) => setCategory(itemValue)}
@@ -361,9 +372,9 @@ export default function App() {
                 </Picker>
               </View>
 
-              <Text style={styles.sectionTitle}>Seleccione Fecha</Text>
+              {/* Selector de fecha */}
               <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.dateButton}>
-                <MaterialCommunityIcons name="calendar" size={24} color="#555" />
+                <MaterialCommunityIcons name="calendar" size={24} color="#511496" />
                 <Text style={styles.dateText}>{date.toLocaleDateString()}</Text>
               </TouchableOpacity>
 
@@ -371,17 +382,14 @@ export default function App() {
                 <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
               )}
 
-              <View style={styles.modalButtons}>
+              {/* Botón de Confirmar */}
+              <LinearGradient colors={['#511496', '#885FD8']} style={styles.pickerContainer}>
                 <TouchableOpacity onPress={handleAddTransaction} style={styles.confirmButton}>
                   <Text style={styles.confirmText}>Confirmar</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                  <Text style={styles.closeText}>Cerrar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Animated.View>
+              </LinearGradient>
+            </Animated.View>
+          </View>
         </Modal>
       </KeyboardAvoidingView>
     </NavigationContainer>
@@ -389,96 +397,119 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  modalContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '100%',
-    justifyContent: 'flex-end',
+  modalBackground: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo oscuro con 50% de opacidad
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalContent: {
-    width: '100%',
+  modalContainer: {
+    width: '90%',
     padding: 25,
-    backgroundColor: '#f9f9f9',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: '#fff',
+    borderRadius: 30,
     alignItems: 'center',
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
   },
-  sectionTitle: {
-    fontSize: 18,
-    color: '#8f539b',
-    marginBottom: 10,
+  closeButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#673072',
+    paddingRight: 15,
+    paddingTop: 7,
     fontWeight: 'bold',
   },
-  buttonGroup: {
+  modalTitle: {
+    fontSize: 20,
+    color: '#673072',
+    marginBottom: 20,
+    fontWeight: 'bold',
+  },
+  // Estilos para el segmented control
+  segmentedControlContainer: {
     flexDirection: 'row',
+    backgroundColor: '#eeeeee',  // Color de fondo para el contenedor
+    borderRadius: 25,
+    padding: 4,
     marginBottom: 20,
   },
-  typeButton: {
-    padding: 15,
-    marginHorizontal: 10,
-    backgroundColor: '#cccccc',
-    borderRadius: 10,
-    width: '40%',
+  pickerContainer: {
+    backgroundColor: '#fff', // Background for the picker container
+    padding: 10,
+    paddingLeft: 25,
+    paddingRight: 25,
+    marginBottom: 17,
+    borderWidth: 2,
+    borderColor: '#fff',
+    borderRadius: 25, // Full rounded corners
+    fontWeight: 'bold',
+  },
+  segmentedControlButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  activeButton: {
-    backgroundColor: '#8f539b',
+  segmentedControlButtonActive: {
+    backgroundColor: '#511496',  // Color activo
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
+  segmentedControlText: {
+    color: '#6d6d6d',  // Color texto inactivo
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  segmentedControlTextActive: {
+    color: '#fff',  // Texto activo en blanco
+  },
+  // Input y Picker
+  inputBox2: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    padding: 2,
+    borderRadius: 25,
+    width: '100%',
+    marginBottom: 20,
+    borderColor: '#f0f0f0',
+    borderWidth: 1,
   },
   inputBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eeeeee',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#f1f1f1',
+    padding: 15,
+    borderRadius: 25,
     width: '100%',
     marginBottom: 20,
+    borderColor: '#f0f0f0',
+    borderWidth: 1,
   },
   picker: {
-    height: 50,
-    width: '100%',
-    backgroundColor: 'transparent',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    height: 20,
     width: '100%',
   },
-  confirmButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    borderRadius: 10,
-    flex: 1,
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  confirmText: {
-    color: 'white',
-    fontSize: 18,
-  },
-  closeButton: {
-    backgroundColor: '#FF6347',
-    padding: 15,
-    borderRadius: 10,
-    flex: 1,
-    alignItems: 'center',
-  },
-  closeText: {
-    color: 'white',
-    fontSize: 18,
+  picker2: {
+    height: 20,
+    width: '100%',
+    paddingTop: 10,
   },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#eeeeee',
-    padding: 10,
-    borderRadius: 10,
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    borderRadius: 25,
     width: '100%',
     marginBottom: 20,
   },
@@ -487,4 +518,10 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 16,
   },
+  // Botón de Confirmar
+  confirmText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  }
 });
