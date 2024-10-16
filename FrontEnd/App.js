@@ -1,3 +1,4 @@
+// App.js
 import * as React from 'react';
 import {
   View,
@@ -177,7 +178,7 @@ export default function App() {
   const [loading, setLoading] = React.useState(true);
 
   const ingresoCategorias = ['Salario', 'Venta de producto'];
-  const egresoCategorias = ['Comida y Bebidas', 'Vestuario', 'Alojamiento', 'Salud', 'Transporte', 'Educación'];
+  const gastoCategorias = ['Comida y Bebidas', 'Vestuario', 'Alojamiento', 'Salud', 'Transporte', 'Educación'];
 
   const openModal = () => {
     setModalVisible(true);
@@ -228,7 +229,7 @@ export default function App() {
       amount: parsedAmount,
       category: category,
       description: description, // Guardar la descripción ingresada
-      selectedDate: date.toLocaleDateString(), // Guardar la fecha seleccionada por el usuario
+      selectedDate: date.toISOString(), // Guardar la fecha seleccionada por el usuario
       creationDate: new Date().toLocaleDateString(), // Fecha de creación
       userId: user.uid,
     };
@@ -315,13 +316,13 @@ export default function App() {
                   <Text style={styles.buttonText}>Ingreso</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.typeButton, transactionType === 'Egreso' ? styles.activeButton : {}]}
+                  style={[styles.typeButton, transactionType === 'Gasto' ? styles.activeButton : {}]}
                   onPress={() => {
-                    setTransactionType('Egreso');
+                    setTransactionType('Gasto');
                     setCategory('');
                   }}
                 >
-                  <Text style={styles.buttonText}>Egreso</Text>
+                  <Text style={styles.buttonText}>Gasto</Text>
                 </TouchableOpacity>
               </View>
 
@@ -354,7 +355,7 @@ export default function App() {
                     ? ingresoCategorias.map((cat, index) => (
                         <Picker.Item key={index} label={cat} value={cat} />
                       ))
-                    : egresoCategorias.map((cat, index) => (
+                    : gastoCategorias.map((cat, index) => (
                         <Picker.Item key={index} label={cat} value={cat} />
                       ))}
                 </Picker>

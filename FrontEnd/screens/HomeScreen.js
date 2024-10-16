@@ -12,15 +12,23 @@ import {
   StyleSheet,
   ScrollView,
   Animated,
-  Alert // Importamos Alert para la confirmación
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Font from "expo-font";
 import { Picker } from "@react-native-picker/picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from '@react-navigation/native'; 
-import { collection, addDoc, query, where, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { useNavigation } from "@react-navigation/native";
+import {
+  collection,
+  query,
+  where,
+  deleteDoc,
+  doc,
+  updateDoc,
+  onSnapshot,
+} from "firebase/firestore";
+import { db, auth } from "../firebase";
 
 // Función para obtener la fecha actual
 const getTodayDate = () => {
@@ -31,12 +39,45 @@ const getTodayDate = () => {
   return `${dd}/${mm}/${yyyy}`;
 };
 
+// Función para formatear las fechas en un formato legible
+const formatDate = (date) => {
+  if (!date) return "Fecha no disponible"; // Verifica si la fecha es válida
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) {
+    return "Fecha inválida"; // Devuelve un mensaje si la fecha es inválida
+  }
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  return parsedDate.toLocaleDateString("es-CL", options);
+};
+
+// Función para agrupar transacciones por fecha
+const groupTransactionsByDate = (transactions) => {
+  return transactions.reduce((groups, transaction) => {
+    const date = new Date(transaction.selectedDate).toDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(transaction);
+    return groups;
+  }, {});
+};
+
 // Componente para la línea de tiempo (proyección financiera)
 const Timeline = ({ transactions }) => {
   const [projection, setProjection] = useState([]);
   const months = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
   ];
 
   useEffect(() => {
@@ -55,10 +96,10 @@ const Timeline = ({ transactions }) => {
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
     const monthlyExpense = transactions
-      .filter((t) => t.type === "Egreso")
+      .filter((t) => t.type === "Gasto")
       .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
-    const currentMonth = new Date().getMonth(); 
+    const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const projectionData = [];
 
@@ -66,10 +107,10 @@ const Timeline = ({ transactions }) => {
       if (i !== 0) {
         currentBalance += monthlyIncome - monthlyExpense;
       }
-      const projectedMonth = (currentMonth + i) % 12; 
+      const projectedMonth = (currentMonth + i) % 12;
       const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
       projectionData.push({
-        month: `${months[projectedMonth]} ${projectedYear}`, 
+        month: `${months[projectedMonth]} ${projectedYear}`,
         balance: currentBalance,
       });
     }
@@ -87,7 +128,9 @@ const Timeline = ({ transactions }) => {
               <View key={index} style={styles.timelineItem}>
                 <View style={styles.timelineVerticalLine} />
                 <Text style={styles.timelineMonth}>{item.month}</Text>
-                <Text style={styles.timelineBalance}>{formatCurrency(item.balance)}</Text>
+                <Text style={styles.timelineBalance}>
+                  {formatCurrency(item.balance)}
+                </Text>
               </View>
             ))}
           </View>
@@ -98,21 +141,21 @@ const Timeline = ({ transactions }) => {
 };
 
 export default function HomeScreen() {
-  const navigation = useNavigation(); 
-  const [transactions, setTransactions] = useState([]); 
+  const navigation = useNavigation();
+  const [transactions, setTransactions] = useState([]);
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [totalSaved, setTotalSaved] = useState(0); 
-  const [totalIngresos, setTotalIngresos] = useState(0); 
-  const [totalGastos, setTotalGastos] = useState(0); 
-  const [editingTransaction, setEditingTransaction] = useState(null); 
-  const [modalVisible, setModalVisible] = useState(false); 
-  const [editAmount, setEditAmount] = useState(""); 
-  const [editCategory, setEditCategory] = useState(""); 
-  const [isOpen, setIsOpen] = useState(false); 
+  const [totalSaved, setTotalSaved] = useState(0);
+  const [totalIngresos, setTotalIngresos] = useState(0);
+  const [totalGastos, setTotalGastos] = useState(0);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const heightAnim = useState(new Animated.Value(0))[0];
   const [notificationsVisible, setNotificationsVisible] = useState(false);
   const ingresoCategorias = ["Salario", "Venta de producto"];
-  const egresoCategorias = [
+  const gastoCategorias = [
     "Comida y Bebidas",
     "Vestuario",
     "Alojamiento",
@@ -138,36 +181,44 @@ export default function HomeScreen() {
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
-  
-    const q = query(collection(db, 'transactions'), where('userId', '==', user.uid));
-  
+
+    const q = query(
+      collection(db, "transactions"),
+      where("userId", "==", user.uid)
+    );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const transacciones = snapshot.docs.map(doc => ({
+      const transacciones = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
       setTransactions(transacciones);
     });
-  
-    return () => unsubscribe(); 
+
+    return () => unsubscribe();
   }, []);
 
-  // Función para manejar la eliminación de transacciones con confirmación
   const handleDeleteTransaction = async (id) => {
     Alert.alert(
-      'Eliminar transacción',
-      '¿Estás seguro de que quieres eliminar esta transacción?',
+      "Eliminar transacción",
+      "¿Estás seguro de que quieres eliminar esta transacción?",
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Eliminar', style: 'destructive', onPress: async () => {
-          try {
-            await deleteDoc(doc(db, 'transactions', id));
-            const updatedTransactions = transactions.filter((item) => item.id !== id);
-            setTransactions(updatedTransactions);
-          } catch (error) {
-            console.error('Error al eliminar transacción: ', error);
-          }
-        }}
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, "transactions", id));
+              const updatedTransactions = transactions.filter(
+                (item) => item.id !== id
+              );
+              setTransactions(updatedTransactions);
+            } catch (error) {
+              console.error("Error al eliminar transacción: ", error);
+            }
+          },
+        },
       ],
       { cancelable: true }
     );
@@ -175,7 +226,7 @@ export default function HomeScreen() {
 
   const handleSaveEdit = async () => {
     try {
-      const transactionRef = doc(db, 'transactions', editingTransaction.id);
+      const transactionRef = doc(db, "transactions", editingTransaction.id);
       await updateDoc(transactionRef, {
         amount: editAmount,
         category: editCategory,
@@ -189,7 +240,7 @@ export default function HomeScreen() {
       setTransactions(updatedTransactions);
       setModalVisible(false);
     } catch (error) {
-      console.error('Error al actualizar transacción: ', error);
+      console.error("Error al actualizar transacción: ", error);
     }
   };
 
@@ -200,14 +251,14 @@ export default function HomeScreen() {
         .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
 
       const gastos = transactions
-        .filter((transaction) => transaction.type === "Egreso")
+        .filter((transaction) => transaction.type === "Gasto")
         .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
 
       setTotalIngresos(ingresos);
       setTotalGastos(gastos);
-      setTotalSaved(ingresos - gastos); 
+      setTotalSaved(ingresos - gastos);
     } else {
-      setTotalSaved(0); 
+      setTotalSaved(0);
       setTotalIngresos(0);
       setTotalGastos(0);
     }
@@ -230,6 +281,11 @@ export default function HomeScreen() {
     setNotificationsVisible(!notificationsVisible);
   };
 
+  const groupedTransactions = groupTransactionsByDate(transactions);
+  const sortedDates = Object.keys(groupedTransactions).sort(
+    (a, b) => new Date(b) - new Date(a)
+  );
+
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#673072" />;
   }
@@ -241,17 +297,24 @@ export default function HomeScreen() {
         style={styles.balanceContainer}
       >
         <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.navigate("ProfileScreen")}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ProfileScreen")}
+          >
             <MaterialCommunityIcons name="account" size={35} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={toggleNotifications} style={styles.bellIconContainer}>
+          <TouchableOpacity
+            onPress={toggleNotifications}
+            style={styles.bellIconContainer}
+          >
             <MaterialCommunityIcons name="bell" size={35} color="white" />
           </TouchableOpacity>
         </View>
 
         {notificationsVisible && (
           <View style={styles.notificationsLabel}>
-            <Text style={styles.notificationsText}>No hay notificaciones por ahora</Text>
+            <Text style={styles.notificationsText}>
+              No hay notificaciones por ahora
+            </Text>
           </View>
         )}
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
@@ -276,11 +339,15 @@ export default function HomeScreen() {
             <View style={styles.labelContent}>
               <View style={styles.totalItem}>
                 <Text style={styles.totalLabel}>Total Ingresos</Text>
-                <Text style={styles.totalAmount}>{formatCurrency(totalIngresos)}</Text>
+                <Text style={styles.totalAmount}>
+                  {formatCurrency(totalIngresos)}
+                </Text>
               </View>
               <View style={styles.totalItem}>
                 <Text style={styles.totalLabel}>Total Gastos</Text>
-                <Text style={styles.totalAmount}>{formatCurrency(totalGastos)}</Text>
+                <Text style={styles.totalAmount}>
+                  {formatCurrency(totalGastos)}
+                </Text>
               </View>
             </View>
           </LinearGradient>
@@ -295,29 +362,56 @@ export default function HomeScreen() {
           <Text>No hay transacciones aún</Text>
         ) : (
           <FlatList
-            data={transactions}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.transactionItem}>
-                <View>
-                  <Text
-                    style={[styles.transactionText, { color: item.type === "Ingreso" ? "green" : "red" }]}
-                  >
-                    {item.type} - {item.category} - {formatCurrency(item.amount)}
-                  </Text>
-                  <Text style={styles.transactionDate}>{item.date}</Text>
-                </View>
-                <View style={styles.transactionActions}>
-                  <TouchableOpacity onPress={() => setEditingTransaction(item)}>
-                    <MaterialCommunityIcons name="pencil" size={24} color="blue" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteTransaction(item.id)}
-                    style={styles.deleteIcon}
-                  >
-                    <MaterialCommunityIcons name="trash-can" size={24} color="red" />
-                  </TouchableOpacity>
-                </View>
+            data={sortedDates}
+            keyExtractor={(item) => item}
+            renderItem={({ item: date }) => (
+              <View>
+                <Text style={styles.dateHeader}>{formatDate(date)}</Text>
+                {groupedTransactions[date]
+                  .sort(
+                    (a, b) =>
+                      new Date(b.selectedDate) - new Date(a.selectedDate)
+                  ) // Ordenamos las transacciones dentro de cada fecha
+                  .map((item) => (
+                    <View key={item.id} style={styles.transactionItem}>
+                      <View>
+                        <Text
+                          style={[
+                            styles.transactionText,
+                            {
+                              color: item.type === "Ingreso" ? "green" : "red",
+                            },
+                          ]}
+                        >
+                          {item.category} - {formatCurrency(item.amount)}
+                        </Text>
+                        <Text style={styles.transactionDate}>
+                          {item.description}
+                        </Text>
+                      </View>
+                      <View style={styles.transactionActions}>
+                        <TouchableOpacity
+                          onPress={() => setEditingTransaction(item)}
+                        >
+                          <MaterialCommunityIcons
+                            name="pencil"
+                            size={24}
+                            color="blue"
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => handleDeleteTransaction(item.id)}
+                          style={styles.deleteIcon}
+                        >
+                          <MaterialCommunityIcons
+                            name="trash-can"
+                            size={24}
+                            color="red"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
               </View>
             )}
           />
@@ -350,7 +444,7 @@ export default function HomeScreen() {
                 ? ingresoCategorias.map((cat) => (
                     <Picker.Item key={cat} label={cat} value={cat} />
                   ))
-                : egresoCategorias.map((cat) => (
+                : gastoCategorias.map((cat) => (
                     <Picker.Item key={cat} label={cat} value={cat} />
                   ))}
             </Picker>
@@ -406,17 +500,17 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   notificationsLabel: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 10,
     borderRadius: 10,
     marginTop: 5,
     marginBottom: 10,
-    width: '80%',
-    alignSelf: 'center',
+    width: "80%",
+    alignSelf: "center",
   },
   notificationsText: {
-    color: '#333',
-    textAlign: 'center',
+    color: "#333",
+    textAlign: "center",
   },
   balanceAmount: {
     fontFamily: "ArchivoBlack-Regular",
@@ -527,6 +621,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     padding: 20,
     borderRadius: 10,
+  },
+  dateHeader: {
+    fontFamily: "ArchivoBlack-Regular",
+    fontSize: 18,
+    color: "#673072",
+    marginBottom: 10,
   },
   transactionItem: {
     flexDirection: "row",
