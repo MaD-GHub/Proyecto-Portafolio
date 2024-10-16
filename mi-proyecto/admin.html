@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrador FineWise</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <h1>Bienvenido Administrador FineWise</h1>
+    <button onclick="createItem()">Añadir Usuario</button>
+    <div id="items"></div>
+
+    <script>
+        let items = [];
+
+        function createItem() {
+            const itemName = prompt("Ingrese el nombre del nuevo usuario:");
+            if (itemName) {
+                items.push(itemName);
+                displayItems();
+            }
+        }
+
+        function displayItems() {
+            const itemsDiv = document.getElementById('items');
+            itemsDiv.innerHTML = '';
+            items.forEach((item, index) => {
+                itemsDiv.innerHTML += `
+                    <div class="item">
+                        ${item} 
+                        <button onclick="editItem(${index})">Editar</button>
+                        <button onclick="deleteItem(${index})">Eliminar</button>
+                    </div>
+                `;
+            });
+        }
+
+        function editItem(index) {
+            const newItemName = prompt("Editar item:", items[index]);
+            if (newItemName) {
+                items[index] = newItemName;
+                displayItems();
+            }
+        }
+
+        function deleteItem(index) {
+            items.splice(index, 1);
+            displayItems();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+<script>
+    // Configura Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyCOiPa7GEr4t1JcA_mTAV_8DX6dPnAyb8I",
+        authDomain: "fina-wise.firebaseapp.com",
+        projectId: "fina-wise",
+        storageBucket: "fina-wise.appspot.com",
+        messagingSenderId: "634672613413",
+        appId: "1:634672613413:web:5d5612906f7d5fde82d7cc",
+        measurementId: "G-JE76L5DPY1"
+      };
+
+    // Inicializa Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
