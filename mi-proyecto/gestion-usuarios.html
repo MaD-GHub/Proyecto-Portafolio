@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Usuarios</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16rem;
+      height: 100%;
+      background-color: #6b21a8;
+    }
+    .main-content {
+      margin-left: 16rem;
+      padding: 2rem;
+    }
+    .dark-mode {
+      background-color: #1a202c;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans" id="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar text-white flex flex-col">
+    <div class="p-6 flex items-center justify-center border-b border-purple-700">
+      <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
+    </div>
+    <nav class="flex-grow p-6">
+        <a href="index.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3"></i><span id="menu-inicio">Inicio</span></a>
+        <a href="usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3"></i><span id="menu-usuarios">Usuarios</span></a>
+        <a href="estadisticas.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3"></i><span id="menu-estadisticas">Estadísticas</span></a>
+        <a href="configuracion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3"></i><span id="menu-configuracion">Configuración</span></a>
+        <a href="gestion-contenido.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-folder pr-3"></i><span id="menu-gestion-contenido">Gestión de Contenido</span></a>
+        <a href="gestion-usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-users pr-3"></i><span id="menu-gestion-usuarios">Gestión de Usuarios</span></a>
+        <a href="analisis.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-line pr-3"></i><span id="menu-analisis-seguimiento">Análisis y Seguimiento</span></a>
+        <a href="seguridad.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-shield-halved pr-3"></i><span id="menu-herramientas-seguridad">Herramientas de Seguridad</span></a>
+        <a href="personalizacion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-paint-brush pr-3"></i><span id="menu-herramientas-personalizacion">Herramientas de Personalización</span></a>
+      </nav>
+    <div class="p-6">
+      <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300"><span id="menu-cerrar-sesion">Cerrar sesión</span><i class="fa-solid fa-right-from-bracket pl-3"></i></button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-700" id="titulo-gestion-usuarios">Gestión de Usuarios</h1>
+    </header>
+
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-usuarios-roles">Gestor de Usuarios y Roles</h2>
+      <!-- Aquí puedes agregar contenido relacionado con el gestor de usuarios y roles -->
+    </section>
+
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="sistema-permisos-accesos">Sistema de Permisos y Accesos</h2>
+      <!-- Aquí puedes agregar contenido relacionado con el sistema de permisos y accesos -->
+    </section>
+
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="registro-login-usuarios">Registro y Login de Usuarios</h2>
+      <!-- Aquí puedes agregar contenido relacionado con el registro y login de usuarios -->
+    </section>
+
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="recuperacion-contrasena">Recuperación de Contraseña</h2>
+      <!-- Aquí puedes agregar contenido relacionado con la recuperación de contraseña -->
+    </section>
+
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-perfiles-usuario">Gestor de Perfiles de Usuario</h2>
+      <!-- Aquí puedes agregar contenido relacionado con el gestor de perfiles de usuario -->
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const body = document.getElementById('body');
+      const darkMode = localStorage.getItem('darkMode') === 'true';
+      const lang = localStorage.getItem('lang') || 'es';
+
+      if (darkMode) {
+        body.classList.add('dark-mode');
+      }
+
+      const translate = (lang) => {
+        if (lang === 'es') {
+          document.getElementById('menu-inicio').textContent = 'Inicio';
+          document.getElementById('menu-usuarios').textContent = 'Usuarios';
+          document.getElementById('menu-estadisticas').textContent = 'Estadísticas';
+          document.getElementById('menu-configuracion').textContent = 'Configuración';
+          document.getElementById('menu-gestion-contenido').textContent = 'Gestión de Contenido';
+          document.getElementById('menu-gestion-usuarios').textContent = 'Gestión de Usuarios';
+          document.getElementById('menu-herramientas-configuracion').textContent = 'Herramientas de Configuración';
+          document.getElementById('menu-analisis-seguimiento').textContent = 'Análisis y Seguimiento';
+          document.getElementById('menu-herramientas-seguridad').textContent = 'Herramientas de Seguridad';
+          document.getElementById('menu-herramientas-personalizacion').textContent = 'Herramientas de Personalización';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Cerrar sesión';
+          document.getElementById('titulo-gestion-usuarios').textContent = 'Gestión de Usuarios';
+          document.getElementById('gestor-usuarios-roles').textContent = 'Gestor de Usuarios y Roles';
+          document.getElementById('sistema-permisos-accesos').textContent = 'Sistema de Permisos y Accesos';
+          document.getElementById('registro-login-usuarios').textContent = 'Registro y Login de Usuarios';
+          document.getElementById('recuperacion-contrasena').textContent = 'Recuperación de Contraseña';
+          document.getElementById('gestor-perfiles-usuario').textContent = 'Gestor de Perfiles de Usuario';
+        } else if (lang === 'en') {
+          document.getElementById('menu-inicio').textContent = 'Home';
+          document.getElementById('menu-usuarios').textContent = 'Users';
+          document.getElementById('menu-estadisticas').textContent = 'Statistics';
+          document.getElementById('menu-configuracion').textContent = 'Settings';
+          document.getElementById('menu-gestion-contenido').textContent = 'Content Management';
+          document.getElementById('menu-gestion-usuarios').textContent = 'User Management';
+          document.getElementById('menu-herramientas-configuracion').textContent = 'Configuration Tools';
+          document.getElementById('menu-analisis-seguimiento').textContent = 'Analysis and Tracking';
+          document.getElementById('menu-herramientas-seguridad').textContent = 'Security Tools';
+          document.getElementById('menu-herramientas-personalizacion').textContent = 'Customization Tools';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Log out';
+          document.getElementById('titulo-gestion-usuarios').textContent = 'User Management';
+          document.getElementById('gestor-usuarios-roles').textContent = 'User and Role Manager';
+          document.getElementById('sistema-permisos-accesos').textContent = 'Permissions and Access System';
+          document.getElementById('registro-login-usuarios').textContent = 'User Registration and Login';
+          document.getElementById('recuperacion-contrasena').textContent = 'Password Recovery';
+          document.getElementById('gestor-perfiles-usuario').textContent = 'User Profile Manager';
+        } else if (lang === 'fr') {
+          document.getElementById('menu-inicio').textContent = 'Accueil';
+          document.getElementById('menu-usuarios').textContent = 'Utilisateurs';
+          document.getElementById('menu-estadisticas').textContent = 'Statistiques';
+          document.getElementById('menu-configuracion').textContent = 'Configuration';
+          document.getElementById('menu-gestion-contenido').textContent = 'Gestion de Contenu';
+          document.getElementById('menu-gestion-usuarios').textContent = 'Gestion des Utilisateurs';
+          document.getElementById('menu-herramientas-configuracion').textContent = 'Outils de Configuration';
+          document.getElementById('menu-analisis-seguimiento').textContent = 'Analyse et Suivi';
+          document.getElementById('menu-herramientas-seguridad').textContent = 'Outils de Sécurité';
+          document.getElementById('menu-herramientas-personalizacion').textContent = 'Outils de Personnalisation';
+          document.getElementById('menu-cerrar-sesion').textContent = 'Se déconnecter';
+          document.getElementById('titulo-gestion-usuarios').textContent = 'Gestion des Utilisateurs';
+          document.getElementById('gestor-usuarios-roles').textContent = 'Gestionnaire des Utilisateurs et Rôles';
+          document.getElementById('sistema-permisos-accesos').textContent = 'Système de Permissions et Accès';
+          document.getElementById('registro-login-usuarios').textContent = 'Inscription et Connexion des Utilisateurs';
+          document.getElementById('recuperacion-contrasena').textContent = 'Récupération de Mot de Passe';
+          document.getElementById('gestor-perfiles-usuario').textContent = 'Gestionnaire de Profils Utilisateur';
+        }
+      };
+
+      translate(lang);
+    });
+  </script>
+</body>
+</html>

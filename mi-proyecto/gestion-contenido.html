@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estadísticas</title>
+  <title>Gestión de Contenido</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
   <style>
     .gradient-bg {
@@ -54,28 +53,23 @@
 
   <div class="main-content">
     <header class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold text-gray-700" id="titulo-estadisticas">Estadísticas</h1>
+      <h1 class="text-3xl font-bold text-gray-700" id="titulo-gestion-contenido">Gestión de Contenido</h1>
     </header>
 
-    <div class="mb-6">
-      <label for="userSelect" class="block text-gray-700 font-bold mb-2" id="label-seleccionar-usuario">Seleccionar Usuario:</label>
-      <select id="userSelect" class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
-        <option value="usuario1">Juan Pérez</option>
-        <option value="usuario2">María García</option>
-        <option value="usuario3">Luis López</option>
-      </select>
-    </div>
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-archivos-medios">Gestor de Archivos y Medios</h2>
+      <!-- Aquí puedes agregar contenido relacionado con el gestor de archivos y medios -->
+    </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="text-xl font-semibold mb-4" id="label-manejo-dinero-mes">Dinero por Mes</h2>
-        <canvas id="monthlyChart"></canvas>
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow-lg">
-        <h2 class="text-xl font-semibold mb-4" id="label-manejo-dinero-ano">Dinero por Año</h2>
-        <canvas id="yearlyChart"></canvas>
-      </div>
-    </div>
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-paginas-posts">Gestor de Páginas y Posts</h2>
+      <!-- Aquí puedes agregar contenido relacionado con el gestor de páginas y posts -->
+    </section>
+
+    <section class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-categorias-etiquetas">Gestor de Categorías y Etiquetas</h2>
+      <!-- Aquí puedes agregar contenido relacionado con el gestor de categorías y etiquetas -->
+    </section>
   </div>
 
   <script>
@@ -83,7 +77,7 @@
       const body = document.getElementById('body');
       const darkMode = localStorage.getItem('darkMode') === 'true';
       const lang = localStorage.getItem('lang') || 'es';
-      
+
       if (darkMode) {
         body.classList.add('dark-mode');
       }
@@ -94,91 +88,53 @@
           document.getElementById('menu-usuarios').textContent = 'Usuarios';
           document.getElementById('menu-estadisticas').textContent = 'Estadísticas';
           document.getElementById('menu-configuracion').textContent = 'Configuración';
+          document.getElementById('menu-gestion-contenido').textContent = 'Gestión de Contenido';
+          document.getElementById('menu-gestion-usuarios').textContent = 'Gestión de Usuarios';
+          document.getElementById('menu-herramientas-configuracion').textContent = 'Herramientas de Configuración';
+          document.getElementById('menu-analisis-seguimiento').textContent = 'Análisis y Seguimiento';
+          document.getElementById('menu-herramientas-seguridad').textContent = 'Herramientas de Seguridad';
+          document.getElementById('menu-herramientas-personalizacion').textContent = 'Herramientas de Personalización';
           document.getElementById('menu-cerrar-sesion').textContent = 'Cerrar sesión';
-          document.getElementById('titulo-estadisticas').textContent = 'Estadísticas';
-          document.getElementById('label-seleccionar-usuario').textContent = 'Seleccionar Usuario:';
-          document.getElementById('label-manejo-dinero-mes').textContent = 'Manejo del Dinero por Mes';
-          document.getElementById('label-manejo-dinero-ano').textContent = 'Manejo del Dinero por Año';
+          document.getElementById('titulo-gestion-contenido').textContent = 'Gestión de Contenido';
+          document.getElementById('gestor-archivos-medios').textContent = 'Gestor de Archivos y Medios';
+          document.getElementById('gestor-paginas-posts').textContent = 'Gestor de Páginas y Posts';
+          document.getElementById('gestor-categorias-etiquetas').textContent = 'Gestor de Categorías y Etiquetas';
         } else if (lang === 'en') {
           document.getElementById('menu-inicio').textContent = 'Home';
           document.getElementById('menu-usuarios').textContent = 'Users';
           document.getElementById('menu-estadisticas').textContent = 'Statistics';
           document.getElementById('menu-configuracion').textContent = 'Settings';
+          document.getElementById('menu-gestion-contenido').textContent = 'Content Management';
+          document.getElementById('menu-gestion-usuarios').textContent = 'User Management';
+          document.getElementById('menu-herramientas-configuracion').textContent = 'Configuration Tools';
+          document.getElementById('menu-analisis-seguimiento').textContent = 'Analysis and Tracking';
+          document.getElementById('menu-herramientas-seguridad').textContent = 'Security Tools';
+          document.getElementById('menu-herramientas-personalizacion').textContent = 'Customization Tools';
           document.getElementById('menu-cerrar-sesion').textContent = 'Log out';
-          document.getElementById('titulo-estadisticas').textContent = 'Statistics';
-          document.getElementById('label-seleccionar-usuario').textContent = 'Select User:';
-          document.getElementById('label-dinero-mes').textContent = 'Money Management per Month';
-          document.getElementById('label-dinero-ano').textContent = 'Money Management per Year';
+          document.getElementById('titulo-gestion-contenido').textContent = 'Content Management';
+          document.getElementById('gestor-archivos-medios').textContent = 'File and Media Manager';
+          document.getElementById('gestor-paginas-posts').textContent = 'Pages and Posts Manager';
+          document.getElementById('gestor-categorias-etiquetas').textContent = 'Categories and Tags Manager';
         } else if (lang === 'fr') {
           document.getElementById('menu-inicio').textContent = 'Accueil';
           document.getElementById('menu-usuarios').textContent = 'Utilisateurs';
           document.getElementById('menu-estadisticas').textContent = 'Statistiques';
           document.getElementById('menu-configuracion').textContent = 'Configuration';
+          document.getElementById('menu-gestion-contenido').textContent = 'Gestion de Contenu';
+          document.getElementById('menu-gestion-usuarios').textContent = 'Gestion des Utilisateurs';
+          document.getElementById('menu-herramientas-configuracion').textContent = 'Outils de Configuration';
+          document.getElementById('menu-analisis-seguimiento').textContent = 'Analyse et Suivi';
+          document.getElementById('menu-herramientas-seguridad').textContent = 'Outils de Sécurité';
+          document.getElementById('menu-herramientas-personalizacion').textContent = 'Outils de Personnalisation';
           document.getElementById('menu-cerrar-sesion').textContent = 'Se déconnecter';
-          document.getElementById('titulo-estadisticas').textContent = 'Statistiques';
-          document.getElementById('label-seleccionar-usuario').textContent = 'Sélectionner Utilisateur:';
-          document.getElementById('label-dinero-mes').textContent = 'Gestion de l\'argent par mois';
-          document.getElementById('label-dinero-ano').textContent = 'Gestion de l\'argent par an';
+          document.getElementById('titulo-gestion-contenido').textContent = 'Gestion de Contenu';
+          document.getElementById('gestor-archivos-medios').textContent = 'Gestionnaire de Fichiers et Médias';
+          document.getElementById('gestor-paginas-posts').textContent = 'Gestionnaire de Pages et Articles';
+          document.getElementById('gestor-categorias-etiquetas').textContent = 'Gestionnaire de Catégories et Étiquettes';
         }
       };
 
       translate(lang);
-    });
-
-    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-    new Chart(monthlyCtx, {
-      type: 'bar',
-      data: {
-        labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-        datasets: [{
-          label: 'Ingresos',
-          data: [1200, 1900, 3000, 5000, 2300, 4200, 3200, 2100, 4300, 3000, 2500, 2800],
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1
-        },
-        {
-          label: 'Gastos',
-          data: [800, 1400, 2200, 4000, 2100, 3500, 2700, 1800, 3800, 2400, 2000, 2500],
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          borderColor: 'rgba(255, 99, 132, 1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
-
-    const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
-    new Chart(yearlyCtx, {
-      type: 'line',
-      data: {
-        labels: ['2019', '2020', '2021', '2022', '2023'],
-        datasets: [{
-          label: 'Ingresos',
-          data: [15000, 21000, 23000, 25000, 28000],
-          borderColor: 'rgba(75, 192, 192, 1)',
-          tension: 0.1
-        },
-        {
-          label: 'Gastos',
-          data: [10000, 17000, 19000, 22000, 24000],
-          borderColor: 'rgba(255, 99, 132, 1)',
-          tension: 0.1
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
     });
   </script>
 </body>

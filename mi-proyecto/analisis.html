@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Análisis y Seguimiento</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16rem;
+      height: 100%;
+      background-color: #6b21a8;
+    }
+    .main-content {
+      margin-left: 16rem;
+      padding: 2rem;
+    }
+    .dark-mode {
+      background-color: #1a202c;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans" id="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar text-white flex flex-col">
+    <div class="p-6 flex items-center justify-center border-b border-purple-700">
+      <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
+    </div>
+    <nav class="flex-grow p-6">
+        <a href="index.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3"></i><span id="menu-inicio">Inicio</span></a>
+        <a href="usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3"></i><span id="menu-usuarios">Usuarios</span></a>
+        <a href="estadisticas.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3"></i><span id="menu-estadisticas">Estadísticas</span></a>
+        <a href="configuracion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3"></i><span id="menu-configuracion">Configuración</span></a>
+        <a href="gestion-contenido.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-folder pr-3"></i><span id="menu-gestion-contenido">Gestión de Contenido</span></a>
+        <a href="gestion-usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-users pr-3"></i><span id="menu-gestion-usuarios">Gestión de Usuarios</span></a>
+        <a href="analisis.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-line pr-3"></i><span id="menu-analisis-seguimiento">Análisis y Seguimiento</span></a>
+        <a href="seguridad.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-shield-halved pr-3"></i><span id="menu-herramientas-seguridad">Herramientas de Seguridad</span></a>
+        <a href="personalizacion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-paint-brush pr-3"></i><span id="menu-herramientas-personalizacion">Herramientas de Personalización</span></a>
+      </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold text-purple-700">Herramientas de Análisis y Seguimiento</h1>
+      <button id="darkModeToggle" class="bg-purple-500 text-white px-4 py-2 rounded">Modo Oscuro</button>
+    </header>
+
+    <section class="mt-6">
+      <h2 class="text-2xl font-semibold text-purple-600">Estadísticas de Tráfico y Visitas</h2>
+      <p class="mt-2 text-gray-700">Aquí puedes consultar las estadísticas de tráfico y visitas a tu aplicación. Puedes ver el número de visitantes únicos, las páginas más visitadas y el tiempo promedio de permanencia.</p>
+      <!-- Aquí podrías añadir gráficos o tablas de datos -->
+      
+      <h2 class="text-2xl font-semibold text-purple-600 mt-6">Análisis de Comportamiento de Usuarios</h2>
+      <p class="mt-2 text-gray-700">Analiza cómo interactúan los usuarios con tu aplicación. Obtén informes sobre las acciones más comunes, las rutas de navegación y las áreas de mayor interés.</p>
+      <!-- Aquí podrías añadir gráficos o tablas de análisis -->
+    </section>
+  </main>
+
+  <script>
+    const toggleButton = document.getElementById('darkModeToggle');
+    const body = document.getElementById('body');
+
+    toggleButton.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+    });
+  </script>
+</body>
+</html>

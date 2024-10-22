@@ -36,11 +36,16 @@
       <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
     </div>
     <nav class="flex-grow p-6">
-      <a href="index.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3" style="color: #ffffff;"></i><span id="menu-inicio">Inicio</span></a>
-      <a href="usuarios.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3" style="color: #ffffff;"></i><span id="menu-usuarios">Usuarios</span></a>
-      <a href="estadisticas.html" class="block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3" style="color: #ffffff;"></i><span id="menu-estadisticas">Estadísticas</span></a>
-      <a href="configuracion.html" class="bg-purple-500 block py-2 px-4 mb-2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3" style="color: #ffffff;"></i><span id="menu-configuracion">Configuración</span></a>
-    </nav>
+        <a href="index.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3"></i><span id="menu-inicio">Inicio</span></a>
+        <a href="usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3"></i><span id="menu-usuarios">Usuarios</span></a>
+        <a href="estadisticas.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3"></i><span id="menu-estadisticas">Estadísticas</span></a>
+        <a href="configuracion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3"></i><span id="menu-configuracion">Configuración</span></a>
+        <a href="gestion-contenido.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-folder pr-3"></i><span id="menu-gestion-contenido">Gestión de Contenido</span></a>
+        <a href="gestion-usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-users pr-3"></i><span id="menu-gestion-usuarios">Gestión de Usuarios</span></a>
+        <a href="analisis.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-line pr-3"></i><span id="menu-analisis-seguimiento">Análisis y Seguimiento</span></a>
+        <a href="seguridad.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-shield-halved pr-3"></i><span id="menu-herramientas-seguridad">Herramientas de Seguridad</span></a>
+        <a href="personalizacion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-paint-brush pr-3"></i><span id="menu-herramientas-personalizacion">Herramientas de Personalización</span></a>
+      </nav>
     <div class="p-6">
       <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300"><span id="menu-cerrar-sesion">Cerrar sesión</span><i class="fa-solid fa-right-from-bracket pl-3"></i></button>
     </div>
@@ -64,12 +69,55 @@
       <label for="volumeControl" class="block text-gray-700 font-bold mb-2" id="volume-label">Volumen:</label>
       <input type="range" id="volumeControl" min="0" max="100" class="w-full">
     </div>
-
-    <div class="mb-6 flex items-center">
-      <label for="darkMode" class="block text-gray-700 font-bold mb-2 mr-2" id="dark-mode-label">Modo Oscuro:</label>
-      <input type="checkbox" id="darkMode" class="form-checkbox h-5 w-5 text-purple-600">
-    </div>
   </div>
+
+  <main class="main-content">
+    <header class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold text-purple-700">Herramientas de Configuración</h1>
+      <button id="darkModeToggle" class="bg-purple-500 text-white px-4 py-2 rounded">Modo Oscuro</button>
+    </header>
+
+    <section class="mt-6">
+      <h2 class="text-2xl font-semibold text-purple-600">Configuración de Herramientas</h2>
+      <p class="mt-2 text-gray-700">Aquí puedes ajustar las herramientas de configuración disponibles para tu cuenta.</p>
+
+      <div class="mt-4">
+        <h3 class="text-xl font-semibold">1. Configuración de Notificaciones</h3>
+        <p>Configura tus preferencias de notificaciones a través de correo electrónico y mensajes de la aplicación.</p>
+        <ul class="list-disc list-inside mt-2">
+          <li><input type="checkbox" id="emailNotifications" checked><label for="emailNotifications" class="ml-2">Recibir notificaciones por correo electrónico</label></li>
+          <li><input type="checkbox" id="appNotifications"><label for="appNotifications" class="ml-2">Recibir notificaciones en la aplicación</label></li>
+        </ul>
+      </div>
+
+      <div class="mt-4">
+        <h3 class="text-xl font-semibold">2. Preferencias de Visualización</h3>
+        <p>Ajusta cómo deseas que se muestren los datos en la aplicación.</p>
+        <ul class="list-disc list-inside mt-2">
+          <li>
+            <label class="inline-flex items-center">
+              <input type="radio" name="theme" value="light" checked class="form-radio"><span class="ml-2">Tema Claro</span>
+            </label>
+          </li>
+          <li>
+            <label class="inline-flex items-center">
+              <input type="radio" name="theme" value="dark" class="form-radio"><span class="ml-2">Tema Oscuro</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mt-4">
+        <h3 class="text-xl font-semibold">3. Configuración de Seguridad</h3>
+        <p>Gestiona tus opciones de seguridad.</p>
+        <ul class="list-disc list-inside mt-2">
+          <li><input type="checkbox" id="twoFactorAuth"><label for="twoFactorAuth" class="ml-2">Activar autenticación de dos factores</label></li>
+        </ul>
+      </div>
+
+      <button class="mt-4 bg-purple-500 text-white px-4 py-2 rounded">Guardar Cambios</button>
+    </section>
+  </main>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -108,7 +156,6 @@
         localStorage.setItem('lang', selectedLang);
         translate(selectedLang);
 
-        // Llamar a la función de traducción en otras páginas
         const pages = ['index.html', 'estadisticas.html', 'usuarios.html'];
         pages.forEach(page => {
           fetch(page)
