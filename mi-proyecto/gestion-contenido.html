@@ -6,6 +6,9 @@
   <title>Gestión de Contenido</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <!-- Agregar Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
   <style>
     .gradient-bg {
       background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
@@ -46,95 +49,80 @@
         <a href="seguridad.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-shield-halved pr-3"></i><span id="menu-herramientas-seguridad">Herramientas de Seguridad</span></a>
         <a href="personalizacion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-paint-brush pr-3"></i><span id="menu-herramientas-personalizacion">Herramientas de Personalización</span></a>
       </nav>
-    <div class="p-6">
-      <button class="w-full py-2 bg-red-600 text-white rounded-xl hover:bg-red-300"><span id="menu-cerrar-sesion">Cerrar sesión</span><i class="fa-solid fa-right-from-bracket pl-3"></i></button>
-    </div>
   </aside>
 
+  <!-- Main Content -->
   <div class="main-content">
     <header class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold text-gray-700" id="titulo-gestion-contenido">Gestión de Contenido</h1>
+      <h1 class="text-3xl font-bold text-gray-700">Gestión de Contenido</h1>
     </header>
 
+    <!-- Gestor de Páginas y Posts -->
     <section class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-archivos-medios">Gestor de Archivos y Medios</h2>
-      <!-- Aquí puedes agregar contenido relacionado con el gestor de archivos y medios -->
-    </section>
-
-    <section class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-paginas-posts">Gestor de Páginas y Posts</h2>
-      <!-- Aquí puedes agregar contenido relacionado con el gestor de páginas y posts -->
-    </section>
-
-    <section class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4" id="gestor-categorias-etiquetas">Gestor de Categorías y Etiquetas</h2>
-      <!-- Aquí puedes agregar contenido relacionado con el gestor de categorías y etiquetas -->
+      <h2 class="text-2xl font-bold text-gray-700 mb-4">Gestor de Páginas y Posts</h2>
+      <form id="postForm">
+        <input type="text" id="title" class="border p-2 mb-4 w-full" placeholder="Título del Post">
+        <textarea id="content" class="border p-2 mb-4 w-full" placeholder="Contenido del Post"></textarea>
+        <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded">Añadir Post</button>
+      </form>
+      <div id="postList" class="mt-4"></div>
     </section>
   </div>
 
+  <!-- Inicialización de Firebase -->
   <script>
+    // Configuración de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyCOiPa7GEr4t1JcA_mTAV_8DX6dPnAyb8I",
+    authDomain: "fina-wise.firebaseapp.com",
+    projectId: "fina-wise",
+    storageBucket: "fina-wise.appspot.com",
+    messagingSenderId: "634672613413",
+    appId: "1:634672613413:web:5d5612906f7d5fde82d7cc",
+    measurementId: "G-JE76L5DPY1"
+  };
+  
+  // Inicializar Firebase
+  const app = initializeApp(firebaseConfig);
+
+    // Funcionalidades de contenido
     document.addEventListener('DOMContentLoaded', () => {
-      const body = document.getElementById('body');
-      const darkMode = localStorage.getItem('darkMode') === 'true';
-      const lang = localStorage.getItem('lang') || 'es';
+      const form = document.getElementById('postForm');
+      const postList = document.getElementById('postList');
 
-      if (darkMode) {
-        body.classList.add('dark-mode');
-      }
+      // Cargar posts desde Firebase
+      db.collection("posts").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          const postItem = document.createElement('div');
+          postItem.classList.add('p-4', 'border', 'mb-2');
+          postItem.innerHTML = `<h3 class="text-xl font-bold">${doc.data().title}</h3><p>${doc.data().content}</p>`;
+          postList.appendChild(postItem);
+        });
+      });
 
-      const translate = (lang) => {
-        if (lang === 'es') {
-          document.getElementById('menu-inicio').textContent = 'Inicio';
-          document.getElementById('menu-usuarios').textContent = 'Usuarios';
-          document.getElementById('menu-estadisticas').textContent = 'Estadísticas';
-          document.getElementById('menu-configuracion').textContent = 'Configuración';
-          document.getElementById('menu-gestion-contenido').textContent = 'Gestión de Contenido';
-          document.getElementById('menu-gestion-usuarios').textContent = 'Gestión de Usuarios';
-          document.getElementById('menu-herramientas-configuracion').textContent = 'Herramientas de Configuración';
-          document.getElementById('menu-analisis-seguimiento').textContent = 'Análisis y Seguimiento';
-          document.getElementById('menu-herramientas-seguridad').textContent = 'Herramientas de Seguridad';
-          document.getElementById('menu-herramientas-personalizacion').textContent = 'Herramientas de Personalización';
-          document.getElementById('menu-cerrar-sesion').textContent = 'Cerrar sesión';
-          document.getElementById('titulo-gestion-contenido').textContent = 'Gestión de Contenido';
-          document.getElementById('gestor-archivos-medios').textContent = 'Gestor de Archivos y Medios';
-          document.getElementById('gestor-paginas-posts').textContent = 'Gestor de Páginas y Posts';
-          document.getElementById('gestor-categorias-etiquetas').textContent = 'Gestor de Categorías y Etiquetas';
-        } else if (lang === 'en') {
-          document.getElementById('menu-inicio').textContent = 'Home';
-          document.getElementById('menu-usuarios').textContent = 'Users';
-          document.getElementById('menu-estadisticas').textContent = 'Statistics';
-          document.getElementById('menu-configuracion').textContent = 'Settings';
-          document.getElementById('menu-gestion-contenido').textContent = 'Content Management';
-          document.getElementById('menu-gestion-usuarios').textContent = 'User Management';
-          document.getElementById('menu-herramientas-configuracion').textContent = 'Configuration Tools';
-          document.getElementById('menu-analisis-seguimiento').textContent = 'Analysis and Tracking';
-          document.getElementById('menu-herramientas-seguridad').textContent = 'Security Tools';
-          document.getElementById('menu-herramientas-personalizacion').textContent = 'Customization Tools';
-          document.getElementById('menu-cerrar-sesion').textContent = 'Log out';
-          document.getElementById('titulo-gestion-contenido').textContent = 'Content Management';
-          document.getElementById('gestor-archivos-medios').textContent = 'File and Media Manager';
-          document.getElementById('gestor-paginas-posts').textContent = 'Pages and Posts Manager';
-          document.getElementById('gestor-categorias-etiquetas').textContent = 'Categories and Tags Manager';
-        } else if (lang === 'fr') {
-          document.getElementById('menu-inicio').textContent = 'Accueil';
-          document.getElementById('menu-usuarios').textContent = 'Utilisateurs';
-          document.getElementById('menu-estadisticas').textContent = 'Statistiques';
-          document.getElementById('menu-configuracion').textContent = 'Configuration';
-          document.getElementById('menu-gestion-contenido').textContent = 'Gestion de Contenu';
-          document.getElementById('menu-gestion-usuarios').textContent = 'Gestion des Utilisateurs';
-          document.getElementById('menu-herramientas-configuracion').textContent = 'Outils de Configuration';
-          document.getElementById('menu-analisis-seguimiento').textContent = 'Analyse et Suivi';
-          document.getElementById('menu-herramientas-seguridad').textContent = 'Outils de Sécurité';
-          document.getElementById('menu-herramientas-personalizacion').textContent = 'Outils de Personnalisation';
-          document.getElementById('menu-cerrar-sesion').textContent = 'Se déconnecter';
-          document.getElementById('titulo-gestion-contenido').textContent = 'Gestion de Contenu';
-          document.getElementById('gestor-archivos-medios').textContent = 'Gestionnaire de Fichiers et Médias';
-          document.getElementById('gestor-paginas-posts').textContent = 'Gestionnaire de Pages et Articles';
-          document.getElementById('gestor-categorias-etiquetas').textContent = 'Gestionnaire de Catégories et Étiquettes';
+      // Añadir nuevo post a Firebase
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+
+        if (title && content) {
+          db.collection("posts").add({
+            title: title,
+            content: content
+          }).then((docRef) => {
+            const postItem = document.createElement('div');
+            postItem.classList.add('p-4', 'border', 'mb-2');
+            postItem.innerHTML = `<h3 class="text-xl font-bold">${title}</h3><p>${content}</p>`;
+            postList.appendChild(postItem);
+            form.reset();
+          }).catch((error) => {
+            console.error("Error al añadir el post: ", error);
+          });
+        } else {
+          alert("Por favor completa ambos campos");
         }
-      };
-
-      translate(lang);
+      });
     });
   </script>
 </body>

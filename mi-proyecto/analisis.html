@@ -6,6 +6,11 @@
   <title>Análisis y Seguimiento</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <!-- Agregar Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
+  <!-- Agregar Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .gradient-bg {
       background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
@@ -36,16 +41,14 @@
       <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
     </div>
     <nav class="flex-grow p-6">
-        <a href="index.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3"></i><span id="menu-inicio">Inicio</span></a>
-        <a href="usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3"></i><span id="menu-usuarios">Usuarios</span></a>
-        <a href="estadisticas.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3"></i><span id="menu-estadisticas">Estadísticas</span></a>
-        <a href="configuracion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3"></i><span id="menu-configuracion">Configuración</span></a>
-        <a href="gestion-contenido.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-folder pr-3"></i><span id="menu-gestion-contenido">Gestión de Contenido</span></a>
-        <a href="gestion-usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-users pr-3"></i><span id="menu-gestion-usuarios">Gestión de Usuarios</span></a>
-        <a href="analisis.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-line pr-3"></i><span id="menu-analisis-seguimiento">Análisis y Seguimiento</span></a>
-        <a href="seguridad.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-shield-halved pr-3"></i><span id="menu-herramientas-seguridad">Herramientas de Seguridad</span></a>
-        <a href="personalizacion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-paint-brush pr-3"></i><span id="menu-herramientas-personalizacion">Herramientas de Personalización</span></a>
-      </nav>
+      <a href="index.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3"></i><span id="menu-inicio">Inicio</span></a>
+      <a href="usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3"></i><span id="menu-usuarios">Usuarios</span></a>
+      <a href="estadisticas.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3"></i><span id="menu-estadisticas">Estadísticas</span></a>
+      <a href="configuracion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3"></i><span id="menu-configuracion">Configuración</span></a>
+      <a href="gestion-contenido.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-folder pr-3"></i><span id="menu-gestion-contenido">Gestión de Contenido</span></a>
+      <a href="gestion-usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-users pr-3"></i><span id="menu-gestion-usuarios">Gestión de Usuarios</span></a>
+      <a href="analisis.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-line pr-3"></i><span id="menu-analisis-seguimiento">Análisis y Seguimiento</span></a>
+    </nav>
   </aside>
 
   <!-- Main Content -->
@@ -57,16 +60,101 @@
 
     <section class="mt-6">
       <h2 class="text-2xl font-semibold text-purple-600">Estadísticas de Tráfico y Visitas</h2>
-      <p class="mt-2 text-gray-700">Aquí puedes consultar las estadísticas de tráfico y visitas a tu aplicación. Puedes ver el número de visitantes únicos, las páginas más visitadas y el tiempo promedio de permanencia.</p>
-      <!-- Aquí podrías añadir gráficos o tablas de datos -->
+      <p class="mt-2 text-gray-700">Aquí puedes consultar las estadísticas de tráfico y visitas a tu aplicación.</p>
+      <canvas id="trafficChart" width="400" height="200"></canvas>
       
       <h2 class="text-2xl font-semibold text-purple-600 mt-6">Análisis de Comportamiento de Usuarios</h2>
-      <p class="mt-2 text-gray-700">Analiza cómo interactúan los usuarios con tu aplicación. Obtén informes sobre las acciones más comunes, las rutas de navegación y las áreas de mayor interés.</p>
-      <!-- Aquí podrías añadir gráficos o tablas de análisis -->
+      <p class="mt-2 text-gray-700">Analiza cómo interactúan los usuarios con tu aplicación.</p>
+      <canvas id="behaviorChart" width="400" height="200"></canvas>
     </section>
   </main>
 
   <script>
+    // Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCOiPa7GEr4t1JcA_mTAV_8DX6dPnAyb8I",
+  authDomain: "fina-wise.firebaseapp.com",
+  projectId: "fina-wise",
+  storageBucket: "fina-wise.appspot.com",
+  messagingSenderId: "634672613413",
+  appId: "1:634672613413:web:5d5612906f7d5fde82d7cc",
+  measurementId: "G-JE76L5DPY1"
+};
+
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+
+    // Datos para el gráfico de tráfico
+    const trafficData = {
+      labels: [],
+      datasets: [{
+        label: 'Visitantes únicos',
+        data: [],
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    };
+
+    // Datos para el gráfico de comportamiento de usuarios
+    const behaviorData = {
+      labels: [],
+      datasets: [{
+        label: 'Interacciones de usuarios',
+        data: [],
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+      }]
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+      const trafficChart = new Chart(trafficCtx, {
+        type: 'bar',
+        data: trafficData,
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      const behaviorCtx = document.getElementById('behaviorChart').getContext('2d');
+      const behaviorChart = new Chart(behaviorCtx, {
+        type: 'line',
+        data: behaviorData,
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+
+      // Cargar estadísticas de tráfico desde Firebase
+      db.collection("visitas").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          trafficData.labels.push(doc.data().fecha);
+          trafficData.datasets[0].data.push(doc.data().visitantes);
+        });
+        trafficChart.update();
+      });
+
+      // Cargar análisis de comportamiento de usuarios desde Firebase
+      db.collection("comportamiento_usuarios").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          behaviorData.labels.push(doc.data().fecha);
+          behaviorData.datasets[0].data.push(doc.data().interacciones);
+        });
+        behaviorChart.update();
+      });
+    });
+
+    // Modo oscuro
     const toggleButton = document.getElementById('darkModeToggle');
     const body = document.getElementById('body');
 

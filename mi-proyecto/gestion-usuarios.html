@@ -155,3 +155,131 @@
   </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Usuarios</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/98de68f252.js" crossorigin="anonymous"></script>
+  <!-- Agregar Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #7f00ff 0%, #e100ff 100%);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16rem;
+      height: 100%;
+      background-color: #6b21a8;
+    }
+    .main-content {
+      margin-left: 16rem;
+      padding: 2rem;
+    }
+    .dark-mode {
+      background-color: #1a202c;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans" id="body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar text-white flex flex-col">
+    <div class="p-6 flex items-center justify-center border-b border-purple-700">
+      <img src="img/Logo_finawise_blanco_shadowpurple.png" alt="Logo de la App" class="h-24">
+    </div>
+    <nav class="flex-grow p-6">
+        <a href="index.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-house pr-3"></i><span id="menu-inicio">Inicio</span></a>
+        <a href="usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-user pr-3"></i><span id="menu-usuarios">Usuarios</span></a>
+        <a href="estadisticas.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-simple pr-3"></i><span id="menu-estadisticas">Estadísticas</span></a>
+        <a href="configuracion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-gear pr-3"></i><span id="menu-configuracion">Configuración</span></a>
+        <a href="gestion-contenido.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-folder pr-3"></i><span id="menu-gestion-contenido">Gestión de Contenido</span></a>
+        <a href="gestion-usuarios.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-users pr-3"></i><span id="menu-gestion-usuarios">Gestión de Usuarios</span></a>
+        <a href="analisis.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-chart-line pr-3"></i><span id="menu-analisis-seguimiento">Análisis y Seguimiento</span></a>
+        <a href="seguridad.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-shield-halved pr-3"></i><span id="menu-herramientas-seguridad">Herramientas de Seguridad</span></a>
+        <a href="personalizacion.html" class="block py-2 px-4 mb=2 rounded hover:bg-purple-700"><i class="fa-solid fa-paint-brush pr-3"></i><span id="menu-herramientas-personalizacion">Herramientas de Personalización</span></a>
+      </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-700">Gestión de Usuarios</h1>
+    </header>
+
+    <!-- Gestor de Usuarios -->
+    <section class="mb-6">
+      <form id="userForm">
+        <input type="text" id="username" class="border p-2 mb-4 w-full" placeholder="Nombre de Usuario">
+        <input type="number" id="run" class="border p-2 mb-4 w-full" placeholder="Run de Usuario">
+        <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded">Añadir Usuario</button>
+      </form>
+      <div id="userList" class="mt-4"></div>
+    </section>
+  </div>
+
+  <!-- Inicialización de Firebase -->
+  <script>
+    // Configuración de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyCOiPa7GEr4t1JcA_mTAV_8DX6dPnAyb8I",
+    authDomain: "fina-wise.firebaseapp.com",
+    projectId: "fina-wise",
+    storageBucket: "fina-wise.appspot.com",
+    messagingSenderId: "634672613413",
+    appId: "1:634672613413:web:5d5612906f7d5fde82d7cc",
+    measurementId: "G-JE76L5DPY1"
+  };
+  
+  // Inicializar Firebase
+  const app = initializeApp(firebaseConfig);
+
+    // Funcionalidades de usuarios
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('userForm');
+      const userList = document.getElementById('userList');
+
+      // Cargar usuarios desde Firebase
+      db.collection("users").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          const userItem = document.createElement('div');
+          userItem.classList.add('p-4', 'border', 'mb-2');
+          userItem.innerHTML = `<strong>Usuario:</strong> ${doc.data().username} <br> <strong>Rol:</strong> ${doc.data().role}`;
+          userList.appendChild(userItem);
+        });
+      });
+
+      // Añadir nuevo usuario a Firebase
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const run = document.getElementById('run').value;
+
+        if (username && role) {
+          db.collection("users").add({
+            username: username,
+            run: run
+          }).then((docRef) => {
+            const userItem = document.createElement('div');
+            userItem.classList.add('p-4', 'border', 'mb-2');
+            userItem.innerHTML = `<strong>Usuario:</strong> ${username} <br> <strong>Rol:</strong> ${run}`;
+            userList.appendChild(userItem);
+            form.reset();
+          }).catch((error) => {
+            console.error("Error al añadir el usuario: ", error);
+          });
+        } else {
+          alert("Por favor completa los campos");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
