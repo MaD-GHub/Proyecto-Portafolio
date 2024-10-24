@@ -12,25 +12,25 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
-} from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db, auth } from './firebase';
-import HomeScreen from './screens/HomeScreen';
-import AhorroScreen from './screens/AhorroScreen';
-import ActualidadScreen from './screens/ActualidadScreen';
-import DatosScreen from './screens/DatosScreen';
-import StartScreen from './screens/StartScreen';
-import LoginScreen from './screens/Login';
-import RegisterScreen from './screens/Register';
-import ProfileScreen from './screens/ProfileScreen';
-import TutorialScreen from './screens/TutorialScreen'; // Importamos la pantalla de tutoriales
-import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+} from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { db, auth } from "./firebase";
+import HomeScreen from "./screens/HomeScreen";
+import AhorroScreen from "./screens/AhorroScreen";
+import ActualidadScreen from "./screens/ActualidadScreen";
+import DatosScreen from "./screens/DatosScreen";
+import StartScreen from "./screens/StartScreen";
+import LoginScreen from "./screens/Login";
+import RegisterScreen from "./screens/Register";
+import ProfileScreen from "./screens/ProfileScreen";
+import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { Picker } from "@react-native-picker/picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -161,8 +161,16 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
         },
       })}
     >
-      <Tab.Screen name="Inicio" options={{ headerShown: false }} component={HomeScreen} />
-      <Tab.Screen name="Ahorro" component={AhorroScreen} options={{ headerShown: false }} />
+      <Tab.Screen
+        name="Inicio"
+        options={{ headerShown: false }}
+        component={HomeScreen}
+      />
+      <Tab.Screen
+        name="Ahorro"
+        component={AhorroScreen}
+        options={{ headerShown: false }}
+      />
       <Tab.Screen
         name="Agregar"
         component={HomeScreen}
@@ -241,10 +249,11 @@ export default function App() {
       useNativeDriver: true,
     }).start(() => {
       setModalVisible(false);
-      setAmount('');
-      setCategory('');
-      setDescription('');
-      setIsFixed('No');
+      // Reiniciar el estado del formulario al cerrar el modal
+      setAmount("");
+      setCategory("");
+      setDescription("");
+      setIsFixed("No"); // Reiniciar el campo de fijo
       setDate(new Date());
     });
   };
@@ -289,6 +298,11 @@ export default function App() {
       category: category,
       description: description,
       isFixed: isFixed,
+      isRecurrent: isFixed === "Fijo",
+      isInstallment: isInstallment,
+      installmentCount: isInstallment ? installmentCount : null, // Asegúrate de que el número de cuotas se guarde correctamente
+      billingDay: billingDay, // Guardamos el día de facturación
+      installmentStartDate: firstInstallmentDate.toISOString(),
       selectedDate: date.toISOString(),
       creationDate: new Date().toLocaleDateString(),
       userId: user.uid,
@@ -355,13 +369,20 @@ export default function App() {
             component={ProfileScreen}
             options={{ headerShown: false }}
           />
-          <Stack.Screen name="StartScreen" component={StartScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
           <Stack.Screen
-            name="TutorialScreen" // Pantalla para guías y tutoriales
-            component={TutorialScreen}
-            options={{ title: 'Guías y Tutoriales', headerShown: true }}
+            name="StartScreen"
+            component={StartScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Register"
+            component={RegisterScreen}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
 
@@ -577,9 +598,9 @@ export default function App() {
 const styles = StyleSheet.create({
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Fondo oscuro con 50% de opacidad
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContainer: {
     width: "90%",

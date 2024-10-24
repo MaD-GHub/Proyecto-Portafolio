@@ -142,6 +142,7 @@ const Timeline = ({ transactions }) => {
     setProjection(projectionData);  // Actualizamos la proyección
   };
   
+  
 
 
   // Renderizado de la línea de tiempo
