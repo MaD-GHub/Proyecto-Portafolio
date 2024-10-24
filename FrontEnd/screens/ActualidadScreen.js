@@ -16,6 +16,7 @@ import {
 import * as Font from 'expo-font';
 import { FontAwesome5, MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native'; // Importamos el hook de navegación
 
 const { width } = Dimensions.get('window');
 const NoHayNoticiaImage = require('../assets/Nonoticia.png');
@@ -28,6 +29,8 @@ const ActualidadScreen = () => {
   const [bookData, setBookData] = useState([]);
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [modalVisible, setModalVisible] = useState(null);
+
+  const navigation = useNavigation(); // Instancia de navegación
 
   // Términos financieros importantes
   const financialTerms = [
@@ -137,7 +140,7 @@ const ActualidadScreen = () => {
 
   const fetchBooks = async () => {
     setLoading(true);
-    setBookData(recommendedBooks);
+    setBookData(recommendedBooks); // Asegúrate de que recommendedBooks tiene los datos correctos
     setLoading(false);
   };
 
@@ -146,8 +149,8 @@ const ActualidadScreen = () => {
       fetchMarketData();
     } else if (selectedTab === 'Noticias') {
       fetchNews();
-    } else if (selectedTab === 'Lecturas Recomendadas') {
-      fetchBooks(); // Cargar libros al abrir el modal de Lecturas Recomendadas
+    } else if (selectedTab === 'Educación') {
+      fetchBooks(); // Cargar libros al abrir la sección de Educación
     }
   }, [selectedTab]);
 
@@ -226,7 +229,9 @@ const ActualidadScreen = () => {
 
   // Renderiza el contenido de Educación Financiera
   const renderEducationItem = ({ item }) => (
-    <TouchableOpacity onPress={() => setModalVisible(item.title.toLowerCase())}>
+    <TouchableOpacity
+      onPress={item.title === 'Guías y tutoriales' ? () => navigation.navigate('TutorialScreen') : () => setModalVisible(item.title.toLowerCase())}
+    >
       <LinearGradient
         colors={item.background}
         style={[styles.educationCard, item.title === 'Lecturas Recomendadas' && styles.doubleWidth]}
@@ -265,8 +270,8 @@ const ActualidadScreen = () => {
       background: ['#FF8A00', '#FF3D00'],
     },
     {
-      title: 'Simulador de Inversión',
-      subtitle: 'Simula pequeñas inversiones',
+      title: 'Guías y tutoriales',
+      subtitle: '¡Aprende a usar la app!',
       icon: 'trending-up',
       background: ['#f06292', '#f48fb1'],
     },
@@ -525,7 +530,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   bookCard: {
-    flexDirection: 'row',
+    flexDirection: 'row', // Para que la imagen y texto se alineen de lado a lado
     alignItems: 'center',
     padding: 10,
     marginBottom: 10,
@@ -535,14 +540,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e6e6e6',
   },
+  smallBookImage: {
+    width: 50, // Tamaño adecuado para la imagen
+    height: 70, // Ajustar la altura también
+    borderRadius: 5,
+    marginRight: 15, // Espacio entre la imagen y el texto
+  },
   bookDetails: {
     flex: 1,
-    marginLeft: 10,
-  },
-  smallBookImage: {
-    width: 50,
-    height: 70, // Pequeño tamaño para la portada del libro
-    borderRadius: 5,
+    justifyContent: 'center', // Centra el texto verticalmente
   },
   bookTitle: {
     fontFamily: 'Inter-Bold',
@@ -554,6 +560,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'left',
+    marginTop: 5, // Añadir espacio entre el título y el autor
   },
   labelText: {
     fontFamily: 'Inter-Bold',

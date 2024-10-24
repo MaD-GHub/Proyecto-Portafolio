@@ -17,7 +17,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db, auth } from './firebase'; 
+import { db, auth } from './firebase';
 import HomeScreen from './screens/HomeScreen';
 import AhorroScreen from './screens/AhorroScreen';
 import ActualidadScreen from './screens/ActualidadScreen';
@@ -25,12 +25,12 @@ import DatosScreen from './screens/DatosScreen';
 import StartScreen from './screens/StartScreen';
 import LoginScreen from './screens/Login';
 import RegisterScreen from './screens/Register';
-import ProfileScreen from './screens/ProfileScreen'; 
+import ProfileScreen from './screens/ProfileScreen';
+import TutorialScreen from './screens/TutorialScreen'; // Importamos la pantalla de tutoriales
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -141,7 +141,8 @@ function HomeTabs({ openModal, transactions, setTransactions }) {
           fontSize: 12,
           fontFamily: 'QuattrocentoSans-Regular',
         },
-      })}>
+      })}
+    >
       <Tab.Screen name="Inicio" options={{ headerShown: false }} component={HomeScreen} />
       <Tab.Screen name="Ahorro" component={AhorroScreen} options={{ headerShown: false }} />
       <Tab.Screen
@@ -196,11 +197,10 @@ export default function App() {
       useNativeDriver: true,
     }).start(() => {
       setModalVisible(false);
-      // Reiniciar el estado del formulario al cerrar el modal
       setAmount('');
       setCategory('');
       setDescription('');
-      setIsFixed('No'); // Reiniciar el campo de fijo
+      setIsFixed('No');
       setDate(new Date());
     });
   };
@@ -234,8 +234,8 @@ export default function App() {
       type: transactionType,
       amount: parsedAmount,
       category: category,
-      description: description, // Agregamos la descripción aquí
-      isFixed: isFixed, // Agregamos el campo fijo
+      description: description,
+      isFixed: isFixed,
       selectedDate: date.toISOString(),
       creationDate: new Date().toLocaleDateString(),
       userId: user.uid,
@@ -301,6 +301,11 @@ export default function App() {
           <Stack.Screen name="StartScreen" component={StartScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+          <Stack.Screen
+            name="TutorialScreen" // Pantalla para guías y tutoriales
+            component={TutorialScreen}
+            options={{ title: 'Guías y Tutoriales', headerShown: true }}
+          />
         </Stack.Navigator>
 
         <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={closeModal}>
@@ -406,7 +411,7 @@ export default function App() {
 const styles = StyleSheet.create({
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo oscuro con 50% de opacidad
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -524,4 +529,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
