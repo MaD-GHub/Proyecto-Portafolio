@@ -64,63 +64,87 @@ const groupTransactionsByDate = (transactions) => {
 
 // Componente para la línea de tiempo (proyección financiera)
 const Timeline = ({ transactions }) => {
-  const [projection, setProjection] = useState([]);
+  const [projection, setProjection] = useState([]); // Guardará la proyección futura
   const months = [
-    "Enero",
-    "Febrero",
-    "Marzo",
-    "Abril",
-    "Mayo",
-    "Junio",
-    "Julio",
-    "Agosto",
-    "Septiembre",
-    "Octubre",
-    "Noviembre",
-    "Diciembre",
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", 
+    "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ];
 
   useEffect(() => {
     calculateProjection();
-  }, [transactions]);
+  }, [transactions]); // La proyección se recalcula cuando cambian las transacciones
 
+  // Función para calcular la proyección
   const calculateProjection = () => {
-    const projectionMonths = 6;
-    let currentBalance = transactions.reduce((acc, transaction) => {
-      const amount = parseFloat(transaction.amount);
-      return transaction.type === "Ingreso" ? acc + amount : acc - amount;
-    }, 0);
-
-    // Filtramos las transacciones fijas
-    const fixedTransactions = transactions.filter(t => t.isFixed === "Fijo");
-
-    const monthlyIncome = fixedTransactions
-      .filter((t) => t.type === "Ingreso")
-      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
-
-    const monthlyExpense = fixedTransactions
-      .filter((t) => t.type === "Gasto")
-      .reduce((acc, t) => acc + parseFloat(t.amount), 0);
-
+    const projectionMonths = 6; // Proyectamos 6 meses hacia adelante
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const projectionData = [];
-
+    
+    let currentBalance = 0;  // Balance inicial, depende de la situación del usuario
+  
     for (let i = 0; i < projectionMonths; i++) {
-      if (i !== 0) {
-        currentBalance += monthlyIncome - monthlyExpense;
-      }
+      let monthlyIncome = 0;  // Ingreso mensual (fijo + variable)
+      let monthlyExpense = 0; // Gasto mensual (fijo + cuotas)
+  
+      // Procesamos todas las transacciones para ajustar ingresos y gastos
+      transactions.forEach(transaction => {
+        const amount = parseFloat(transaction.amount);
+        const isFixed = transaction.isFixed === "Fijo"; // Ingresos/Gastos fijos
+        const isCurrentMonth = new Date(transaction.selectedDate).getMonth() === (currentMonth + i) % 12;
+  
+        // Ingresos
+        if (transaction.type === "Ingreso") {
+          if (isFixed) {
+            // Ingresos fijos cada mes
+            monthlyIncome += amount;
+          } else if (isCurrentMonth) {
+            // Ingresos variables sólo en el mes correspondiente
+            monthlyIncome += amount;
+          }
+        }
+  
+        // Gastos
+        if (transaction.type === "Gasto") {
+          if (isFixed) {
+            // Gastos fijos cada mes
+            monthlyExpense += amount;
+          } else if (transaction.isInstallment && transaction.installmentCount > 0) {
+            // Si es un gasto en cuotas, se reparte la cuota en los meses correspondientes
+            const installmentAmount = amount / transaction.installmentCount;
+            const startMonth = new Date(transaction.installmentStartDate).getMonth();
+  
+            // Verificamos si la cuota aplica a este mes proyectado
+            if ((currentMonth + i) % 12 >= startMonth && (currentMonth + i) % 12 < startMonth + transaction.installmentCount) {
+              monthlyExpense += installmentAmount;
+            }
+          } else if (isCurrentMonth) {
+            // Gastos variables sólo en el mes correspondiente
+            monthlyExpense += amount;
+          }
+        }
+      });
+  
+      // Balance mensual proyectado (ingresos - gastos)
+      currentBalance += monthlyIncome - monthlyExpense;
+  
       const projectedMonth = (currentMonth + i) % 12;
       const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
+  
+      console.log(`Proyección para ${months[projectedMonth]} ${projectedYear}: Ingresos: ${monthlyIncome}, Gastos: ${monthlyExpense}, Balance: ${currentBalance}`);
+  
       projectionData.push({
         month: `${months[projectedMonth]} ${projectedYear}`,
         balance: currentBalance,
       });
     }
-    setProjection(projectionData);
-    console.log("Proyección calculada:", projectionData);
+  
+    setProjection(projectionData);  // Actualizamos la proyección
   };
+  
 
+
+  // Renderizado de la línea de tiempo
   return (
     <View style={styles.timelineContainer}>
       <Text style={styles.timelineTitle}>Proyección Financiera</Text>
@@ -267,18 +291,24 @@ export default function HomeScreen() {
 
   const calculateTotalSaved = () => {
     console.log("Calculando totales...");
+  
     if (transactions && transactions.length > 0) {
       const ingresos = transactions
         .filter((transaction) => transaction.type === "Ingreso")
-        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
-
+        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0); // Sumar ingresos totales
+  
       const gastos = transactions
         .filter((transaction) => transaction.type === "Gasto")
-        .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0);
-
-      setTotalIngresos(ingresos);
-      setTotalGastos(gastos);
-      setTotalSaved(ingresos - gastos);
+        .reduce((acc, transaction) => {
+          if (transaction.isInstallment && transaction.installmentCount > 0) {
+            return acc + (parseFloat(transaction.amount) / transaction.installmentCount); // Dividir cuotas
+          }
+          return acc + parseFloat(transaction.amount); // Sumar gasto completo
+        }, 0); // Sumar gastos totales
+  
+      setTotalIngresos(ingresos); // Ingresos totales
+      setTotalGastos(gastos); // Gastos totales
+      setTotalSaved(ingresos - gastos); // Guardar balance final
       console.log("Totales calculados: Ingresos =", ingresos, "Gastos =", gastos);
     } else {
       setTotalSaved(0);
@@ -287,6 +317,7 @@ export default function HomeScreen() {
       console.log("No hay transacciones disponibles para calcular.");
     }
   };
+  
 
   useEffect(() => {
     calculateTotalSaved();
