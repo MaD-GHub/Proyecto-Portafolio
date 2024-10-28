@@ -26,6 +26,7 @@ import StartScreen from "./screens/StartScreen";
 import LoginScreen from "./screens/Login";
 import RegisterScreen from "./screens/Register";
 import ProfileScreen from "./screens/ProfileScreen";
+import InversionScreen from "./screens/InversionScreen"; // Importa InversionScreen aquí
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
@@ -383,6 +384,12 @@ export default function App() {
             component={RegisterScreen}
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="Inversiones" // Agregar la pantalla de inversiones al stack
+            component={InversionScreen}
+            options={{ headerShown: false }}
+          />
+
           <Stack.Screen
             name="SugerenciasScreen"
             component={SugerenciasScreen}
