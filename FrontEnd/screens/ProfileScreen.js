@@ -85,6 +85,7 @@ const ProfileScreen = ({ route }) => {
       }
     };
   }, []);
+  
 
   const openModal = () => {
     setModalVisible(true);
@@ -202,6 +203,7 @@ const ProfileScreen = ({ route }) => {
     return ingresos - gastos;
   };
 
+
   // Función para cerrar sesión con confirmación
   const handleLogout = () => {
     Alert.alert(
@@ -278,6 +280,10 @@ const ProfileScreen = ({ route }) => {
         <TouchableOpacity style={styles.optionItem} onPress={openSecurityModal}>
           <MaterialCommunityIcons name="lock" size={24} color="#885fd8" />
           <Text style={styles.optionText}>Seguridad</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate("SugerenciasScreen")}>
+          <MaterialCommunityIcons name="file-document" size={24} color="#885fd8" />
+          <Text style={styles.optionText}>Enviar Sugerencias</Text>
         </TouchableOpacity>
         <View style={styles.optionItem}>
           <MaterialCommunityIcons name="file-document" size={24} color="#885fd8" />
