@@ -1,0 +1,198 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+
+.login-container {
+  background: linear-gradient(135deg, #6a5acd, #32cd32);
+  color: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  text-align: center;
+}
+
+h2 {
+  font-family: 'Courier New', Courier, monospace;
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin: 15px 0 5px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+input:focus {
+  outline: none;
+  border: 2px solid #32cd32;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #4b0082;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #5c3e91;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #e6e6fa;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h1 {
+  font-family: 'Courier New', Courier, monospace;
+  color: #4b0082;
+  text-align: center;
+}
+
+button {
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #6a5acd;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #5c3e91;
+}
+
+#items {
+  margin-top: 20px;
+  background: white;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-container {
+  padding:20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Añadir estos estilos en tu archivo index.css o el que uses para estilos */
+.sidebar {
+  color:white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #6b21a8;
+  transition: width 0.3s ease;
+  overflow: hidden; /* Esto ayuda a ocultar los íconos al contraer el menú */
+}
+
+.sidebar.expanded {
+  width: 16rem; /* Ancho cuando está expandido */
+}
+
+.sidebar.collapsed {
+  width: 4rem; /* Ancho cuando está contraído */
+}
+
+/* Ajustar el contenido principal para que se desplace */
+.main-content {
+  transition: margin-left 0.3s ease; /* Transición suave */
+}
+
+.main-content.expanded {
+  margin-left: 16rem; /* El margen coincide con el ancho del sidebar expandido */
+}
+
+.main-content.collapsed {
+  margin-left: 4rem; /* El margen coincide con el ancho del sidebar contraído */
+}
+
+.btn-primary{
+  background-color: #9655c4;
+  padding: 10px;
+  padding-left: -20px;
+  padding-right: -20px;
+  border-radius: 5px;
+}
+
+nav a {
+  display: flex;
+  align-items: center;
+  justify-content: start;
+}
+
+nav a i {
+  margin-right: 1rem;
+}
+
+/* Clase de contenedor responsive */
+.responsive-container {
+  width: 100%;
+  max-width: 1200px; /* Tamaño máximo en pantallas grandes */
+  margin: 0 auto; /* Centrar el contenedor */
+  padding: 16px; /* Espacio interno general */
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Espacio entre elementos internos */
+}
+
+/* Ajustes para tablets */
+@media (max-width: 768px) {
+  .responsive-container {
+    padding: 12px;
+    gap: 12px;
+  }
+}
+
+/* Ajustes para móviles */
+@media (max-width: 480px) {
+  .responsive-container {
+    padding: 8px;
+    gap: 8px;
+  }
+}
