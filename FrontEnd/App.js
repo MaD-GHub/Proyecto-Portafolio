@@ -25,12 +25,12 @@ import DatosScreen from "./screens/DatosScreen";
 import StartScreen from "./screens/StartScreen";
 import LoginScreen from "./screens/Login";
 import RegisterScreen from "./screens/Register";
+import SimulacionScreen from "./screens/SimulacionScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -307,7 +307,6 @@ export default function App() {
       creationDate: new Date().toLocaleDateString(),
       userId: user.uid,
     };
-    
 
     try {
       const docRef = await addDoc(
@@ -372,6 +371,11 @@ export default function App() {
           <Stack.Screen
             name="StartScreen"
             component={StartScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SimulacionScreen"
+            component={SimulacionScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -544,24 +548,26 @@ export default function App() {
 
               {isInstallment && transactionType === "Gasto" && (
                 <View>
-                  <Text style={styles.textFacturacion}>Día de facturación de la tarjeta</Text>
-                <View style={styles.inputBox2}>
-                  {/* El texto de Día de facturación de la tarjeta */}
-                  
-                  <Picker
-                    selectedValue={billingDay}
-                    onValueChange={(itemValue) => setBillingDay(itemValue)}
-                    style={styles.picker}
-                  >
-                    {[...Array(31)].map((_, index) => (
-                      <Picker.Item
-                        key={index}
-                        label={`Día ${index + 1}`}
-                        value={index + 1}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                  <Text style={styles.textFacturacion}>
+                    Día de facturación de la tarjeta
+                  </Text>
+                  <View style={styles.inputBox2}>
+                    {/* El texto de Día de facturación de la tarjeta */}
+
+                    <Picker
+                      selectedValue={billingDay}
+                      onValueChange={(itemValue) => setBillingDay(itemValue)}
+                      style={styles.picker}
+                    >
+                      {[...Array(31)].map((_, index) => (
+                        <Picker.Item
+                          key={index}
+                          label={`Día ${index + 1}`}
+                          value={index + 1}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
                 </View>
               )}
 
@@ -667,7 +673,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    
   },
   textFacturacion: {
     fontSize: 16,
