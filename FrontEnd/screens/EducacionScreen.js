@@ -12,6 +12,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome5 } from '@expo/vector-icons'; // Íconos para darle un toque visual
+import registerActivity from "../components/registerActivity";
+import { auth } from "../firebase";
+
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +32,17 @@ const ActualidadScreen = () => {
       fetchNews();
     }
   }, [selectedTab]);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "EducaciónScreen",
+        description: 'Usuario visita la página de Educación.', 
+        });
+    }
+  }, []);
 
   // Función para obtener datos de mercado
   const fetchMarketData = async () => {

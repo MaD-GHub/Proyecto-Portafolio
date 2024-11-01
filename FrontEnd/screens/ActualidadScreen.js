@@ -19,6 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native'; // Importamos el hook de navegación
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import registerActivity from "../components/registerActivity";
+import { auth } from "../firebase";
 
 const { width } = Dimensions.get('window');
 const NoHayNoticiaImage = require('../assets/Nonoticia.png');
@@ -66,6 +68,17 @@ const ActualidadScreen = () => {
     };
 
     loadFonts();
+  }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "ActualidadScreen",
+        description: 'Usuario visita la página Actualidad', 
+        });
+    }
   }, []);
 
   // Cargar noticias desde Firebase

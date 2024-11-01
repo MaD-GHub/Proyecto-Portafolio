@@ -6,6 +6,8 @@ import { auth, db } from '../firebase'; // Importar Firebase auth y Firestore
 import { useNavigation } from '@react-navigation/native'; // Para navegación después de logout
 import { doc, getDoc, updateDoc, collection, query, where, onSnapshot } from 'firebase/firestore'; // Importar las funciones correctas de Firestore
 import { updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'; // Para actualizar correo y contraseña
+import registerActivity from "../components/registerActivity";
+
 
 // Función para formatear a CLP
 const formatCurrency = (amount) => {
@@ -84,6 +86,17 @@ const ProfileScreen = ({ route }) => {
         unsubscribe(); // Detenemos el listener cuando el componente se desmonta
       }
     };
+  }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "ProfileScreen",
+        description: 'Usuario visita la página ProfileScreen.', 
+        });
+    }
   }, []);
   
 

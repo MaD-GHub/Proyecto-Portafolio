@@ -18,6 +18,7 @@ import { db, auth } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Slider } from 'react-native-elements';
 import { LineChart } from 'react-native-chart-kit';
+import registerActivity from "../components/registerActivity";
 
 const InversionScreen = () => {
   const navigation = useNavigation();
@@ -71,6 +72,17 @@ const InversionScreen = () => {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "InversionScreen",
+        description: 'Usuario visita la página de inversiones', 
+        });
+    }
   }, []);
 
   const handleSimulation = () => {

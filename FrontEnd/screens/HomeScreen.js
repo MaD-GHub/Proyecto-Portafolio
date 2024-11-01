@@ -29,6 +29,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import registerActivity from "../components/registerActivity"; 
 
 // Función para obtener la fecha actual
 const getTodayDate = () => {
@@ -262,6 +263,17 @@ export default function HomeScreen() {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "HomeScreen",
+        description: 'Usuario visita la página Home', 
+        });
+    }
   }, []);
 
   const handleDeleteTransaction = async (id) => {
