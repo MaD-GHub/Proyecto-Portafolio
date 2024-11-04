@@ -26,6 +26,7 @@ const InversionScreen = () => {
   const [loading, setLoading] = useState(true);
   const [simulationDuration, setSimulationDuration] = useState(1); // en años
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false); // Modal de ayuda
   const [selectedBank, setSelectedBank] = useState("BancoEstado"); // Banco seleccionado
   const [propósitoAhorro, setPropósitoAhorro] = useState('');
   const [result, setResult] = useState(null); // Para guardar el resultado de la simulación
@@ -102,10 +103,10 @@ const InversionScreen = () => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <MaterialCommunityIcons name="arrow-left" size={35} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.helpIcon}>
+          <Text style={styles.headerTitle}>Inversiones</Text>
+          <TouchableOpacity onPress={() => setIsHelpModalVisible(true)} style={styles.helpIcon}>
             <MaterialCommunityIcons name="help-circle-outline" size={28} color="white" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Inversiones</Text>
         </View>
 
         {loading ? (
@@ -230,6 +231,32 @@ const InversionScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Modal de Ayuda */}
+      <Modal
+        visible={isHelpModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsHelpModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>¿Cómo se calculan las inversiones?</Text>
+            <Text style={styles.modalText}>
+              El cálculo de inversión utiliza interés compuesto, aplicando la tasa anual sobre el saldo actual al final de cada período. 
+              Cada año, el saldo se incrementa por los intereses generados, que se suman al capital para el siguiente año.
+            </Text>
+            <Text style={styles.modalText}>
+              Por ejemplo, si tu saldo inicial es $500.000 y seleccionas una tasa del 2%, el cálculo anual será:
+              - Primer año: $510.000 (incremento del 2% sobre $500.000)
+              - Segundo año: se calcula el 2% sobre $510.000, y así sucesivamente.
+            </Text>
+            <TouchableOpacity style={styles.closeButton} onPress={() => setIsHelpModalVisible(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -248,8 +275,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  headerContent: { flexDirection: 'row', alignItems: 'center', width: '100%', paddingTop: 40, paddingHorizontal: 20 },
-  headerTitle: { fontSize: 24, color: 'white', fontWeight: 'bold', marginLeft: 10 },
+  headerContent: { flexDirection: 'row', alignItems: 'center', width: '100%', paddingTop: 20, paddingHorizontal: 20, justifyContent: 'space-between' },
+  headerTitle: { fontSize: 24, color: 'white', fontWeight: 'bold' },
   balanceAmount: { fontSize: 30, color: 'white', marginTop: 20 },
   balanceDate: { fontSize: 16, color: 'white', marginTop: 5, opacity: 0.9 },
   section: {
@@ -266,7 +293,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 22, fontWeight: 'bold', color: '#511496', marginBottom: 10 },
   label: { fontSize: 16, color: '#333', marginBottom: 5 },
-  input: { borderWidth: 1, borderColor: '#ddd', padding: 10, borderRadius: 5, fontSize: 16, marginBottom: 15 },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+    fontSize: 16,
+    marginBottom: 15,
+    backgroundColor: '#ffffff', // Fondo blanco para el input
+  },
   slider: { marginBottom: 15 },
   sliderValue: { fontSize: 16, color: '#511496', textAlign: 'center' },
   simulateButton: { backgroundColor: '#511496', padding: 15, borderRadius: 8, alignItems: 'center' },
@@ -303,7 +338,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#511496', marginBottom: 10 },
-  modalText: { fontSize: 16, color: '#333', marginVertical: 5 },
+  modalText: { fontSize: 16, color: '#333', marginVertical: 5, textAlign: 'center' },
   closeButton: { backgroundColor: '#511496', padding: 10, borderRadius: 8, marginTop: 15 },
   closeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
 });
