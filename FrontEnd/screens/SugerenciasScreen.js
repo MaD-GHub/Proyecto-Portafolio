@@ -1,15 +1,27 @@
 // src/screens/SugerenciasScreen.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { db, auth } from '../firebase';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
+import registerActivity from "../components/registerActivity";
 
 const SugerenciasScreen = () => {
   const navigation = useNavigation();
   const [sugerencia, setSugerencia] = useState('');
   const [loading, setLoading] = useState(false);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "SugerenciasScreen",
+        description: 'Usuario visita la página para enviar sugerencias.', 
+        });
+    }
+  }, []);
 
   // Función para manejar la creación de una sugerencia
   const handleEnviarSugerencia = async () => {

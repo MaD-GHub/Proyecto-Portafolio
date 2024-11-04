@@ -1,8 +1,20 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import registerActivity from "../components/registerActivity";
 
 const TutorialScreen = () => {
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "TutorialScreen",
+        description: 'Usuario visita la página de tutoriales.', 
+        });
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       {/* Elimina el segundo título y deja solo el del header */}

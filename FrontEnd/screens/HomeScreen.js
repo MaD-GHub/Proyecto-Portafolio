@@ -29,6 +29,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import registerActivity from "../components/registerActivity"; 
 
 // Función para obtener la fecha actual
 const getTodayDate = () => {
@@ -66,13 +67,25 @@ const groupTransactionsByDate = (transactions) => {
 const Timeline = ({ transactions }) => {
   const [projection, setProjection] = useState([]); // Guardará la proyección futura
   const months = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", 
-    "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
   ];
 
   useEffect(() => {
     calculateProjection();
   }, [transactions]); // La proyección se recalcula cuando cambian las transacciones
+
+  
 
   // Función para calcular la proyección
   const calculateProjection = () => {
@@ -80,19 +93,21 @@ const Timeline = ({ transactions }) => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const projectionData = [];
-    
-    let currentBalance = 0;  // Balance inicial, depende de la situación del usuario
-  
+
+    let currentBalance = 0; // Balance inicial, depende de la situación del usuario
+
     for (let i = 0; i < projectionMonths; i++) {
-      let monthlyIncome = 0;  // Ingreso mensual (fijo + variable)
+      let monthlyIncome = 0; // Ingreso mensual (fijo + variable)
       let monthlyExpense = 0; // Gasto mensual (fijo + cuotas)
-  
+
       // Procesamos todas las transacciones para ajustar ingresos y gastos
-      transactions.forEach(transaction => {
+      transactions.forEach((transaction) => {
         const amount = parseFloat(transaction.amount);
         const isFixed = transaction.isFixed === "Fijo"; // Ingresos/Gastos fijos
-        const isCurrentMonth = new Date(transaction.selectedDate).getMonth() === (currentMonth + i) % 12;
-  
+        const isCurrentMonth =
+          new Date(transaction.selectedDate).getMonth() ===
+          (currentMonth + i) % 12;
+
         // Ingresos
         if (transaction.type === "Ingreso") {
           if (isFixed) {
@@ -103,19 +118,28 @@ const Timeline = ({ transactions }) => {
             monthlyIncome += amount;
           }
         }
-  
+
         // Gastos
         if (transaction.type === "Gasto") {
           if (isFixed) {
             // Gastos fijos cada mes
             monthlyExpense += amount;
-          } else if (transaction.isInstallment && transaction.installmentCount > 0) {
+          } else if (
+            transaction.isInstallment &&
+            transaction.installmentCount > 0
+          ) {
             // Si es un gasto en cuotas, se reparte la cuota en los meses correspondientes
             const installmentAmount = amount / transaction.installmentCount;
-            const startMonth = new Date(transaction.installmentStartDate).getMonth();
-  
+            const startMonth = new Date(
+              transaction.installmentStartDate
+            ).getMonth();
+
             // Verificamos si la cuota aplica a este mes proyectado
-            if ((currentMonth + i) % 12 >= startMonth && (currentMonth + i) % 12 < startMonth + transaction.installmentCount) {
+            if (
+              (currentMonth + i) % 12 >= startMonth &&
+              (currentMonth + i) % 12 <
+                startMonth + transaction.installmentCount
+            ) {
               monthlyExpense += installmentAmount;
             }
           } else if (isCurrentMonth) {
@@ -124,22 +148,24 @@ const Timeline = ({ transactions }) => {
           }
         }
       });
-  
+
       // Balance mensual proyectado (ingresos - gastos)
       currentBalance += monthlyIncome - monthlyExpense;
-  
+
       const projectedMonth = (currentMonth + i) % 12;
       const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
-  
-      console.log(`Proyección para ${months[projectedMonth]} ${projectedYear}: Ingresos: ${monthlyIncome}, Gastos: ${monthlyExpense}, Balance: ${currentBalance}`);
-  
+
+      console.log(
+        `Proyección para ${months[projectedMonth]} ${projectedYear}: Ingresos: ${monthlyIncome}, Gastos: ${monthlyExpense}, Balance: ${currentBalance}`
+      );
+
       projectionData.push({
         month: `${months[projectedMonth]} ${projectedYear}`,
         balance: currentBalance,
       });
     }
-  
-    setProjection(projectionData);  // Actualizamos la proyección
+
+    setProjection(projectionData); // Actualizamos la proyección
   };
   
   
@@ -170,6 +196,7 @@ const Timeline = ({ transactions }) => {
 };
 
 export default function HomeScreen() {
+  const [confirmSimulationModal, setConfirmSimulationModal] = useState(false); // Modal para confirmar entrada al modo simulación
   const navigation = useNavigation();
   const [transactions, setTransactions] = useState([]);
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -238,6 +265,17 @@ export default function HomeScreen() {
     return () => unsubscribe();
   }, []);
 
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "HomeScreen",
+        description: 'Usuario visita la página Home', 
+        });
+    }
+  }, []);
+
   const handleDeleteTransaction = async (id) => {
     console.log("Intentando eliminar transacción con ID:", id);
     Alert.alert(
@@ -274,12 +312,18 @@ export default function HomeScreen() {
         amount: editAmount,
         category: editCategory,
         description: editDescription, // Guardar la descripción editada
-        isFixed: editFixed // Guardar el estado de fijo
+        isFixed: editFixed, // Guardar el estado de fijo
       });
 
       const updatedTransactions = transactions.map((item) =>
         item.id === editingTransaction.id
-          ? { ...item, amount: editAmount, category: editCategory, description: editDescription, isFixed: editFixed }
+          ? {
+              ...item,
+              amount: editAmount,
+              category: editCategory,
+              description: editDescription,
+              isFixed: editFixed,
+            }
           : item
       );
       setTransactions(updatedTransactions);
@@ -292,25 +336,33 @@ export default function HomeScreen() {
 
   const calculateTotalSaved = () => {
     console.log("Calculando totales...");
-  
+
     if (transactions && transactions.length > 0) {
       const ingresos = transactions
         .filter((transaction) => transaction.type === "Ingreso")
         .reduce((acc, transaction) => acc + parseFloat(transaction.amount), 0); // Sumar ingresos totales
-  
+
       const gastos = transactions
         .filter((transaction) => transaction.type === "Gasto")
         .reduce((acc, transaction) => {
           if (transaction.isInstallment && transaction.installmentCount > 0) {
-            return acc + (parseFloat(transaction.amount) / transaction.installmentCount); // Dividir cuotas
+            return (
+              acc +
+              parseFloat(transaction.amount) / transaction.installmentCount
+            ); // Dividir cuotas
           }
           return acc + parseFloat(transaction.amount); // Sumar gasto completo
         }, 0); // Sumar gastos totales
-  
+
       setTotalIngresos(ingresos); // Ingresos totales
       setTotalGastos(gastos); // Gastos totales
       setTotalSaved(ingresos - gastos); // Guardar balance final
-      console.log("Totales calculados: Ingresos =", ingresos, "Gastos =", gastos);
+      console.log(
+        "Totales calculados: Ingresos =",
+        ingresos,
+        "Gastos =",
+        gastos
+      );
     } else {
       setTotalSaved(0);
       setTotalIngresos(0);
@@ -318,7 +370,6 @@ export default function HomeScreen() {
       console.log("No hay transacciones disponibles para calcular.");
     }
   };
-  
 
   useEffect(() => {
     calculateTotalSaved();
@@ -359,10 +410,10 @@ export default function HomeScreen() {
             <MaterialCommunityIcons name="account" size={35} color="white" />
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={toggleNotifications}
+            onPress={() => setConfirmSimulationModal(true)} // Abre el modal de confirmación
             style={styles.bellIconContainer}
           >
-            <MaterialCommunityIcons name="bell" size={35} color="white" />
+            <MaterialCommunityIcons name="play" size={35} color="white" />
           </TouchableOpacity>
         </View>
 
@@ -433,9 +484,12 @@ export default function HomeScreen() {
                     <View key={item.id} style={styles.transactionItem}>
                       <View>
                         <Text
-                          style={[styles.transactionText, {
-                            color: item.type === "Ingreso" ? "green" : "red",
-                          }]}
+                          style={[
+                            styles.transactionText,
+                            {
+                              color: item.type === "Ingreso" ? "green" : "red",
+                            },
+                          ]}
                         >
                           {item.category} - {formatCurrency(item.amount)}
                         </Text>
@@ -472,7 +526,7 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                       </View>
                     </View>
-                  ))} 
+                  ))}
               </View>
             )}
           />
@@ -541,6 +595,53 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
+      <Modal
+  visible={confirmSimulationModal}
+  transparent={true}
+  animationType="slide"
+  onRequestClose={() => setConfirmSimulationModal(false)}
+>
+  <View style={styles.modalBackground}>
+    <View style={styles.modalContainer}>
+      <Text style={styles.modalTitle}>Entrar en Modo Simulación</Text>
+      <Text style={styles.modalMessage}>
+        Estás a punto de entrar en el modo simulación. Los datos generados en esta
+        sesión serán temporales y se perderán al salir.
+      </Text>
+      <View style={styles.buttonRow}>
+        <LinearGradient
+          colors={["#B0B0B0", "#8C8C8C"]}
+          style={styles.cancelButtonGradient}
+        >
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setConfirmSimulationModal(false)}
+          >
+            <Text style={styles.buttonText}>Cancelar</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+        <LinearGradient
+          colors={["#511496", "#885FD8"]}
+          style={styles.confirmButtonGradient}
+        >
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              setConfirmSimulationModal(false);
+              navigation.navigate("SimulacionScreen", {
+                totalSaved,
+                transactions,
+              });
+            }}
+          >
+            <Text style={styles.buttonText}>Confirmar</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
+    </View>
+  </View>
+</Modal>
+
     </SafeAreaView>
   );
 }
@@ -778,4 +879,56 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
   },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: 300,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    color: "#673072",
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  cancelButtonGradient: {
+    borderRadius: 25,
+    overflow: "hidden",
+    marginRight: 5,
+  },
+  confirmButtonGradient: {
+    borderRadius: 25,
+    overflow: "hidden",
+    marginLeft: 5,
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  
 });

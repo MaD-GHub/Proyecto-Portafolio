@@ -4,6 +4,8 @@ import { LineChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import moment from 'moment';
 import { Picker } from '@react-native-picker/picker';
+import registerActivity from "../components/registerActivity";
+import { auth } from "../firebase";
 
 import InversionScreen from './InversionScreen'; // Importar la pantalla de Inversión
 
@@ -11,6 +13,17 @@ export default function DatosScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses', 'Income', o 'Inversiones'
 
   const screenWidth = Dimensions.get('window').width;
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "DatosScreen",
+        description: 'Usuario visita la página DatosScreen.', 
+        });
+    }
+  }, []);
 
   // Datos de prueba para las categorías de gastos
   const expenseCategories = [

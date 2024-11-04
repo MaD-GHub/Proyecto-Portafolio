@@ -24,6 +24,7 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore"; // Funciones Firestore
+import registerActivity from "../components/registerActivity";
 
 export default function AhorroScreen() {
   const [goals, setGoals] = useState([]);
@@ -54,6 +55,17 @@ export default function AhorroScreen() {
         setGoals(userGoals);
       });
       return () => unsubscribe(); // Limpiar listener
+    }
+  }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "AhorroScreen",
+        description: 'Usuario visita la página Ahorro', 
+        });
     }
   }, []);
 
@@ -608,3 +620,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+
+
+

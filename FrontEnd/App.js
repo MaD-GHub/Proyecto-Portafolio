@@ -25,6 +25,7 @@ import DatosScreen from "./screens/DatosScreen";
 import StartScreen from "./screens/StartScreen";
 import LoginScreen from "./screens/Login";
 import RegisterScreen from "./screens/Register";
+import SimulacionScreen from "./screens/SimulacionScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import InversionScreen from "./screens/InversionScreen"; // Importa InversionScreen aquí
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
@@ -372,6 +373,11 @@ export default function App() {
           <Stack.Screen
             name="StartScreen"
             component={StartScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SimulacionScreen"
+            component={SimulacionScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
