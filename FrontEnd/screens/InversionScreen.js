@@ -18,7 +18,6 @@ import { db, auth } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Slider } from 'react-native-elements';
 import { LineChart } from 'react-native-chart-kit';
-import registerActivity from "../components/registerActivity";
 
 const InversionScreen = () => {
   const navigation = useNavigation();
@@ -32,6 +31,7 @@ const InversionScreen = () => {
   const [propósitoAhorro, setPropósitoAhorro] = useState('');
   const [result, setResult] = useState(null); // Para guardar el resultado de la simulación
   const [growthData, setGrowthData] = useState([]); // Datos para el gráfico
+  const [investorProfile, setInvestorProfile] = useState("Desconocido"); // Perfil de inversor
 
   // Configuración de los bancos y tasas
   const banks = {
@@ -40,6 +40,7 @@ const InversionScreen = () => {
     MercadoPago: { name: "Mercado Pago", rate: 0.052 },
   };
 
+  // Cargar ingresos, gastos y calcular el perfil de inversor
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) {
@@ -68,22 +69,30 @@ const InversionScreen = () => {
         .filter((t) => t.type === "Gasto")
         .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
+      console.log("Total Ingresos:", totalIngresos); // Verificar ingresos
+      console.log("Total Gastos:", totalGastos); // Verificar gastos
+
       setBalance(totalIngresos - totalGastos);
       setLoading(false);
+
+      // Calcular el perfil de inversor
+      if (totalIngresos > 0) { // Asegurarnos de no dividir por cero
+        const spendingRatio = totalGastos / totalIngresos;
+        console.log("Spending Ratio:", spendingRatio); // Verificar ratio
+
+        if (spendingRatio < 0.3) {
+          setInvestorProfile("Conservador");
+        } else if (spendingRatio < 0.6) {
+          setInvestorProfile("Moderado");
+        } else {
+          setInvestorProfile("Agresivo");
+        }
+      } else {
+        setInvestorProfile("Perfil no disponible");
+      }
     });
 
     return () => unsubscribe();
-  }, []);
-
-  //Registrar actividad
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (user) {
-      registerActivity(user.uid, "navigate", { 
-        screen: "InversionScreen",
-        description: 'Usuario visita la página de inversiones', 
-        });
-    }
   }, []);
 
   const handleSimulation = () => {
@@ -124,11 +133,14 @@ const InversionScreen = () => {
         {loading ? (
           <ActivityIndicator size="large" color="white" style={{ marginTop: 20 }} />
         ) : (
-          <Text style={styles.balanceAmount}>
-            {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(balance)}
-          </Text>
+          <>
+            <Text style={styles.balanceAmount}>
+              {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(balance)}
+            </Text>
+            <Text style={styles.balanceDate}>Saldo actual - {new Date().toLocaleDateString("es-CL")}</Text>
+            <Text style={styles.investorProfile}>Perfil de Inversor: {investorProfile}</Text>
+          </>
         )}
-        <Text style={styles.balanceDate}>Saldo actual - {new Date().toLocaleDateString("es-CL")}</Text>
       </LinearGradient>
 
       {/* Sección de Simulación de Inversión */}
@@ -291,6 +303,7 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, color: 'white', fontWeight: 'bold' },
   balanceAmount: { fontSize: 30, color: 'white', marginTop: 20 },
   balanceDate: { fontSize: 16, color: 'white', marginTop: 5, opacity: 0.9 },
+  investorProfile: { fontSize: 18, color: 'white', marginTop: 10, fontWeight: 'bold' },
   section: {
     padding: 15,
     marginVertical: 5,
@@ -312,7 +325,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     fontSize: 16,
     marginBottom: 15,
-    backgroundColor: '#ffffff', // Fondo blanco para el input
+    backgroundColor: '#ffffff',
   },
   slider: { marginBottom: 15 },
   sliderValue: { fontSize: 16, color: '#511496', textAlign: 'center' },
