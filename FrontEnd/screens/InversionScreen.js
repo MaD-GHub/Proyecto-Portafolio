@@ -138,10 +138,14 @@ const InversionScreen = () => {
               {new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(balance)}
             </Text>
             <Text style={styles.balanceDate}>Saldo actual - {new Date().toLocaleDateString("es-CL")}</Text>
-            <Text style={styles.investorProfile}>Perfil de Inversor: {investorProfile}</Text>
           </>
         )}
       </LinearGradient>
+
+      {/* Sección de Perfil de Inversor */}
+      <View style={styles.profileSection}>
+        <Text style={styles.investorProfile}>Perfil de Inversor: {investorProfile}</Text>
+      </View>
 
       {/* Sección de Simulación de Inversión */}
       <View style={styles.section}>
@@ -303,7 +307,14 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, color: 'white', fontWeight: 'bold' },
   balanceAmount: { fontSize: 30, color: 'white', marginTop: 20 },
   balanceDate: { fontSize: 16, color: 'white', marginTop: 5, opacity: 0.9 },
-  investorProfile: { fontSize: 18, color: 'white', marginTop: 10, fontWeight: 'bold' },
+  profileSection: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#f8f8f8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  investorProfile: { fontSize: 18, color: '#511496', fontWeight: 'bold', textAlign: 'center' },
   section: {
     padding: 15,
     marginVertical: 5,
