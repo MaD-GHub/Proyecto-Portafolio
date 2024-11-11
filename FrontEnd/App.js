@@ -33,6 +33,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import SugerenciasScreen from "./screens/SugerenciasScreen";
+import logActivity from "./components/ActivityLogger";
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -337,6 +339,16 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // Registrar `app_open` en cada apertura de la app
+  React.useEffect(() => {
+    if (user) {
+      logActivity("app_open", {
+        description: "El usuario ha abierto la app",
+        userId: user.uid,
+      });
+    }
+  }, [user]);
 
   if (loading) {
     return (
