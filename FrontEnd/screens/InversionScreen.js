@@ -18,29 +18,30 @@ import { db, auth } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Slider } from 'react-native-elements';
 import { LineChart } from 'react-native-chart-kit';
+import { Picker } from '@react-native-picker/picker';
 
 const InversionScreen = () => {
   const navigation = useNavigation();
   const screenWidth = Dimensions.get('window').width;
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [simulationDuration, setSimulationDuration] = useState(1); // en años
+  const [simulationDuration, setSimulationDuration] = useState(1);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false); // Modal de ayuda
-  const [selectedBank, setSelectedBank] = useState("BancoEstado"); // Banco seleccionado
+  const [isQuizModalVisible, setIsQuizModalVisible] = useState(false);
+  const [selectedBank, setSelectedBank] = useState("BancoEstado");
   const [propósitoAhorro, setPropósitoAhorro] = useState('');
-  const [result, setResult] = useState(null); // Para guardar el resultado de la simulación
-  const [growthData, setGrowthData] = useState([]); // Datos para el gráfico
-  const [investorProfile, setInvestorProfile] = useState("Desconocido"); // Perfil de inversor
+  const [result, setResult] = useState(null);
+  const [growthData, setGrowthData] = useState([]);
+  const [investorProfile, setInvestorProfile] = useState("Desconocido");
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [activeTab, setActiveTab] = useState("Simulación");
 
-  // Configuración de los bancos y tasas
   const banks = {
     BancoEstado: { name: "BancoEstado – Ahorro Premium", rate: 0.017 },
     BancoChile: { name: "Banco de Chile – Cuenta FAN Ahorro", rate: 0.0216 },
     MercadoPago: { name: "Mercado Pago", rate: 0.052 },
   };
 
-  // Cargar ingresos, gastos y calcular el perfil de inversor
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) {
@@ -69,31 +70,35 @@ const InversionScreen = () => {
         .filter((t) => t.type === "Gasto")
         .reduce((acc, t) => acc + parseFloat(t.amount), 0);
 
-      console.log("Total Ingresos:", totalIngresos); // Verificar ingresos
-      console.log("Total Gastos:", totalGastos); // Verificar gastos
-
       setBalance(totalIngresos - totalGastos);
       setLoading(false);
 
-      // Calcular el perfil de inversor
-      if (totalIngresos > 0) { // Asegurarnos de no dividir por cero
-        const spendingRatio = totalGastos / totalIngresos;
-        console.log("Spending Ratio:", spendingRatio); // Verificar ratio
-
-        if (spendingRatio < 0.3) {
-          setInvestorProfile("Conservador");
-        } else if (spendingRatio < 0.6) {
-          setInvestorProfile("Moderado");
+      const calculateInvestorProfile = (answers, income, expenses) => {
+        const spendingRatio = expenses / income;
+        const questionsWeight = answers.riskTolerance === 'Alto' ? 0.3 : answers.riskTolerance === 'Medio' ? 0.5 : 0.7;
+        if (answers.riskTolerance === 'Alto' && spendingRatio < 0.3) {
+          return "Arriesgado";
+        } else if (questionsWeight > 0.5 || spendingRatio < 0.6) {
+          return "Moderado";
+        } else if (answers.longTermGoal === 'Sí' && spendingRatio < 0.4) {
+          return "Planificador";
+        } else if (answers.incomeStability === 'Estable') {
+          return "Conservador";
         } else {
-          setInvestorProfile("Agresivo");
+          return "Precavido";
         }
+      };
+
+      if (totalIngresos > 0) {
+        const profile = calculateInvestorProfile(quizAnswers, totalIngresos, totalGastos);
+        setInvestorProfile(profile);
       } else {
         setInvestorProfile("Perfil no disponible");
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [quizAnswers]);
 
   const handleSimulation = () => {
     if (balance === null || balance === 0) {
@@ -106,16 +111,64 @@ const InversionScreen = () => {
     const saldoAhorro = initialBalance * Math.pow(1 + bankRate, simulationDuration);
     const intereses = saldoAhorro - initialBalance;
 
-    // Genera los datos del gráfico para cada año
     const data = Array.from({ length: simulationDuration }, (_, i) =>
       initialBalance * Math.pow(1 + bankRate, i + 1)
     );
     setGrowthData(data);
 
-    // Guarda el resultado y muestra el modal
     setResult({ initialBalance, intereses, saldoAhorro });
     setIsModalVisible(true);
   };
+
+  const handleQuizCompletion = () => {
+    setIsQuizModalVisible(false);
+  };
+
+  const openQuiz = () => {
+    setIsQuizModalVisible(true);
+  };
+
+  const quizQuestions = [
+    { question: '¿Cuentas con experiencia en el mundo de las inversiones?', key: 'experienciaInversiones', options: ['Ninguna', 'Depósitos a plazo', 'Fondos de inversión', 'Operaciones bursátiles', 'Experiencia en estrategias avanzadas de inversión'] },
+    { question: '¿Cuál es el plazo máximo que mantendrías tus inversiones?', key: 'plazoInversiones', options: ['Hasta 1 mes', 'Hasta 3 meses', 'Hasta 6 meses', 'Hasta 1 año', 'Entre 1 y 3 años', 'Más de 3 años'] },
+    { question: '¿Cuál de las siguientes afirmaciones describe mejor tu tolerancia al riesgo?', key: 'afirmacionRiesgo', options: ['No invertir si hay riesgos', 'Aceptar un riesgo mínimo', 'Asumir un riesgo moderado si hay mejores perspectivas de ganancia', 'Buscar el mayor rendimiento posible, sin importar los riesgos'] },
+    { question: '¿Qué harías si el valor de tus inversiones sufre una baja importante?', key: 'accionBajaInversion', options: ['Retirar inmediatamente', 'Extraer parcialmente las inversiones', 'Conservar las inversiones esperando una recuperación', 'Invertir más aprovechando la baja'] },
+    { question: '¿Qué seguro elegirías para un auto nuevo?', key: 'seguroAuto', options: ['Cobertura completa', 'Cobertura parcial', 'Contra terceros', 'Ninguno'] },
+    { question: '¿Cuál de las siguientes opciones de inversión te resulta más cómoda?', key: 'opcionInversion', options: ['Mantener el capital', 'Superar el rendimiento de un depósito a plazo', 'Obtener una renta moderada afrontando posibles riesgos', 'Conseguir mayor rentabilidad más allá del riesgo'] },
+    { question: 'Si el valor de tus activos sube abruptamente, ¿hasta qué porcentaje de ganancias considerarías vender?', key: 'porcentajeGanancias', options: ['Hasta un 10%', 'Hasta un 20%', 'Hasta un 50%', 'Hasta un 65%', 'Más del 65%'] },
+    { question: 'Frente a una pérdida en el valor de tus activos, ¿en qué porcentaje retirarías la inversión?', key: 'porcentajePerdidas', options: ['Hasta un 10%', 'Hasta un 20%', 'Hasta un 50%', 'Hasta un 65%', 'Más del 65%'] },
+    { question: 'Del total de tu patrimonio, ¿cuál es el porcentaje líquido disponible?', key: 'porcentajeLiquido', options: ['Menos del 5%', 'Entre el 5% y 20%', 'Entre el 20% y 50%', 'Entre el 50% y 70%', 'Más del 70%'] },
+    { question: '¿Qué porcentaje de tu patrimonio líquido estarías dispuesto a invertir?', key: 'porcentajeInversionLiquido', options: ['Menos del 20%', 'Entre el 20% y 40%', 'Entre el 40% y 65%', 'Más del 65%'] },
+  ];
+
+  const getSuggestedMonth = (profile) => {
+    const recommendations = {
+      Arriesgado: {
+        month: "Marzo",
+        reason: "Iniciar en marzo te permitirá aprovechar el crecimiento inicial del mercado luego de los ajustes anuales, ideal para estrategias de mayor riesgo."
+      },
+      Moderado: {
+        month: "Mayo",
+        reason: "Invertir en mayo puede ofrecer estabilidad luego de los primeros meses del año, un buen balance entre riesgo y seguridad para perfiles moderados."
+      },
+      Conservador: {
+        month: "Agosto",
+        reason: "En agosto, el mercado tiende a estabilizarse después de mitad de año, una excelente oportunidad para perfiles conservadores que buscan seguridad."
+      },
+      Planificador: {
+        month: "Octubre",
+        reason: "Octubre es un buen mes para aprovechar oportunidades de planificación de fin de año y ajustar estrategias de largo plazo."
+      },
+      Precavido: {
+        month: "Diciembre",
+        reason: "Diciembre ofrece estabilidad a fin de año, ideal para inversiones seguras y perfiles que priorizan la liquidez."
+      },
+    };
+
+    return recommendations[profile] || { month: "No disponible", reason: "No hay una recomendación específica para tu perfil." };
+  };
+
+  const { month, reason } = getSuggestedMonth(investorProfile);
 
   return (
     <ScrollView style={styles.container}>
@@ -125,11 +178,10 @@ const InversionScreen = () => {
             <MaterialCommunityIcons name="arrow-left" size={35} color="white" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Inversiones</Text>
-          <TouchableOpacity onPress={() => setIsHelpModalVisible(true)} style={styles.helpIcon}>
+          <TouchableOpacity onPress={openQuiz} style={styles.helpIcon}>
             <MaterialCommunityIcons name="help-circle-outline" size={28} color="white" />
           </TouchableOpacity>
         </View>
-
         {loading ? (
           <ActivityIndicator size="large" color="white" style={{ marginTop: 20 }} />
         ) : (
@@ -142,68 +194,128 @@ const InversionScreen = () => {
         )}
       </LinearGradient>
 
-      {/* Sección de Perfil de Inversor */}
-      <View style={styles.profileSection}>
-        <Text style={styles.investorProfile}>Perfil de Inversor: {investorProfile}</Text>
-      </View>
-
-      {/* Sección de Simulación de Inversión */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Simulación de Inversión</Text>
-
-        <Text style={styles.label}>Propósito de tu ahorro:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Ejemplo: Automóvil"
-          value={propósitoAhorro}
-          onChangeText={setPropósitoAhorro}
-        />
-
-        {/* Selector de bancos */}
-        <Text style={styles.label}>Selecciona un Banco:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bankCarousel}>
-          {Object.keys(banks).map((key) => (
-            <TouchableOpacity
-              key={key}
-              style={[
-                styles.bankCard,
-                selectedBank === key && styles.selectedBankCard,
-              ]}
-              onPress={() => setSelectedBank(key)}
-            >
-              <Text style={styles.bankName}>{banks[key].name}</Text>
-              <Text style={styles.bankRate}>Tasa anual: {(banks[key].rate * 100).toFixed(2)}%</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.label}>Tiempo de ahorro (en años):</Text>
-        <Slider
-          value={simulationDuration}
-          onValueChange={(value) => setSimulationDuration(value)}
-          minimumValue={1}
-          maximumValue={5} // Cambiado a años
-          step={1}
-          thumbProps={{
-            children: (
-              <Image
-                source={require('../assets/billete.png')}
-                style={{ width: 40, height: 40 }}
-              />
-            ),
-          }}
-          minimumTrackTintColor="#885fd8"
-          maximumTrackTintColor="#ddd"
-          trackStyle={{ backgroundColor: 'transparent' }}
-          thumbStyle={{ backgroundColor: 'transparent' }}
-          style={styles.slider}
-        />
-        <Text style={[styles.sliderValue, { marginBottom: 20 }]}>{simulationDuration} años</Text>
-
-        <TouchableOpacity style={styles.simulateButton} onPress={handleSimulation}>
-          <Text style={styles.simulateButtonText}>Simular</Text>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "Recomendaciones" && styles.activeTab]}
+          onPress={() => setActiveTab("Recomendaciones")}
+        >
+          <Text style={[styles.tabText, activeTab === "Recomendaciones" && styles.activeTabText]}>Recomendaciones</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "Simulación" && styles.activeTab]}
+          onPress={() => setActiveTab("Simulación")}
+        >
+          <Text style={[styles.tabText, activeTab === "Simulación" && styles.activeTabText]}>Simulación</Text>
         </TouchableOpacity>
       </View>
+
+      {activeTab === "Recomendaciones" && (
+        <View style={styles.profileSection}>
+          <Text style={styles.investorProfile}>Perfil de Inversor: {investorProfile}</Text>
+          <Text style={styles.recommendationText}>
+            {investorProfile === "Arriesgado" && "Como inversor arriesgado, considera invertir en activos con mayor riesgo como acciones para obtener mejores rendimientos a largo plazo."}
+            {investorProfile === "Moderado" && "Como inversor moderado, una cartera balanceada entre acciones y bonos podría ser ideal para ti."}
+            {investorProfile === "Conservador" && "Como inversor conservador, opta por inversiones seguras, como bonos y cuentas de ahorro."}
+            {investorProfile === "Planificador" && "Tu perfil de planificador sugiere que te enfoques en inversiones con retorno estable y diversificación de riesgo."}
+            {investorProfile === "Precavido" && "Un perfil precavido indica que prefieres evitar el riesgo; prioriza inversiones de bajo riesgo y liquidez."}
+          </Text>
+          <Text style={styles.recommendationText}>Mes sugerido para invertir: {month}</Text>
+          <Text style={styles.recommendationReason}>{reason}</Text>
+        </View>
+      )}
+
+      {activeTab === "Simulación" && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Simulación de Inversión</Text>
+          <Text style={styles.label}>Propósito de tu ahorro:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ejemplo: Automóvil"
+            value={propósitoAhorro}
+            onChangeText={setPropósitoAhorro}
+          />
+          <Text style={styles.label}>Selecciona un Banco:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bankCarousel}>
+            {Object.keys(banks).map((key) => (
+              <TouchableOpacity
+                key={key}
+                style={[styles.bankCard, selectedBank === key && styles.selectedBankCard]}
+                onPress={() => setSelectedBank(key)}
+              >
+                <Text style={styles.bankName}>{banks[key].name}</Text>
+                <Text style={styles.bankRate}>Tasa anual: {(banks[key].rate * 100).toFixed(2)}%</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <Text style={styles.label}>Tiempo de ahorro (en años):</Text>
+          <Slider
+            value={simulationDuration}
+            onValueChange={(value) => setSimulationDuration(value)}
+            minimumValue={1}
+            maximumValue={5}
+            step={1}
+            thumbProps={{
+              children: (
+                <Image
+                  source={require('../assets/billete.png')}
+                  style={{ width: 40, height: 40 }}
+                />
+              ),
+            }}
+            minimumTrackTintColor="#885fd8"
+            maximumTrackTintColor="#ddd"
+            trackStyle={{ backgroundColor: 'transparent' }}
+            thumbStyle={{ backgroundColor: 'transparent' }}
+            style={styles.slider}
+          />
+          <Text style={[styles.sliderValue, { marginBottom: 20 }]}>{simulationDuration} años</Text>
+          <TouchableOpacity style={styles.simulateButton} onPress={handleSimulation}>
+            <Text style={styles.simulateButtonText}>Simular</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Modal del cuestionario */}
+      <Modal visible={isQuizModalVisible} transparent={true} animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContainer}>
+      <Text style={styles.modalTitle}>Quiz Perfil Inversor</Text>
+      
+      <ScrollView>
+        {quizQuestions.map((q, index) => (
+          <View key={index} style={styles.questionContainer}>
+            {/* Barra de progreso */}
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBar, { width: `${((index + 1) / quizQuestions.length) * 100}%` }]} />
+            </View>
+            
+            <Text style={styles.modalText}>{q.question}</Text>
+            
+            <View style={styles.buttonGroup}>
+              {q.options.map((option, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => setQuizAnswers({ ...quizAnswers, [q.key]: option })}
+                  style={[
+                    styles.optionButton,
+                    quizAnswers[q.key] === option && styles.selectedOptionButton, // Resalta la opción seleccionada
+                  ]}
+                >
+                  <Text style={styles.optionButtonText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ))}
+        
+        <TouchableOpacity style={styles.completeButton} onPress={handleQuizCompletion}>
+          <Text style={styles.completeButtonText}>Completar</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
+
 
       {/* Modal de Resultados */}
       <Modal
@@ -222,64 +334,34 @@ const InversionScreen = () => {
                 <Text style={styles.modalText}>Saldo de tu ahorro: ${result.saldoAhorro.toFixed(0)}</Text>
               </>
             )}
-
-            {/* Gráfico de Crecimiento Proyectado */}
-            {growthData.length > 0 && (
-              <LineChart
-                data={{
-                  labels: Array.from({ length: simulationDuration }, (_, i) => `${new Date().getFullYear() + i}`),
-                  datasets: [{ data: growthData }],
-                }}
-                width={screenWidth * 0.8}
-                height={200}
-                yAxisLabel="$"
-                chartConfig={{
-                  backgroundColor: '#ffffff',
-                  backgroundGradientFrom: '#e3d8f1',
-                  backgroundGradientTo: '#d3bce6',
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(136, 95, 216, ${opacity})`,
-                  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                  fillShadowGradient: '#d1b3ff',
-                  fillShadowGradientOpacity: 0.3,
-                  propsForDots: {
-                    r: '6',
-                    fill: '#a48edc',
-                    strokeWidth: '2',
-                    stroke: '#885fd8',
-                  },
-                }}
-                bezier
-                style={{ marginVertical: 10, borderRadius: 8 }}
-              />
-            )}
+            <LineChart
+              data={{
+                labels: Array.from({ length: simulationDuration }, (_, i) => `${new Date().getFullYear() + i}`),
+                datasets: [{ data: growthData }],
+              }}
+              width={screenWidth * 0.8}
+              height={200}
+              yAxisLabel="$"
+              chartConfig={{
+                backgroundColor: '#ffffff',
+                backgroundGradientFrom: '#e3d8f1',
+                backgroundGradientTo: '#d3bce6',
+                decimalPlaces: 0,
+                color: (opacity = 1) => `rgba(136, 95, 216, ${opacity})`,
+                labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                fillShadowGradient: '#d1b3ff',
+                fillShadowGradientOpacity: 0.3,
+                propsForDots: {
+                  r: '6',
+                  fill: '#a48edc',
+                  strokeWidth: '2',
+                  stroke: '#885fd8',
+                },
+              }}
+              bezier
+              style={{ marginVertical: 10, borderRadius: 8 }}
+            />
             <TouchableOpacity style={styles.closeButton} onPress={() => setIsModalVisible(false)}>
-              <Text style={styles.closeButtonText}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal de Ayuda */}
-      <Modal
-        visible={isHelpModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setIsHelpModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>¿Cómo se calculan las inversiones?</Text>
-            <Text style={styles.modalText}>
-              El cálculo de inversión utiliza interés compuesto, aplicando la tasa anual sobre el saldo actual al final de cada período. 
-              Cada año, el saldo se incrementa por los intereses generados, que se suman al capital para el siguiente año.
-            </Text>
-            <Text style={styles.modalText}>
-              Por ejemplo, si tu saldo inicial es $500.000 y seleccionas una tasa del 2%, el cálculo anual será:
-              - Primer año: $510.000 (incremento del 2% sobre $500.000)
-              - Segundo año: se calcula el 2% sobre $510.000, y así sucesivamente.
-            </Text>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setIsHelpModalVisible(false)}>
               <Text style={styles.closeButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
@@ -315,6 +397,31 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
   },
   investorProfile: { fontSize: 18, color: '#511496', fontWeight: 'bold', textAlign: 'center' },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+    backgroundColor: '#f0f0f5',
+    borderRadius: 10,
+    marginHorizontal: 10,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  activeTab: {
+    backgroundColor: '#511496',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#511496',
+  },
+  activeTabText: {
+    color: '#ffffff',
+  },
   section: {
     padding: 15,
     marginVertical: 5,
@@ -342,6 +449,8 @@ const styles = StyleSheet.create({
   sliderValue: { fontSize: 16, color: '#511496', textAlign: 'center' },
   simulateButton: { backgroundColor: '#511496', padding: 15, borderRadius: 8, alignItems: 'center' },
   simulateButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  recommendationText: { fontSize: 16, color: '#333', textAlign: 'center', marginVertical: 15 },
+  recommendationReason: { fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 10 },
   helpIcon: { paddingRight: 15 },
   bankCarousel: { marginBottom: 15 },
   bankCard: {
@@ -362,11 +471,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContainer: {
-    width: '85%',
+    width: '90%',
+    maxHeight: '85%',
     backgroundColor: '#fff',
     borderRadius: 15,
     padding: 20,
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -375,8 +484,107 @@ const styles = StyleSheet.create({
   },
   modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#511496', marginBottom: 10 },
   modalText: { fontSize: 16, color: '#333', marginVertical: 5, textAlign: 'center' },
+  buttonGroup: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10 },
+  optionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#885fd8',
+    borderRadius: 8,
+    marginHorizontal: 5,
+  },
+  optionButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
+  picker: {
+    width: '100%',
+    paddingHorizontal: 10,
+    backgroundColor: '#f0f0f5',
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  completeButton: { backgroundColor: '#511496', padding: 10, borderRadius: 8, marginTop: 15 },
+  completeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
   closeButton: { backgroundColor: '#511496', padding: 10, borderRadius: 8, marginTop: 15 },
   closeButtonText: { color: '#ffffff', fontSize: 16, fontWeight: 'bold' },
+  questionContainer: { marginBottom: 15 },
+
+  progressContainer: {
+    height: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginVertical: 10,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#511496',
+  },
+
+  questionContainer: {
+    marginBottom: 15,
+    backgroundColor: '#f0f0f5',
+    padding: 15,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#511496',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+
+  modalText: {
+    fontSize: 18,
+    color: '#333',
+    marginBottom: 15,
+    fontWeight: 'bold',
+  },
+
+  buttonGroup: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    marginVertical: 10,
+  },
+
+  optionButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#885fd8',
+    borderRadius: 10,
+    marginVertical: 5,
+    marginHorizontal: 5,
+    minWidth: '40%',
+    alignItems: 'center',
+  },
+  selectedOptionButton: {
+    backgroundColor: '#511496', // Color de fondo diferente para la opción seleccionada
+  },
+
+  optionButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  completeButton: {
+    backgroundColor: '#511496',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+    marginHorizontal: 10,
+  },
+  completeButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
 
 export default InversionScreen;
