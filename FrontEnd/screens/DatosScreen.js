@@ -3,16 +3,26 @@ import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, TextInp
 import { LineChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import moment from 'moment';
-import { Picker } from '@react-native-picker/picker';  // Cambiado aquí
+import { Picker } from '@react-native-picker/picker';
+import RegisterActivity from "../components/RegisterActivity";
+import { auth } from "../firebase";
+import InversionScreen from './InversionScreen'; // Importar la pantalla de Inversión
 
-export default function DatosScreen() {
-  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses', 'Income', o 'Simulation'
-  const [electrodomestico, setElectrodomestico] = useState('');
-  const [clasificacion, setClasificacion] = useState('');
-  const [horasUso, setHorasUso] = useState('');
-  const [totalCost, setTotalCost] = useState(0);
-  
+export default function DatosScreen({ navigation }) {
+  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses', 'Income', o 'Inversiones'
+
   const screenWidth = Dimensions.get('window').width;
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      RegisterActivity(user.uid, "navigate", {
+        screen: "DatosScreen",
+        description: 'Usuario visita la página DatosScreen.',
+      });
+    }
+  }, []);
 
   // Datos de prueba para las categorías de gastos
   const expenseCategories = [
@@ -46,7 +56,7 @@ export default function DatosScreen() {
     datasets: [
       {
         data: selectedTab === 'Expenses' ? [500, 700, 800, 320, 900, 600, 700] : [1000, 1100, 900, 320, 1150, 920, 970],
-        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Línea en degradado morado
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
         strokeWidth: 3,
       },
     ],
@@ -83,83 +93,10 @@ export default function DatosScreen() {
     },
   };
 
-// Cálculo del costo mensual basado en el tipo de electrodoméstico, clasificación y horas de uso
-const calcularCostoMensual = () => {
-  let consumoBaseKWh;
-
-  // Define consumo básico de acuerdo al tipo de electrodoméstico
-  switch (electrodomestico) {
-    case 'refrigerador':
-      consumoBaseKWh = 1; // Consumo por día en kWh
-      break;
-    case 'lavadora':
-      consumoBaseKWh = 0.5; // Consumo por ciclo en kWh
-      break;
-    case 'televisor':
-      consumoBaseKWh = 0.1; // Consumo por hora en kWh
-      break;
-    case 'microondas':
-      consumoBaseKWh = 1.2; // Consumo por hora en kWh
-      break;
-    default:
-      consumoBaseKWh = 0;
-  }
-
-  // Define multiplicador basado en clasificación energética
-  let multiplicadorClasificacion;
-  switch (clasificacion) {
-    case 'A+++':
-      multiplicadorClasificacion = 0.8;
-      break;
-    case 'A++':
-      multiplicadorClasificacion = 0.85;
-      break;
-    case 'A+':
-      multiplicadorClasificacion = 0.9;
-      break;
-    case 'A':
-      multiplicadorClasificacion = 1;
-      break;
-    case 'B':
-      multiplicadorClasificacion = 1.1;
-      break;
-    case 'C':
-      multiplicadorClasificacion = 1.2;
-      break;
-    case 'D':
-      multiplicadorClasificacion = 1.3;
-      break;
-    case 'E':
-      multiplicadorClasificacion = 1.4;
-      break;
-    case 'F':
-      multiplicadorClasificacion = 1.5;
-      break;
-    case 'G':
-      multiplicadorClasificacion = 1.6;
-      break;
-    default:
-      multiplicadorClasificacion = 1;
-  }
-
-  // Cálculo del costo basado en horas de uso y consumo
-  const horas = parseFloat(horasUso);
-  if (!isNaN(horas) && consumoBaseKWh > 0) {
-    const consumoMensual = consumoBaseKWh * horas * 30 * multiplicadorClasificacion;
-    const costoPorKWh = 150; // Precio en CLP por kWh
-    const costoMensual = consumoMensual * costoPorKWh;
-    setTotalCost(costoMensual);
-  } else {
-    setTotalCost(0);
-  }
-};
-
   return (
     <View style={styles.container}>
-      {/* Título de la página con el estilo de Actualidad */}
       <Text style={styles.screenTitle}>Datos</Text>
 
-      {/* Apartado de selección de gráfico */}
       <View style={styles.segmentedControl}>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Expenses' && styles.activeTab]}
@@ -180,65 +117,16 @@ const calcularCostoMensual = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Simulation' && styles.activeTab]}
-          onPress={() => setSelectedTab('Simulation')}
+          style={[styles.tabButton, selectedTab === 'Inversiones' && styles.activeTab]}
+          onPress={() => navigation.navigate('Inversiones')} // Nombre registrado en el stack de navegación
         >
-          <Text style={[styles.tabText, selectedTab === 'Simulation' && styles.activeTabText]}>
-            Simulación
+          <Text style={[styles.tabText, selectedTab === 'Inversiones' && styles.activeTabText]}>
+            Inversiones
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Mostrar el gráfico o simulación según la pestaña seleccionada */}
-      {selectedTab === 'Simulation' ? (
-        <View style={styles.simulationContainer}>
-          <Text style={styles.simulationTitle}>Simular consumo de electrodoméstico</Text>
-
-          <Picker
-            selectedValue={electrodomestico}
-            onValueChange={(itemValue) => setElectrodomestico(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Seleccione un electrodoméstico" value="" />
-            <Picker.Item label="Refrigerador" value="refrigerador" />
-            <Picker.Item label="Lavadora" value="lavadora" />
-            <Picker.Item label="Televisor" value="televisor" />
-            <Picker.Item label="Microondas" value="microondas" />
-          </Picker>
-
-          <Picker
-            selectedValue={clasificacion}
-            onValueChange={(itemValue) => setClasificacion(itemValue)}
-            style={styles.picker}
-          >
-            <Picker.Item label="Seleccione una clasificación energética" value="" />
-            <Picker.Item label="A+++" value="A+++" />
-            <Picker.Item label="A++" value="A++" />
-            <Picker.Item label="A+" value="A+" />
-            <Picker.Item label="A" value="A" />
-            <Picker.Item label="B" value="B" />
-            <Picker.Item label="C" value="C" />
-            <Picker.Item label="D" value="D" />
-            <Picker.Item label="E" value="E" />
-            <Picker.Item label="F" value="F" />
-            <Picker.Item label="G" value="G" />
-          </Picker>
-
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            placeholder="Ingrese horas de uso al día"
-            value={horasUso}
-            onChangeText={setHorasUso}
-          />
-
-          <TouchableOpacity style={styles.calculateButton} onPress={calcularCostoMensual}>
-            <Text style={styles.calculateButtonText}>Calcular Costo</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.totalCost}>Costo Mensual: {totalCost.toFixed(2)} CLP</Text>
-        </View>
-      ) : (
+      {selectedTab !== 'Inversiones' && (
         <>
           <LineChart
             data={chartData}
@@ -254,7 +142,6 @@ const calcularCostoMensual = () => {
             fromZero={true}
           />
 
-          {/* Sección de Categorías y Gastos/Ingresos */}
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Última Actividad</Text>
             <TouchableOpacity>
@@ -262,7 +149,6 @@ const calcularCostoMensual = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Lista de categorías según la selección de ingresos o gastos */}
           <FlatList
             data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
             keyExtractor={(item) => item.id}
@@ -390,49 +276,5 @@ const styles = StyleSheet.create({
   },
   positiveAmount: {
     color: '#4cd964',
-  },
-  simulationContainer: {
-    marginTop: 20,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 300,
-  },
-  simulationTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  picker: {
-    width: '100%',
-    height: 50,
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
-    width: '100%',
-    marginBottom: 10,
-    borderRadius: 5,
-  },
-  calculateButton: {
-    backgroundColor: '#511496',
-    padding: 10,
-    borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-  },
-  calculateButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  totalCost: {
-    marginTop: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });

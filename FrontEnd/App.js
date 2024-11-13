@@ -18,6 +18,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
 import { db, auth } from "./firebase";
+import { getCategoriesByType } from "./utils/database";
 import HomeScreen from "./screens/HomeScreen";
 import AhorroScreen from "./screens/AhorroScreen";
 import ActualidadScreen from "./screens/ActualidadScreen";
@@ -27,6 +28,7 @@ import LoginScreen from "./screens/Login";
 import RegisterScreen from "./screens/Register";
 import SimulacionScreen from "./screens/SimulacionScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import InversionScreen from "./screens/InversionScreen";
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
@@ -34,6 +36,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
 
 function CustomTabBarButton({ children, onPress }) {
   return (
@@ -213,16 +216,9 @@ export default function App() {
   const [user, setUser] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const slideAnim = React.useRef(new Animated.Value(600)).current;
+  const [ingresoCategorias, setIngresoCategorias] = React.useState([]);
+  const [gastoCategorias, setGastoCategorias] = React.useState([]);
 
-  const ingresoCategorias = ["Salario", "Venta de producto"];
-  const gastoCategorias = [
-    "Comida y Bebidas",
-    "Vestuario",
-    "Alojamiento",
-    "Salud",
-    "Transporte",
-    "Educación",
-  ];
   const [isInstallment, setIsInstallment] = React.useState(false);
   const [installmentCount, setInstallmentCount] = React.useState(1); // Estado para las cuotas
 
@@ -322,6 +318,24 @@ export default function App() {
       console.error("Error al añadir transacción: ", error);
     }
   };
+  React.useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const ingresos = await getCategoriesByType("Ingreso");
+        console.log("Categorías de ingreso:", ingresos);
+        const gastos = await getCategoriesByType("Gasto");
+        console.log("Categorías de gasto:", gastos);
+
+        setIngresoCategorias(ingresos.map((cat) => cat.nombre)); // Solo los nombres
+        setGastoCategorias(gastos.map((cat) => cat.nombre)); // Solo los nombres
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+
+    fetchCategorias();
+  }, []);
+
 
   React.useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -366,6 +380,11 @@ export default function App() {
           <Stack.Screen
             name="ProfileScreen"
             component={ProfileScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Inversiones" // Nombre de la pantalla en el stack
+            component={InversionScreen} // Componente de la pantalla
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -414,7 +433,7 @@ export default function App() {
                   style={[
                     styles.segmentedControlButton,
                     transactionType === "Ingreso" &&
-                      styles.segmentedControlButtonActive,
+                    styles.segmentedControlButtonActive,
                   ]}
                   onPress={() => setTransactionType("Ingreso")}
                 >
@@ -422,7 +441,7 @@ export default function App() {
                     style={[
                       styles.segmentedControlText,
                       transactionType === "Ingreso" &&
-                        styles.segmentedControlTextActive,
+                      styles.segmentedControlTextActive,
                     ]}
                   >
                     Ingreso
@@ -432,7 +451,7 @@ export default function App() {
                   style={[
                     styles.segmentedControlButton,
                     transactionType === "Gasto" &&
-                      styles.segmentedControlButtonActive,
+                    styles.segmentedControlButtonActive,
                   ]}
                   onPress={() => setTransactionType("Gasto")}
                 >
@@ -440,7 +459,7 @@ export default function App() {
                     style={[
                       styles.segmentedControlText,
                       transactionType === "Gasto" &&
-                        styles.segmentedControlTextActive,
+                      styles.segmentedControlTextActive,
                     ]}
                   >
                     Gasto
@@ -467,12 +486,13 @@ export default function App() {
                   <Picker.Item label="Seleccione categoría" value="" />
                   {transactionType === "Ingreso"
                     ? ingresoCategorias.map((cat, index) => (
-                        <Picker.Item key={index} label={cat} value={cat} />
-                      ))
+                      <Picker.Item key={index} label={cat} value={cat} />
+                    ))
                     : gastoCategorias.map((cat, index) => (
-                        <Picker.Item key={index} label={cat} value={cat} />
-                      ))}
+                      <Picker.Item key={index} label={cat} value={cat} />
+                    ))}
                 </Picker>
+
               </View>
 
               {/* Campo de descripción */}
@@ -599,6 +619,11 @@ export default function App() {
       </KeyboardAvoidingView>
     </NavigationContainer>
   );
+
+  console.log("Ingreso Categorias (final):", ingresoCategorias);
+  console.log("Gasto Categorias (final):", gastoCategorias);
+
+
 }
 
 const styles = StyleSheet.create({
