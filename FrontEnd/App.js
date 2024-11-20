@@ -35,6 +35,7 @@ import RegisterScreen from "./screens/Register";
 import SimulacionScreen from "./screens/SimulacionScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import InversionScreen from "./screens/InversionScreen";
+import AnalysisScreen from "./screens/AnalysisScreen";
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
@@ -227,9 +228,6 @@ export default function App() {
   const [isInstallment, setIsInstallment] = React.useState(false);
   const [installmentCount, setInstallmentCount] = React.useState(1); // Estado para las cuotas
 
-
-  
-
   // Cambiar entre Ingreso y Gasto y resetear cuotas si es Ingreso
   const handleTransactionTypeChange = (type) => {
     setTransactionType(type);
@@ -273,23 +271,24 @@ export default function App() {
 
   const handleAddTransaction = async () => {
     const parsedAmount = parseFloat(amount);
-  
+
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert("Por favor ingrese un monto válido.");
       return;
     }
-  
-    if (!category) { // Solo verificamos que no esté vacío
+
+    if (!category) {
+      // Solo verificamos que no esté vacío
       alert("Por favor seleccione una categoría válida.");
       return;
     }
-  
+
     const user = auth.currentUser;
     if (!user) {
       alert("Por favor inicie sesión.");
       return;
     }
-  
+
     const newTransaction = {
       type: transactionType,
       amount: parsedAmount,
@@ -301,9 +300,12 @@ export default function App() {
       creationDate: new Date().toLocaleDateString(),
       userId: user.uid,
     };
-  
+
     try {
-      const docRef = await addDoc(collection(db, "transactions"), newTransaction);
+      const docRef = await addDoc(
+        collection(db, "transactions"),
+        newTransaction
+      );
       setTransactions((prevTransactions) => [
         ...prevTransactions,
         { id: docRef.id, ...newTransaction },
@@ -314,7 +316,6 @@ export default function App() {
       alert("Hubo un error al guardar la transacción. Intenta nuevamente.");
     }
   };
-  
 
   const enrichTransactionsWithCategories = async (transactions) => {
     try {
@@ -432,6 +433,11 @@ export default function App() {
             name="ProfileScreen"
             component={ProfileScreen}
             options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="AnalysisScreen"
+            component={AnalysisScreen}
+            options={{ headerShown: false }} // Sin encabezado
           />
           <Stack.Screen
             name="Inversiones"

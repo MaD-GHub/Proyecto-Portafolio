@@ -3,15 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-nati
 import LineChartComponent from "../components/LineChartComponent"; // Componente de gráficos de ingresos
 import ExpensesChartComponent from "../components/ExpensesChartComponent";
 import ComparisonChartComponent from "../components/ComparisonChartComponent"; // Componente de otros gráficos
+import AnalysisScreen from "../screens/AnalysisScreen"; // Importar AnalysisScreen
 
 export default function DatosScreen({ navigation, route }) {
   const [selectedTab, setSelectedTab] = useState("Gráficos");
   const [selectedFilter, setSelectedFilter] = useState("Ingresos"); // Filtro inicial: Ingresos
 
   const handleTabPress = (tab) => {
-    setSelectedTab(tab);
-    if (tab === "Inversiones") {
+    if (tab === "Análisis") {
+      // Navega a AnalysisScreen
+      navigation.navigate("AnalysisScreen");
+    } else if (tab === "Inversiones") {
       navigation.navigate("Inversiones");
+    } else {
+      setSelectedTab(tab);
     }
   };
 
@@ -43,40 +48,29 @@ export default function DatosScreen({ navigation, route }) {
       case "Gráficos":
         return (
           <ScrollView contentContainerStyle={styles.scrollContent}>
-            {/* Contenido del gráfico */}
             <View style={styles.graphWrapper}>{renderGraphContent()}</View>
-
-            {/* Barra de filtros debajo del gráfico */}
             <View style={styles.filterBar}>
-              {["Ingresos", "Gastos", "Comparación"].map(
-                (filter) => (
-                  <TouchableOpacity
-                    key={filter}
+              {["Ingresos", "Gastos", "Comparación"].map((filter) => (
+                <TouchableOpacity
+                  key={filter}
+                  style={[
+                    styles.filterButton,
+                    selectedFilter === filter && styles.activeFilter,
+                  ]}
+                  onPress={() => handleFilterChange(filter)}
+                >
+                  <Text
                     style={[
-                      styles.filterButton,
-                      selectedFilter === filter && styles.activeFilter,
+                      styles.filterText,
+                      selectedFilter === filter && styles.activeFilterText,
                     ]}
-                    onPress={() => handleFilterChange(filter)}
                   >
-                    <Text
-                      style={[
-                        styles.filterText,
-                        selectedFilter === filter && styles.activeFilterText,
-                      ]}
-                    >
-                      {filter}
-                    </Text>
-                  </TouchableOpacity>
-                )
-              )}
+                    {filter}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </ScrollView>
-        );
-      case "Análisis":
-        return (
-          <View style={styles.contentContainer}>
-            <Text style={styles.contentText}>Vista de Análisis</Text>
-          </View>
         );
       case "Inversiones":
         return (
@@ -218,4 +212,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
