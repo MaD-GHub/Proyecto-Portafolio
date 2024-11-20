@@ -22,6 +22,8 @@ import SimulatedTransactionHistory from "../components/SimulatedTransactionHisto
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { db, auth } from "../firebase";
 import { collection, query, where, onSnapshot, deleteDoc, doc, addDoc } from "firebase/firestore"; // Importa addDoc
+import registerActivity from "../components/registerActivity";
+
 
 // Funciones auxiliares
 const formatCurrency = (amount) => {
@@ -62,6 +64,17 @@ const SimulacionScreen = ({ navigation }) => {
     };
     loadFonts();
     checkSimulationSession();
+  }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "SimulacionScreen",
+        description: 'Usuario visita la página de simulación.', 
+        });
+    }
   }, []);
 
   const checkSimulationSession = async () => {

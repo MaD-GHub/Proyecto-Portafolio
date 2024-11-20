@@ -6,6 +6,8 @@ import { auth, db } from '../firebase'; // Importar Firebase auth y Firestore
 import { useNavigation } from '@react-navigation/native'; // Para navegación después de logout
 import { doc, getDoc, updateDoc, collection, query, where, onSnapshot } from 'firebase/firestore'; // Importar las funciones correctas de Firestore
 import { updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'; // Para actualizar correo y contraseña
+import registerActivity from "../components/registerActivity";
+
 
 // Función para formatear a CLP
 const formatCurrency = (amount) => {
@@ -85,6 +87,18 @@ const ProfileScreen = ({ route }) => {
       }
     };
   }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "ProfileScreen",
+        description: 'Usuario visita la página ProfileScreen.', 
+        });
+    }
+  }, []);
+  
 
   const openModal = () => {
     setModalVisible(true);
@@ -202,6 +216,7 @@ const ProfileScreen = ({ route }) => {
     return ingresos - gastos;
   };
 
+
   // Función para cerrar sesión con confirmación
   const handleLogout = () => {
     Alert.alert(
@@ -279,7 +294,11 @@ const ProfileScreen = ({ route }) => {
           <MaterialCommunityIcons name="lock" size={24} color="#885fd8" />
           <Text style={styles.optionText}>Seguridad</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionItem} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate("SugerenciasScreen")}>
+          <MaterialCommunityIcons name="file-document" size={24} color="#885fd8" />
+          <Text style={styles.optionText}>Enviar Sugerencias</Text>
+        </TouchableOpacity>
+        <View style={styles.optionItem}>
           <MaterialCommunityIcons name="file-document" size={24} color="#885fd8" />
           <Text style={styles.optionText}>Términos y Condiciones</Text>
         </TouchableOpacity>

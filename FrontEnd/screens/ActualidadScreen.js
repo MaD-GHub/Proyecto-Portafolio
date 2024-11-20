@@ -16,6 +16,11 @@ import {
 import * as Font from 'expo-font';
 import { FontAwesome5, MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native'; // Importamos el hook de navegación
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import registerActivity from "../components/registerActivity";
+import { auth } from "../firebase";
 
 const { width } = Dimensions.get('window');
 const NoHayNoticiaImage = require('../assets/Nonoticia.png');
@@ -26,10 +31,13 @@ const ActualidadScreen = () => {
   const [marketData, setMarketData] = useState([]);
   const [newsData, setNewsData] = useState([]);
   const [bookData, setBookData] = useState([]);
+  const [firebaseNewsData, setFirebaseNewsData] = useState([]); // Estado para las noticias de Firebase
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [modalVisible, setModalVisible] = useState(null);
   const [correctAnswers, setCorrectAnswers] = useState(0); // Contador para respuestas correctas
   const [showResult, setShowResult] = useState(false); // Mostrar el resultado del quiz
+
+  const navigation = useNavigation(); // Instancia de navegación
 
   // Términos financieros importantes
   const financialTerms = [
@@ -63,6 +71,34 @@ const ActualidadScreen = () => {
 
     loadFonts();
   }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "ActualidadScreen",
+        description: 'Usuario visita la página Actualidad', 
+        });
+    }
+  }, []);
+
+  // Cargar noticias desde Firebase
+  const fetchNewsFromFirebase = async () => {
+    setLoading(true);
+    try {
+      const snapshot = await getDocs(collection(db, 'news')); // Cambia 'news' al nombre de la colección en Firestore
+      const newsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setFirebaseNewsData(newsList); // Guardar noticias de Firebase en el estado correspondiente
+    } catch (error) {
+      console.error('Error fetching news from Firebase:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Cargar datos del mercado
   const fetchMarketData = async () => {
@@ -139,7 +175,7 @@ const ActualidadScreen = () => {
 
   const fetchBooks = async () => {
     setLoading(true);
-    setBookData(recommendedBooks);
+    setBookData(recommendedBooks); // Asegúrate de que recommendedBooks tiene los datos correctos
     setLoading(false);
   };
 
@@ -148,8 +184,9 @@ const ActualidadScreen = () => {
       fetchMarketData();
     } else if (selectedTab === 'Noticias') {
       fetchNews();
-    } else if (selectedTab === 'Lecturas Recomendadas') {
-      fetchBooks(); // Cargar libros al abrir el modal de Lecturas Recomendadas
+      fetchNewsFromFirebase(); // Cargar noticias desde Firebase cuando se selecciona la pestaña "Noticias"
+    } else if (selectedTab === 'Educación') {
+      fetchBooks(); // Cargar libros al abrir la sección de Educación
     }
   }, [selectedTab]);
 
@@ -192,215 +229,245 @@ const ActualidadScreen = () => {
     );
   };
 
-  // Renderiza cada noticia
-  const renderNewsItem = ({ item }) => {
-    const imageUrl = typeof item.image_url === 'string' ? item.image_url : null;
-
-    return (
-      <View style={styles.newsCard}>
-        <ImageBackground
-          source={imageUrl ? { uri: imageUrl } : NoHayNoticiaImage}
-          style={styles.newsImage}
-          imageStyle={{ borderRadius: 10 }}
-        >
-          <View style={styles.newsOverlay}>
-            <Text style={styles.newsTitle}>{item.title}</Text>
-          </View>
-        </ImageBackground>
+  // Renderiza cada noticia de Firebase
+  const renderFirebaseNewsItem = ({ item }) => (
+    <View style={styles.newsCard    }>
+    <ImageBackground
+      source={{ uri: item.mainPhoto || NoHayNoticiaImage }}
+      style={styles.newsImage}
+      imageStyle={{ borderRadius: 10 }}
+    >
+      <View style={styles.newsOverlay}>
+        <Text style={styles.newsTitle}>{item.title}</Text>
       </View>
-    );
-  };
+    </ImageBackground>
+    <Text style={styles.newsContent}>{item.content}</Text>
+  </View>
+);
 
-  // Renderiza cada libro
-  const renderBookItem = ({ item }) => (
-    <View style={styles.bookCard}>
-      <Image
-        source={item.cover}
-        style={styles.smallBookImage}
-        resizeMode="contain"
-      />
-      <View style={styles.bookDetails}>
-        <Text style={styles.bookTitle}>{item.title}</Text>
-        <Text style={styles.bookAuthor}>{item.author}</Text>
-      </View>
-    </View>
-  );
-
-  // Renderiza el contenido de Educación Financiera
-  const renderEducationItem = ({ item }) => (
-    <TouchableOpacity onPress={() => setModalVisible(item.title.toLowerCase())}>
-      <LinearGradient
-        colors={item.background}
-        style={[styles.educationCard, item.title === 'Lecturas Recomendadas' && styles.doubleWidth]}
-      >
-        <MaterialIcons name={item.icon} size={40} color="white" />
-        <Text style={styles.educationTitle}>{item.title}</Text>
-        <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-
-  // Datos para las tarjetas de educación financiera
-  const educationData = [
-    {
-      title: 'Lecturas Recomendadas',
-      subtitle: 'Explora lecturas esenciales',
-      icon: 'library-books',
-      background: ['#43a047', '#66bb6a'],
-    },
-    {
-      title: 'Artículos',
-      subtitle: 'Explora artículos sobre finanzas',
-      icon: 'article',
-      background: ['#6A0DAD', '#F071A1'],
-    },
-    {
-      title: 'Vídeos',
-      subtitle: 'Aprende con videos interactivos',
-      icon: 'play-circle-outline',
-      background: ['#1FCAB1', '#348AC7'],
-    },
-    {
-      title: 'Glosario',
-      subtitle: 'Términos financieros importantes',
-      icon: 'book',
-      background: ['#FF8A00', '#FF3D00'],
-    },
-    {
-      title: 'Simulador de Inversión',
-      subtitle: 'Simula pequeñas inversiones',
-      icon: 'trending-up',
-      background: ['#f06292', '#f48fb1'],
-    },
-  ];
+// Renderiza cada noticia de la API
+const renderNewsItem = ({ item }) => {
+  const imageUrl = typeof item.image_url === 'string' ? item.image_url : null;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.screenTitle}>Actualidad</Text>
+    <View style={styles.newsCard}>
+      <ImageBackground
+        source={imageUrl ? { uri: imageUrl } : NoHayNoticiaImage}
+        style={styles.newsImage}
+        imageStyle={{ borderRadius: 10 }}
+      >
+        <View style={styles.newsOverlay}>
+          <Text style={styles.newsTitle}>{item.title}</Text>
+        </View>
+      </ImageBackground>
+    </View>
+  );
+};
 
-      <View style={styles.segmentedControl}>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Valor Mercado' && styles.activeTab]}
-          onPress={() => setSelectedTab('Valor Mercado')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Valor Mercado' && styles.activeTabText]}>
-            Mercado
-          </Text>
-        </TouchableOpacity>
+// Renderiza cada libro
+const renderBookItem = ({ item }) => (
+  <View style={styles.bookCard}>
+    <Image
+      source={item.cover}
+      style={styles.smallBookImage}
+      resizeMode="contain"
+    />
+    <View style={styles.bookDetails}>
+      <Text style={styles.bookTitle}>{item.title}</Text>
+      <Text style={styles.bookAuthor}>{item.author}</Text>
+    </View>
+  </View>
+);
 
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Noticias' && styles.activeTab]}
-          onPress={() => setSelectedTab('Noticias')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Noticias' && styles.activeTabText]}>
-            Noticias
-          </Text>
-        </TouchableOpacity>
+// Renderiza el contenido de Educación Financiera
+const renderEducationItem = ({ item }) => (
+  <TouchableOpacity
+    onPress={item.title === 'Guías y tutoriales' ? () => navigation.navigate('TutorialScreen') : () => setModalVisible(item.title.toLowerCase())}
+  >
+    <LinearGradient
+      colors={item.background}
+      style={[styles.educationCard, item.title === 'Lecturas Recomendadas' && styles.doubleWidth]}
+    >
+      <MaterialIcons name={item.icon} size={40} color="white" />
+      <Text style={styles.educationTitle}>{item.title}</Text>
+      <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
+    </LinearGradient>
+  </TouchableOpacity>
+);
 
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Educación' && styles.activeTab]}
-          onPress={() => setSelectedTab('Educación')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Educación' && styles.activeTabText]}>
-            Educación
-          </Text>
-        </TouchableOpacity>
-      </View>
+// Datos para las tarjetas de educación financiera
+const educationData = [
+  {
+    title: 'Lecturas Recomendadas',
+    subtitle: 'Explora lecturas esenciales',
+    icon: 'library-books',
+    background: ['#43a047', '#66bb6a'],
+  },
+  {
+    title: 'Artículos',
+    subtitle: 'Explora artículos sobre finanzas',
+    icon: 'article',
+    background: ['#6A0DAD', '#F071A1'],
+  },
+  {
+    title: 'Vídeos',
+    subtitle: 'Aprende con videos interactivos',
+    icon: 'play-circle-outline',
+    background: ['#1FCAB1', '#348AC7'],
+  },
+  {
+    title: 'Glosario',
+    subtitle: 'Términos financieros importantes',
+    icon: 'book',
+    background: ['#FF8A00', '#FF3D00'],
+  },
+  {
+    title: 'Guías y tutoriales',
+    subtitle: '¡Aprende a usar la app!',
+    icon: 'trending-up',
+    background: ['#f06292', '#f48fb1'],
+  },
+];
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#511496" />
-      ) : (
-        <>
-          {selectedTab === 'Valor Mercado' && (
+return (
+  <SafeAreaView style={styles.container}>
+    <Text style={styles.screenTitle}>Actualidad</Text>
+
+    <View style={styles.segmentedControl}>
+      <TouchableOpacity
+        style={[styles.tabButton, selectedTab === 'Valor Mercado' && styles.activeTab]}
+        onPress={() => setSelectedTab('Valor Mercado')}
+      >
+        <Text style={[styles.tabText, selectedTab === 'Valor Mercado' && styles.activeTabText]}>
+          Mercado
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.tabButton, selectedTab === 'Noticias' && styles.activeTab]}
+        onPress={() => setSelectedTab('Noticias')}
+      >
+        <Text style={[styles.tabText, selectedTab === 'Noticias' && styles.activeTabText]}>
+          Noticias
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.tabButton, selectedTab === 'Educación' && styles.activeTab]}
+        onPress={() => setSelectedTab('Educación')}
+      >
+        <Text style={[styles.tabText, selectedTab === 'Educación' && styles.activeTabText]}>
+          Educación
+        </Text>
+      </TouchableOpacity>
+    </View>
+
+    {loading ? (
+      <ActivityIndicator size="large" color="#511496" />
+    ) : (
+      <>
+        {selectedTab === 'Valor Mercado' && (
+          <FlatList
+            data={marketData}
+            renderItem={renderMarketItem}
+            keyExtractor={(item) => item.name}
+            contentContainerStyle={styles.marketList}
+            numColumns={2}
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            ListFooterComponent={<View style={{ height: 120 }} />}
+          />
+        )}
+
+        {selectedTab === 'Noticias' && (
+          <>
             <FlatList
-              data={marketData}
-              renderItem={renderMarketItem}
-              keyExtractor={(item) => item.name}
-              contentContainerStyle={styles.marketList}
-              numColumns={2}
-              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              data={firebaseNewsData.slice(0, 4)} // Mostrar las primeras 4 noticias de Firebase
+              renderItem={renderFirebaseNewsItem}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.newsList}
               ListFooterComponent={<View style={{ height: 120 }} />}
             />
-          )}
-
-          {selectedTab === 'Noticias' && (
             <FlatList
-              data={newsData.slice(0, 4)} // Mostrar las primeras 4 noticias
+              data={newsData.slice(0, 4)} // Mostrar las primeras 4 noticias de la API
               renderItem={renderNewsItem}
               keyExtractor={(item) => item.title}
               contentContainerStyle={styles.newsList}
               ListFooterComponent={<View style={{ height: 120 }} />}
             />
-          )}
+          </>
+        )}
 
-          {selectedTab === 'Educación' && (
-            <>
-              {/* Lecturas Recomendadas ocupa toda la fila superior */}
-              <FlatList
-                data={educationData.slice(0, 1)} // Solo mostrar "Lecturas Recomendadas"
-                renderItem={renderEducationItem}
-                keyExtractor={(item) => item.title}
-                contentContainerStyle={styles.educationList}
-              />
-              {/* Las otras tarjetas */}
-              <FlatList
-                data={educationData.slice(1)} // Mostrar las otras 4 tarjetas
-                renderItem={renderEducationItem}
-                keyExtractor={(item) => item.title}
-                contentContainerStyle={styles.educationList}
-                numColumns={2}
-                columnWrapperStyle={{ justifyContent: 'space-between' }}
-                ListFooterComponent={<View style={{ height: 120 }} />}
-              />
-            </>
-          )}
-        </>
-      )}
+        {selectedTab === 'Educación' && (
+          <>
+            {/* Lecturas Recomendadas ocupa toda la fila superior */}
+            <FlatList
+              data={educationData.slice(0, 1)} // Solo mostrar "Lecturas Recomendadas"
+              renderItem={renderEducationItem}
+              keyExtractor={(item) => item.title}
+              contentContainerStyle={styles.educationList}
+            />
+            {/* Las otras tarjetas */}
+            <FlatList
+              data={educationData.slice(1)} // Mostrar las otras 4 tarjetas
+              renderItem={renderEducationItem}
+              keyExtractor={(item) => item.title}
+              contentContainerStyle={styles.educationList}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between' }}
+              ListFooterComponent={<View style={{ height: 120 }} />}
+            />
+          </>
+        )}
+      </>
+    )}
 
-      {/* Modal para cada apartado de educación financiera */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible !== null}
-        onRequestClose={() => setModalVisible(null)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(null)}>
-              <AntDesign name="close" size={24} color="black" />
-            </TouchableOpacity>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.modalTitle}>
-                {modalVisible?.charAt(0).toUpperCase() + modalVisible?.slice(1)}
-              </Text>
-              {modalVisible === 'glosario' &&
-                financialTerms.map((term, index) => (
-                  <View key={index} style={styles.termCard}>
-                    <Text style={styles.termTitle}>{term.term}</Text>
-                    <Text style={styles.termDefinition}>{term.definition}</Text>
+    {/* Modal para cada apartado de educación financiera */}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible !== null}
+      onRequestClose={() => setModalVisible(null)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(null)}>
+            <AntDesign name="close" size={24} color="black" />
+          </TouchableOpacity>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <Text style={styles.modalTitle}>
+              {modalVisible?.charAt(0).toUpperCase() + modalVisible?.slice(1)}
+            </Text>
+            {modalVisible === 'glosario' &&
+              financialTerms.map((term, index) => (
+                <View key={index} style={styles.termCard}>
+                  <Text style={styles.termTitle}>{term.term}</Text>
+                  <Text style={styles.termDefinition}>{term.definition}</Text>
+                </View>
+              ))}
+            {modalVisible === 'lecturas recomendadas' &&
+              bookData.map((book, index) => (
+                <View key={index} style={styles.termCard}>
+                  <Image 
+                    source={book.cover} 
+                    style={styles.smallBookImage} 
+                    resizeMode="contain"
+                  />
+                  <View style={styles.bookDetails}>
+                    <Text style={styles.bookTitle}>{book.title}</Text>
+                    <Text style={styles.bookAuthor}>{book.author}</Text>
                   </View>
-                ))}
-              {modalVisible === 'lecturas recomendadas' &&
-                bookData.map((book, index) => (
-                  <View key={index} style={styles.termCard}>
-                    <Image 
-                      source={book.cover} 
-                      style={styles.smallBookImage} 
-                      resizeMode="contain"
-                    />
-                    <View style={styles.bookDetails}>
-                      <Text style={styles.bookTitle}>{book.title}</Text>
-                      <Text style={styles.bookAuthor}>{book.author}</Text>
-                    </View>
-                  </View>
-                ))}
-            </ScrollView>
-          </View>
+                </View>
+              ))}
+          </ScrollView>
         </View>
-      </Modal>
-    </SafeAreaView>
-  );
+      </View>
+    </Modal>
+  </SafeAreaView>
+);
 };
+
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -527,7 +594,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   bookCard: {
-    flexDirection: 'row',
+    flexDirection: 'row', // Para que la imagen y texto se alineen de lado a lado
     alignItems: 'center',
     padding: 10,
     marginBottom: 10,
@@ -537,14 +604,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e6e6e6',
   },
+  smallBookImage: {
+    width: 50, // Tamaño adecuado para la imagen
+    height: 70, // Ajustar la altura también
+    borderRadius: 5,
+    marginRight: 15, // Espacio entre la imagen y el texto
+  },
   bookDetails: {
     flex: 1,
-    marginLeft: 10,
-  },
-  smallBookImage: {
-    width: 50,
-    height: 70, // Pequeño tamaño para la portada del libro
-    borderRadius: 5,
+    justifyContent: 'center', // Centra el texto verticalmente
   },
   bookTitle: {
     fontFamily: 'Inter-Bold',
@@ -556,6 +624,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'left',
+    marginTop: 5, // Añadir espacio entre el título y el autor
   },
   labelText: {
     fontFamily: 'Inter-Bold',

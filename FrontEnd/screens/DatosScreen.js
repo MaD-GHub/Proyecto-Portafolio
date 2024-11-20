@@ -1,115 +1,175 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import LineChartComponent from "../components/LineChartComponent"; // Componente de gráficos de ingresos
-import ExpensesChartComponent from "../components/ExpensesChartComponent";
-import ComparisonChartComponent from "../components/ComparisonChartComponent"; // Componente de otros gráficos
-import AnalysisScreen from "../screens/AnalysisScreen"; // Importar AnalysisScreen
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, TextInput } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
+import { LinearGradient } from 'expo-linear-gradient';
+import moment from 'moment';
+import { Picker } from '@react-native-picker/picker';
+import registerActivity from "../components/registerActivity";
+import { auth } from "../firebase";
 
-export default function DatosScreen({ navigation, route }) {
-  const [selectedTab, setSelectedTab] = useState("Gráficos");
-  const [selectedFilter, setSelectedFilter] = useState("Ingresos"); // Filtro inicial: Ingresos
+import InversionScreen from './InversionScreen'; // Importar la pantalla de Inversión
 
-  const handleTabPress = (tab) => {
-    if (tab === "Análisis") {
-      // Navega a AnalysisScreen
-      navigation.navigate("AnalysisScreen");
-    } else if (tab === "Inversiones") {
-      navigation.navigate("Inversiones");
-    } else {
-      setSelectedTab(tab);
-    }
-  };
+export default function DatosScreen({ navigation }) {
+  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses', 'Income', o 'Inversiones'
 
-  const handleFilterChange = (filter) => {
-    setSelectedFilter(filter);
-  };
+  const screenWidth = Dimensions.get('window').width;
 
+  //Registrar actividad
   useEffect(() => {
-    if (route?.params?.tab) {
-      setSelectedTab(route.params.tab);
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "DatosScreen",
+        description: 'Usuario visita la página DatosScreen.', 
+        });
     }
-  }, [route?.params]);
+  }, []);
 
-  const renderGraphContent = () => {
-    switch (selectedFilter) {
-      case "Ingresos":
-        return <LineChartComponent />; // Componente del gráfico de ingresos
-      case "Gastos":
-        return <ExpensesChartComponent />;
-      case "Comparación":
-        return <ComparisonChartComponent />;
-      default:
-        return null;
+  // Datos de prueba para las categorías de gastos
+  const expenseCategories = [
+    { id: '1', category: 'Comidas y Bebidas', amount: -200, date: 'Oct 10, 12:21 pm', icon: '🍔' },
+    { id: '2', category: 'Vestuario', amount: -150, date: 'Oct 9, 3:30 pm', icon: '👗' },
+    { id: '3', category: 'Alojamiento', amount: -800, date: 'Oct 7, 9:00 am', icon: '🏠' },
+    { id: '4', category: 'Salud', amount: -250, date: 'Oct 5, 11:15 am', icon: '🏥' },
+    { id: '5', category: 'Transporte', amount: -75, date: 'Oct 3, 8:00 am', icon: '🚗' },
+    { id: '6', category: 'Educación', amount: -300, date: 'Oct 1, 10:00 am', icon: '🎓' },
+  ];
+
+  // Datos de prueba para las categorías de ingresos
+  const incomeCategories = [
+    { id: '1', category: 'Salario', amount: 1500, date: 'Oct 10, 12:21 pm', icon: '💼' },
+    { id: '2', category: 'Ventas de Producto', amount: 800, date: 'Oct 9, 3:30 pm', icon: '🛒' },
+  ];
+
+  // Generar etiquetas de meses
+  const generateMonthLabels = () => {
+    const currentMonthIndex = moment().month();
+    const months = [];
+    for (let i = 0; i < 7; i++) {
+      months.push(moment().month((currentMonthIndex + i) % 12).format('MMM'));
     }
+    return months;
   };
 
-  const renderContent = () => {
-    switch (selectedTab) {
-      case "Gráficos":
-        return (
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            <View style={styles.graphWrapper}>{renderGraphContent()}</View>
-            <View style={styles.filterBar}>
-              {["Ingresos", "Gastos", "Comparación"].map((filter) => (
-                <TouchableOpacity
-                  key={filter}
-                  style={[
-                    styles.filterButton,
-                    selectedFilter === filter && styles.activeFilter,
-                  ]}
-                  onPress={() => handleFilterChange(filter)}
-                >
-                  <Text
-                    style={[
-                      styles.filterText,
-                      selectedFilter === filter && styles.activeFilterText,
-                    ]}
-                  >
-                    {filter}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        );
-      case "Inversiones":
-        return (
-          <View style={styles.contentContainer}>
-            <Text style={styles.contentText}>Vista de Inversiones</Text>
-          </View>
-        );
-      default:
-        return null;
-    }
+  // Datos de prueba para el gráfico
+  const chartData = {
+    labels: generateMonthLabels(),
+    datasets: [
+      {
+        data: selectedTab === 'Expenses' ? [500, 700, 800, 320, 900, 600, 700] : [1000, 1100, 900, 320, 1150, 920, 970],
+        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
+        strokeWidth: 3,
+      },
+    ],
+  };
+
+  const chartConfig = {
+    backgroundGradientFrom: '#fff',
+    backgroundGradientTo: '#fff',
+    color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
+    strokeWidth: 2,
+    decimalPlaces: 0,
+    propsForDots: {
+      r: '6',
+      strokeWidth: '2',
+      stroke: '#ffffff',
+    },
+    withVerticalLines: false,
+    withHorizontalLines: false,
+    withInnerLines: false,
+    propsForBackgroundLines: {
+      stroke: 'transparent',
+    },
+    withVerticalLabels: true,
+    withHorizontalLabels: true,
+    labelFontSize: 14,
+    labelFontWeight: 'bold',
+    propsForHorizontalLabels: {
+      fill: '#000',
+      fontWeight: 'bold',
+    },
+    propsForVerticalLabels: {
+      fill: '#000',
+      fontWeight: 'bold',
+    },
   };
 
   return (
     <View style={styles.container}>
-      {/* Segmented Control */}
+      <Text style={styles.screenTitle}>Datos</Text>
+
       <View style={styles.segmentedControl}>
-        {["Gráficos", "Análisis", "Inversiones"].map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tabButton,
-              selectedTab === tab && styles.activeTab,
-            ]}
-            onPress={() => handleTabPress(tab)}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                selectedTab === tab && styles.activeTabText,
-              ]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Expenses' && styles.activeTab]}
+          onPress={() => setSelectedTab('Expenses')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Expenses' && styles.activeTabText]}>
+            Gastos
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Income' && styles.activeTab]}
+          onPress={() => setSelectedTab('Income')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Income' && styles.activeTabText]}>
+            Ingresos
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Inversiones' && styles.activeTab]}
+          onPress={() => navigation.navigate('Inversiones')} // Navega a la pantalla de Inversiones
+        >
+          <Text style={[styles.tabText, selectedTab === 'Inversiones' && styles.activeTabText]}>
+            Inversiones
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Contenido dinámico */}
-      {renderContent()}
+      {selectedTab !== 'Inversiones' && (
+        <>
+          <LineChart
+            data={chartData}
+            width={screenWidth * 0.95}
+            height={220}
+            chartConfig={chartConfig}
+            bezier
+            style={styles.chart}
+            withVerticalLabels={true}
+            withHorizontalLabels={true}
+            withDots={true}
+            withShadow={false}
+            fromZero={true}
+          />
+
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Última Actividad</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAll}>Ver Todo</Text>
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.listItem}>
+                <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
+                  <Text style={styles.icon}>{item.icon}</Text>
+                </LinearGradient>
+                <View style={styles.details}>
+                  <Text style={styles.category}>{item.category}</Text>
+                  <Text style={styles.date}>{item.date}</Text>
+                </View>
+                <Text style={[styles.amount, item.amount < 0 ? styles.negativeAmount : styles.positiveAmount]}>
+                  {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
+                </Text>
+              </View>
+            )}
+          />
+        </>
+      )}
     </View>
   );
 }
@@ -203,12 +263,24 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
-  contentText: {
-    fontSize: 18,
-    color: "#673072",
-    textAlign: "center",
+  category: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  date: {
+    fontSize: 14,
+    color: '#888',
+  },
+  amount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  negativeAmount: {
+    color: '#ff3b30',
+  },
+  positiveAmount: {
+    color: '#4cd964',
   },
 });

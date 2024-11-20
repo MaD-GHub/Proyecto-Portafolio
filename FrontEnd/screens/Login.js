@@ -6,6 +6,9 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import * as Font from 'expo-font';
 import { useNavigation } from '@react-navigation/native';  // Para navegación
 import { FontAwesome5 } from '@expo/vector-icons';  // Iconos FontAwesome
+import registerActivity from '../components/registerActivity';  // Registro de actividad
+
+// Componente de inicio de sesión
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -13,6 +16,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const navigation = useNavigation();  // Hook de navegación
+
 
   // Función para manejar el inicio de sesión
   const handleLogin = async () => {
@@ -25,6 +29,11 @@ export default function LoginScreen() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       console.log('Usuario autenticado:', user.uid);  
+      await registerActivity(user.uid, 'login', {    // Registro de actividad
+        screen: 'Login',  // Pantalla donde ocurrió la acción
+        description: 'Usuario inició sesión exitosamente', 
+        email: email          // Registrar el correo electrónico utilizado
+      });  
       navigation.navigate('HomeTabs');
     } catch (error) {
       Alert.alert('Error', error.message);  

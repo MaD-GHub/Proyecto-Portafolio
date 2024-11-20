@@ -18,18 +18,170 @@ import * as Font from "expo-font";
 import { useNavigation } from "@react-navigation/native";
 import { collection, query, where, deleteDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db, auth } from "../firebase";
-import { LinearGradient } from "expo-linear-gradient";
-import Balance from "../components/Balance";
-import Timeline from "../components/Timeline";
-import FilteredTransactionHistory from "../components/FilteredTransactionHistory";
+import registerActivity from "../components/registerActivity"; 
 
-// Función para formatear a CLP
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    minimumFractionDigits: 0,
-  }).format(amount);
+// Función para obtener la fecha actual
+const getTodayDate = () => {
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2, "0");
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const yyyy = today.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+// Función para formatear las fechas en un formato legible
+const formatDate = (date) => {
+  if (!date) return "Fecha no disponible"; // Verifica si la fecha es válida
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) {
+    return "Fecha inválida"; // Devuelve un mensaje si la fecha es inválida
+  }
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  return parsedDate.toLocaleDateString("es-CL", options);
+};
+
+// Función para agrupar transacciones por fecha
+const groupTransactionsByDate = (transactions) => {
+  return transactions.reduce((groups, transaction) => {
+    const date = new Date(transaction.selectedDate).toDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(transaction);
+    return groups;
+  }, {});
+};
+
+// Componente para la línea de tiempo (proyección financiera)
+const Timeline = ({ transactions }) => {
+  const [projection, setProjection] = useState([]); // Guardará la proyección futura
+  const months = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
+
+  useEffect(() => {
+    calculateProjection();
+  }, [transactions]); // La proyección se recalcula cuando cambian las transacciones
+
+  
+
+  // Función para calcular la proyección
+  const calculateProjection = () => {
+    const projectionMonths = 6; // Proyectamos 6 meses hacia adelante
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+    const projectionData = [];
+
+    let currentBalance = 0; // Balance inicial, depende de la situación del usuario
+
+    for (let i = 0; i < projectionMonths; i++) {
+      let monthlyIncome = 0; // Ingreso mensual (fijo + variable)
+      let monthlyExpense = 0; // Gasto mensual (fijo + cuotas)
+
+      // Procesamos todas las transacciones para ajustar ingresos y gastos
+      transactions.forEach((transaction) => {
+        const amount = parseFloat(transaction.amount);
+        const isFixed = transaction.isFixed === "Fijo"; // Ingresos/Gastos fijos
+        const isCurrentMonth =
+          new Date(transaction.selectedDate).getMonth() ===
+          (currentMonth + i) % 12;
+
+        // Ingresos
+        if (transaction.type === "Ingreso") {
+          if (isFixed) {
+            // Ingresos fijos cada mes
+            monthlyIncome += amount;
+          } else if (isCurrentMonth) {
+            // Ingresos variables sólo en el mes correspondiente
+            monthlyIncome += amount;
+          }
+        }
+
+        // Gastos
+        if (transaction.type === "Gasto") {
+          if (isFixed) {
+            // Gastos fijos cada mes
+            monthlyExpense += amount;
+          } else if (
+            transaction.isInstallment &&
+            transaction.installmentCount > 0
+          ) {
+            // Si es un gasto en cuotas, se reparte la cuota en los meses correspondientes
+            const installmentAmount = amount / transaction.installmentCount;
+            const startMonth = new Date(
+              transaction.installmentStartDate
+            ).getMonth();
+
+            // Verificamos si la cuota aplica a este mes proyectado
+            if (
+              (currentMonth + i) % 12 >= startMonth &&
+              (currentMonth + i) % 12 <
+                startMonth + transaction.installmentCount
+            ) {
+              monthlyExpense += installmentAmount;
+            }
+          } else if (isCurrentMonth) {
+            // Gastos variables sólo en el mes correspondiente
+            monthlyExpense += amount;
+          }
+        }
+      });
+
+      // Balance mensual proyectado (ingresos - gastos)
+      currentBalance += monthlyIncome - monthlyExpense;
+
+      const projectedMonth = (currentMonth + i) % 12;
+      const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
+
+      console.log(
+        `Proyección para ${months[projectedMonth]} ${projectedYear}: Ingresos: ${monthlyIncome}, Gastos: ${monthlyExpense}, Balance: ${currentBalance}`
+      );
+
+      projectionData.push({
+        month: `${months[projectedMonth]} ${projectedYear}`,
+        balance: currentBalance,
+      });
+    }
+
+    setProjection(projectionData); // Actualizamos la proyección
+  };
+  
+  
+
+
+  // Renderizado de la línea de tiempo
+  return (
+    <View style={styles.timelineContainer}>
+      <Text style={styles.timelineTitle}>Proyección Financiera</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.timeline}>
+          <View style={styles.timelineLine} />
+          <View style={styles.timelineMonths}>
+            {projection.map((item, index) => (
+              <View key={index} style={styles.timelineItem}>
+                <View style={styles.timelineVerticalLine} />
+                <Text style={styles.timelineMonth}>{item.month}</Text>
+                <Text style={styles.timelineBalance}>
+                  {formatCurrency(item.balance)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
 };
 
 export default function HomeScreen() {
@@ -76,6 +228,17 @@ export default function HomeScreen() {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "HomeScreen",
+        description: 'Usuario visita la página Home', 
+        });
+    }
   }, []);
 
   const handleDeleteTransaction = async (id) => {
