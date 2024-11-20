@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   Modal,
   ScrollView,
+  Image,
 } from 'react-native';
 import * as Font from 'expo-font';
 import { FontAwesome5, MaterialIcons, AntDesign } from '@expo/vector-icons';
@@ -24,8 +25,8 @@ const ActualidadScreen = () => {
   const [loading, setLoading] = useState(false);
   const [marketData, setMarketData] = useState([]);
   const [newsData, setNewsData] = useState([]);
+  const [bookData, setBookData] = useState([]);
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [quizData, setQuizData] = useState([]);
   const [modalVisible, setModalVisible] = useState(null);
   const [correctAnswers, setCorrectAnswers] = useState(0); // Contador para respuestas correctas
   const [showResult, setShowResult] = useState(false); // Mostrar el resultado del quiz
@@ -63,45 +64,36 @@ const ActualidadScreen = () => {
     loadFonts();
   }, []);
 
-  useEffect(() => {
-    if (selectedTab === 'Valor Mercado') {
-      fetchMarketData();
-    } else if (selectedTab === 'Noticias') {
-      fetchNews();
-    } else if (selectedTab === 'Educación' && modalVisible === 'quizzes') {
-      generateRandomQuiz();
-    }
-  }, [selectedTab, modalVisible]);
-
+  // Cargar datos del mercado
   const fetchMarketData = async () => {
     setLoading(true);
     try {
       const response = await fetch('https://mindicador.cl/api');
       const data = await response.json();
       setMarketData([
-        { 
-          name: 'UF', 
-          value: data.uf.valor, 
-          date: data.uf.fecha, 
-          image: require('../assets/flags/chile.png') 
+        {
+          name: 'UF',
+          value: data.uf.valor,
+          date: data.uf.fecha,
+          image: require('../assets/flags/chile.png'),
         },
-        { 
-          name: 'Dólar', 
-          value: data.dolar.valor, 
-          date: data.dolar.fecha, 
-          image: require('../assets/flags/usa.png') 
+        {
+          name: 'Dólar',
+          value: data.dolar.valor,
+          date: data.dolar.fecha,
+          image: require('../assets/flags/usa.png'),
         },
-        { 
-          name: 'Euro', 
-          value: data.euro.valor, 
-          date: data.euro.fecha, 
-          image: require('../assets/flags/europe.png') 
+        {
+          name: 'Euro',
+          value: data.euro.valor,
+          date: data.euro.fecha,
+          image: require('../assets/flags/europe.png'),
         },
-        { 
-          name: 'Bitcoin', 
-          value: data.bitcoin.valor, 
-          date: data.bitcoin.fecha, 
-          image: require('../assets/flags/bitcoin.png') 
+        {
+          name: 'Bitcoin',
+          value: data.bitcoin.valor,
+          date: data.bitcoin.fecha,
+          image: require('../assets/flags/bitcoin.png'),
         },
       ]);
     } catch (error) {
@@ -111,11 +103,63 @@ const ActualidadScreen = () => {
     }
   };
 
+  // Libros recomendados (cargando imágenes localmente)
+  const recommendedBooks = [
+    {
+      title: 'Padre Rico, Padre Pobre',
+      author: 'Robert T. Kiyosaki',
+      cover: require('../assets/libros/padre_rico_padre_pobre.jpg'),
+    },
+    {
+      title: 'El Hombre Más Rico de Babilonia',
+      author: 'George S. Clason',
+      cover: require('../assets/libros/el_hombre_mas_rico_babilonia.jpg'),
+    },
+    {
+      title: 'Los Secretos de la Mente Millonaria',
+      author: 'T. Harv Eker',
+      cover: require('../assets/libros/secretos_mente_millonaria.jpg'),
+    },
+    {
+      title: 'Piense y Hágase Rico',
+      author: 'Napoleon Hill',
+      cover: require('../assets/libros/piense_hagase_rico.jpg'),
+    },
+    {
+      title: 'La Magia de Pensar en Grande',
+      author: 'David Schwartz',
+      cover: require('../assets/libros/la_magia_de_pensar_en_grande.jpg'),
+    },
+    {
+      title: 'El Código del Dinero',
+      author: 'Raimon Samsó',
+      cover: require('../assets/libros/el_codigo_del_dinero.jpg'),
+    },
+  ];
+
+  const fetchBooks = async () => {
+    setLoading(true);
+    setBookData(recommendedBooks);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (selectedTab === 'Valor Mercado') {
+      fetchMarketData();
+    } else if (selectedTab === 'Noticias') {
+      fetchNews();
+    } else if (selectedTab === 'Lecturas Recomendadas') {
+      fetchBooks(); // Cargar libros al abrir el modal de Lecturas Recomendadas
+    }
+  }, [selectedTab]);
+
   const fetchNews = async () => {
     setLoading(true);
     try {
       const apiKey = 'pub_558981038471f3f656bfac49834a162deb6af';
-      const response = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&country=cl&category=business`);
+      const response = await fetch(
+        `https://newsdata.io/api/1/news?apikey=${apiKey}&country=cl&category=business`
+      );
       const data = await response.json();
       setNewsData(data.results);
     } catch (error) {
@@ -125,72 +169,6 @@ const ActualidadScreen = () => {
     }
   };
 
-  // Generar preguntas aleatorias
-  const generateRandomQuiz = () => {
-    const quizQuestions = [
-      {
-        question: '¿Qué es un activo?',
-        options: ['Recurso económico', 'Deuda adquirida', 'Crédito a favor'],
-        correctAnswer: 'Recurso económico',
-      },
-      {
-        question: '¿Qué es un pasivo?',
-        options: ['Deuda', 'Ingreso', 'Activo'],
-        correctAnswer: 'Deuda',
-      },
-      {
-        question: '¿Qué es el capital?',
-        options: ['Inversiones', 'Dinero o activos', 'Deuda'],
-        correctAnswer: 'Dinero o activos',
-      },
-      {
-        question: '¿Qué es la tasa de interés?',
-        options: ['Precio del dinero', 'Deuda adquirida', 'Inversión realizada'],
-        correctAnswer: 'Precio del dinero',
-      },
-      {
-        question: '¿Qué es la liquidez?',
-        options: ['Capacidad de pago', 'Deuda', 'Facilidad para convertir a efectivo'],
-        correctAnswer: 'Facilidad para convertir a efectivo',
-      },
-      {
-        question: '¿Qué es el riesgo?',
-        options: ['Pérdida financiera', 'Ganancia', 'Crédito solicitado'],
-        correctAnswer: 'Pérdida financiera',
-      },
-      {
-        question: '¿Qué es la diversificación?',
-        options: ['Distribución de capital', 'Tener varios créditos', 'Deuda bancaria'],
-        correctAnswer: 'Distribución de capital',
-      },
-    ];
-
-    const shuffledQuestions = quizQuestions.sort(() => 0.5 - Math.random());
-    setQuizData(shuffledQuestions.slice(0, 7));
-  };
-
-  const handleSelectOption = (questionIndex, selectedOption) => {
-    const updatedQuizData = quizData.map((quiz, index) => {
-      if (index === questionIndex) {
-        return { ...quiz, selectedOption };
-      }
-      return quiz;
-    });
-    setQuizData(updatedQuizData);
-  };
-
-  // Manejar el envío de respuestas del quiz
-  const handleSubmitQuiz = () => {
-    let correctCount = 0;
-    quizData.forEach((quiz) => {
-      if (quiz.selectedOption === quiz.correctAnswer) {
-        correctCount++;
-      }
-    });
-    setCorrectAnswers(correctCount);
-    setShowResult(true);
-  };
-
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#511496" />;
   }
@@ -198,10 +176,10 @@ const ActualidadScreen = () => {
   // Renderiza los datos del mercado
   const renderMarketItem = ({ item, index }) => {
     const gradients = [
-      ["#6A0DAD", "#F071A1"],
-      ["#1FCAB1", "#348AC7"],
-      ["#FF8A00", "#FF3D00"],
-      ["#F071A1", "#6A0DAD"],
+      ['#6A0DAD', '#F071A1'],
+      ['#1FCAB1', '#348AC7'],
+      ['#FF8A00', '#FF3D00'],
+      ['#F071A1', '#6A0DAD'],
     ];
 
     return (
@@ -233,32 +211,67 @@ const ActualidadScreen = () => {
     );
   };
 
-  // Renderiza el contenido de Educación Financiera
-  const renderEducationItem = ({ item, index }) => {
-    const gradients = [
-      ["#6A0DAD", "#F071A1"],
-      ["#1FCAB1", "#348AC7"],
-      ["#FF8A00", "#FF3D00"],
-      ["#F071A1", "#6A0DAD"],
-    ];
+  // Renderiza cada libro
+  const renderBookItem = ({ item }) => (
+    <View style={styles.bookCard}>
+      <Image
+        source={item.cover}
+        style={styles.smallBookImage}
+        resizeMode="contain"
+      />
+      <View style={styles.bookDetails}>
+        <Text style={styles.bookTitle}>{item.title}</Text>
+        <Text style={styles.bookAuthor}>{item.author}</Text>
+      </View>
+    </View>
+  );
 
-    return (
-      <TouchableOpacity onPress={() => setModalVisible(item.title.toLowerCase())}>
-        <LinearGradient colors={gradients[index % gradients.length]} style={[styles.educationCard]}>
-          <MaterialIcons name={item.icon} size={40} color="white" />
-          <Text style={styles.educationTitle}>{item.title}</Text>
-          <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  };
+  // Renderiza el contenido de Educación Financiera
+  const renderEducationItem = ({ item }) => (
+    <TouchableOpacity onPress={() => setModalVisible(item.title.toLowerCase())}>
+      <LinearGradient
+        colors={item.background}
+        style={[styles.educationCard, item.title === 'Lecturas Recomendadas' && styles.doubleWidth]}
+      >
+        <MaterialIcons name={item.icon} size={40} color="white" />
+        <Text style={styles.educationTitle}>{item.title}</Text>
+        <Text style={styles.educationSubtitle}>{item.subtitle}</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
 
   // Datos para las tarjetas de educación financiera
   const educationData = [
-    { title: 'Artículos', subtitle: 'Explora artículos sobre finanzas', icon: 'article' },
-    { title: 'Vídeos', subtitle: 'Aprende con videos interactivos', icon: 'play-circle-outline' },
-    { title: 'Quizzes', subtitle: 'Prueba tu conocimiento', icon: 'quiz' },
-    { title: 'Glosario', subtitle: 'Términos financieros importantes', icon: 'book' },
+    {
+      title: 'Lecturas Recomendadas',
+      subtitle: 'Explora lecturas esenciales',
+      icon: 'library-books',
+      background: ['#43a047', '#66bb6a'],
+    },
+    {
+      title: 'Artículos',
+      subtitle: 'Explora artículos sobre finanzas',
+      icon: 'article',
+      background: ['#6A0DAD', '#F071A1'],
+    },
+    {
+      title: 'Vídeos',
+      subtitle: 'Aprende con videos interactivos',
+      icon: 'play-circle-outline',
+      background: ['#1FCAB1', '#348AC7'],
+    },
+    {
+      title: 'Glosario',
+      subtitle: 'Términos financieros importantes',
+      icon: 'book',
+      background: ['#FF8A00', '#FF3D00'],
+    },
+    {
+      title: 'Simulador de Inversión',
+      subtitle: 'Simula pequeñas inversiones',
+      icon: 'trending-up',
+      background: ['#f06292', '#f48fb1'],
+    },
   ];
 
   return (
@@ -270,21 +283,27 @@ const ActualidadScreen = () => {
           style={[styles.tabButton, selectedTab === 'Valor Mercado' && styles.activeTab]}
           onPress={() => setSelectedTab('Valor Mercado')}
         >
-          <Text style={[styles.tabText, selectedTab === 'Valor Mercado' && styles.activeTabText]}>Mercado</Text>
+          <Text style={[styles.tabText, selectedTab === 'Valor Mercado' && styles.activeTabText]}>
+            Mercado
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Noticias' && styles.activeTab]}
           onPress={() => setSelectedTab('Noticias')}
         >
-          <Text style={[styles.tabText, selectedTab === 'Noticias' && styles.activeTabText]}>Noticias</Text>
+          <Text style={[styles.tabText, selectedTab === 'Noticias' && styles.activeTabText]}>
+            Noticias
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === 'Educación' && styles.activeTab]}
           onPress={() => setSelectedTab('Educación')}
         >
-          <Text style={[styles.tabText, selectedTab === 'Educación' && styles.activeTabText]}>Educación</Text>
+          <Text style={[styles.tabText, selectedTab === 'Educación' && styles.activeTabText]}>
+            Educación
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -300,30 +319,40 @@ const ActualidadScreen = () => {
               contentContainerStyle={styles.marketList}
               numColumns={2}
               columnWrapperStyle={{ justifyContent: 'space-between' }}
-              ListFooterComponent={<View style={{ height: 120 }} />}  
+              ListFooterComponent={<View style={{ height: 120 }} />}
             />
           )}
 
           {selectedTab === 'Noticias' && (
             <FlatList
-              data={newsData}
+              data={newsData.slice(0, 4)} // Mostrar las primeras 4 noticias
               renderItem={renderNewsItem}
               keyExtractor={(item) => item.title}
               contentContainerStyle={styles.newsList}
-              ListFooterComponent={<View style={{ height: 120 }} />} 
+              ListFooterComponent={<View style={{ height: 120 }} />}
             />
           )}
 
           {selectedTab === 'Educación' && (
-            <FlatList
-              data={educationData}
-              renderItem={renderEducationItem}
-              keyExtractor={(item) => item.title}
-              contentContainerStyle={styles.educationList}
-              numColumns={2}
-              columnWrapperStyle={{ justifyContent: 'space-between' }}
-              ListFooterComponent={<View style={{ height: 120 }} />}  
-            />
+            <>
+              {/* Lecturas Recomendadas ocupa toda la fila superior */}
+              <FlatList
+                data={educationData.slice(0, 1)} // Solo mostrar "Lecturas Recomendadas"
+                renderItem={renderEducationItem}
+                keyExtractor={(item) => item.title}
+                contentContainerStyle={styles.educationList}
+              />
+              {/* Las otras tarjetas */}
+              <FlatList
+                data={educationData.slice(1)} // Mostrar las otras 4 tarjetas
+                renderItem={renderEducationItem}
+                keyExtractor={(item) => item.title}
+                contentContainerStyle={styles.educationList}
+                numColumns={2}
+                columnWrapperStyle={{ justifyContent: 'space-between' }}
+                ListFooterComponent={<View style={{ height: 120 }} />}
+              />
+            </>
           )}
         </>
       )}
@@ -341,45 +370,30 @@ const ActualidadScreen = () => {
               <AntDesign name="close" size={24} color="black" />
             </TouchableOpacity>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.modalTitle}>{modalVisible?.charAt(0).toUpperCase() + modalVisible?.slice(1)}</Text>
-              {modalVisible === 'glosario' && (
+              <Text style={styles.modalTitle}>
+                {modalVisible?.charAt(0).toUpperCase() + modalVisible?.slice(1)}
+              </Text>
+              {modalVisible === 'glosario' &&
                 financialTerms.map((term, index) => (
                   <View key={index} style={styles.termCard}>
                     <Text style={styles.termTitle}>{term.term}</Text>
                     <Text style={styles.termDefinition}>{term.definition}</Text>
                   </View>
-                ))
-              )}
-              {modalVisible === 'quizzes' && quizData.length > 0 && (
-                <>
-                  {quizData.map((quiz, index) => (
-                    <View key={index} style={styles.termCard}>
-                      <Text style={styles.quizQuestion}>{quiz.question}</Text>
-                      {quiz.options.map((option, optionIndex) => (
-                        <TouchableOpacity
-                          key={optionIndex}
-                          style={[
-                            styles.optionButton,
-                            quiz.selectedOption === option && styles.selectedOptionButton,
-                          ]}
-                          onPress={() => handleSelectOption(index, option)}
-                        >
-                          <Text style={styles.optionText}>{option}</Text>
-                        </TouchableOpacity>
-                      ))}
+                ))}
+              {modalVisible === 'lecturas recomendadas' &&
+                bookData.map((book, index) => (
+                  <View key={index} style={styles.termCard}>
+                    <Image 
+                      source={book.cover} 
+                      style={styles.smallBookImage} 
+                      resizeMode="contain"
+                    />
+                    <View style={styles.bookDetails}>
+                      <Text style={styles.bookTitle}>{book.title}</Text>
+                      <Text style={styles.bookAuthor}>{book.author}</Text>
                     </View>
-                  ))}
-                  <TouchableOpacity style={styles.submitButton} onPress={handleSubmitQuiz}>
-                    <Text style={styles.submitButtonText}>Enviar respuestas</Text>
-                  </TouchableOpacity>
-                  {showResult && (
-                    <Text style={styles.resultText}>Respuestas correctas: {correctAnswers} de {quizData.length}</Text>
-                  )}
-                </>
-              )}
-              {modalVisible === 'quizzes' && quizData.length === 0 && (
-                <Text style={styles.modalTitle}>No hay quizzes disponibles.</Text>
-              )}
+                  </View>
+                ))}
             </ScrollView>
           </View>
         </View>
@@ -494,6 +508,9 @@ const styles = StyleSheet.create({
     width: (width / 2) - 20,
     alignItems: 'center',
   },
+  doubleWidth: {
+    width: width - 20, // Ocupará todo el ancho disponible
+  },
   educationTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 18,
@@ -505,6 +522,47 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     textAlign: 'center',
+  },
+  bookList: {
+    padding: 10,
+  },
+  bookCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+  },
+  bookDetails: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  smallBookImage: {
+    width: 50,
+    height: 70, // Pequeño tamaño para la portada del libro
+    borderRadius: 5,
+  },
+  bookTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    textAlign: 'left',
+  },
+  bookAuthor: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'left',
+  },
+  labelText: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 22,
+    color: '#511496',
+    textAlign: 'center',
+    marginVertical: 10,
   },
   modalContainer: {
     flex: 1,
@@ -551,47 +609,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#333',
-  },
-  quizQuestion: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 18,
-    color: '#511496',
-    marginBottom: 5,
-  },
-  optionButton: {
-    backgroundColor: '#f4f9ff',
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 5,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  selectedOptionButton: {
-    backgroundColor: '#6A0DAD',
-  },
-  optionText: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    color: '#333',
-  },
-  submitButton: {
-    backgroundColor: '#511496',
-    padding: 10,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  submitButtonText: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 16,
-    color: '#fff',
-  },
-  resultText: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 18,
-    color: '#511496',
-    textAlign: 'center',
-    marginTop: 20,
   },
 });
 
