@@ -34,8 +34,7 @@ const ActualidadScreen = () => {
   const [firebaseNewsData, setFirebaseNewsData] = useState([]); // Estado para las noticias de Firebase
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [modalVisible, setModalVisible] = useState(null);
-  const [correctAnswers, setCorrectAnswers] = useState(0); // Contador para respuestas correctas
-  const [showResult, setShowResult] = useState(false); // Mostrar el resultado del quiz
+  const [selectedNews, setSelectedNews] = useState(null);
 
   const navigation = useNavigation(); // Instancia de navegación
 
@@ -82,6 +81,18 @@ const ActualidadScreen = () => {
         });
     }
   }, []);
+
+  const formatDate = (firebaseDate) => {
+    if (!firebaseDate) return 'Fecha no disponible';
+    const date = new Date(firebaseDate.seconds * 1000);
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    });
+  };
 
   // Cargar noticias desde Firebase
   const fetchNewsFromFirebase = async () => {
@@ -183,28 +194,12 @@ const ActualidadScreen = () => {
     if (selectedTab === 'Valor Mercado') {
       fetchMarketData();
     } else if (selectedTab === 'Noticias') {
-      fetchNews();
-      fetchNewsFromFirebase(); // Cargar noticias desde Firebase cuando se selecciona la pestaña "Noticias"
+      fetchNewsFromFirebase(); // Solo mantenemos esta línea
     } else if (selectedTab === 'Educación') {
-      fetchBooks(); // Cargar libros al abrir la sección de Educación
+      fetchBooks();
     }
   }, [selectedTab]);
 
-  const fetchNews = async () => {
-    setLoading(true);
-    try {
-      const apiKey = 'pub_558981038471f3f656bfac49834a162deb6af';
-      const response = await fetch(
-        `https://newsdata.io/api/1/news?apikey=${apiKey}&country=cl&category=business`
-      );
-      const data = await response.json();
-      setNewsData(data.results);
-    } catch (error) {
-      console.error('Error fetching news:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#511496" />;
@@ -229,9 +224,13 @@ const ActualidadScreen = () => {
     );
   };
 
-  // Renderiza cada noticia de Firebase
-  const renderFirebaseNewsItem = ({ item }) => (
-    <View style={styles.newsCard    }>
+
+// Renderiza cada noticia de Firebase
+const renderFirebaseNewsItem = ({ item }) => (
+  <TouchableOpacity 
+    onPress={() => setSelectedNews(item)} // Abre el modal al seleccionar una noticia
+    style={styles.newsCard}
+  >
     <ImageBackground
       source={{ uri: item.mainPhoto || NoHayNoticiaImage }}
       style={styles.newsImage}
@@ -241,9 +240,9 @@ const ActualidadScreen = () => {
         <Text style={styles.newsTitle}>{item.title}</Text>
       </View>
     </ImageBackground>
-    <Text style={styles.newsContent}>{item.content}</Text>
-  </View>
+  </TouchableOpacity>
 );
+
 
 // Renderiza cada noticia de la API
 const renderNewsItem = ({ item }) => {
@@ -282,11 +281,11 @@ const renderBookItem = ({ item }) => (
 // Renderiza el contenido de Educación Financiera
 const renderEducationItem = ({ item }) => (
   <TouchableOpacity
-    onPress={item.title === 'Guías y tutoriales' ? () => navigation.navigate('TutorialScreen') : () => setModalVisible(item.title.toLowerCase())}
+    onPress={item.title === 'Artículos' ? () => setModalVisible('articulos') : () => setModalVisible(item.title.toLowerCase())}
   >
     <LinearGradient
       colors={item.background}
-      style={[styles.educationCard, item.title === 'Lecturas Recomendadas' && styles.doubleWidth]}
+      style={[styles.educationCard, styles.doubleWidth]} // Aplica el estilo "doubleWidth" a todos
     >
       <MaterialIcons name={item.icon} size={40} color="white" />
       <Text style={styles.educationTitle}>{item.title}</Text>
@@ -310,24 +309,13 @@ const educationData = [
     background: ['#6A0DAD', '#F071A1'],
   },
   {
-    title: 'Vídeos',
-    subtitle: 'Aprende con videos interactivos',
-    icon: 'play-circle-outline',
-    background: ['#1FCAB1', '#348AC7'],
-  },
-  {
     title: 'Glosario',
     subtitle: 'Términos financieros importantes',
     icon: 'book',
     background: ['#FF8A00', '#FF3D00'],
   },
-  {
-    title: 'Guías y tutoriales',
-    subtitle: '¡Aprende a usar la app!',
-    icon: 'trending-up',
-    background: ['#f06292', '#f48fb1'],
-  },
 ];
+
 
 return (
   <SafeAreaView style={styles.container}>
@@ -387,13 +375,6 @@ return (
               contentContainerStyle={styles.newsList}
               ListFooterComponent={<View style={{ height: 120 }} />}
             />
-            <FlatList
-              data={newsData.slice(0, 4)} // Mostrar las primeras 4 noticias de la API
-              renderItem={renderNewsItem}
-              keyExtractor={(item) => item.title}
-              contentContainerStyle={styles.newsList}
-              ListFooterComponent={<View style={{ height: 120 }} />}
-            />
           </>
         )}
 
@@ -401,20 +382,10 @@ return (
           <>
             {/* Lecturas Recomendadas ocupa toda la fila superior */}
             <FlatList
-              data={educationData.slice(0, 1)} // Solo mostrar "Lecturas Recomendadas"
+              data={educationData} // Asegúrate de que data contiene solo los elementos necesarios sin duplicados
               renderItem={renderEducationItem}
               keyExtractor={(item) => item.title}
               contentContainerStyle={styles.educationList}
-            />
-            {/* Las otras tarjetas */}
-            <FlatList
-              data={educationData.slice(1)} // Mostrar las otras 4 tarjetas
-              renderItem={renderEducationItem}
-              keyExtractor={(item) => item.title}
-              contentContainerStyle={styles.educationList}
-              numColumns={2}
-              columnWrapperStyle={{ justifyContent: 'space-between' }}
-              ListFooterComponent={<View style={{ height: 120 }} />}
             />
           </>
         )}
@@ -462,6 +433,39 @@ return (
         </View>
       </View>
     </Modal>
+
+
+
+
+{/* Modal para mostrar el contenido de la noticia seleccionada */}
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={selectedNews !== null} // El modal está visible si hay una noticia seleccionada
+  onRequestClose={() => setSelectedNews(null)} // Cerrar modal al presionar fuera de él
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <TouchableOpacity
+        style={styles.closeIcon}
+        onPress={() => setSelectedNews(null)} // Al cerrar, establece selectedNews a null
+      >
+        <AntDesign name="close" size={24} color="black" />
+      </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Image
+          source={{ uri: selectedNews?.mainPhoto || NoHayNoticiaImage }}
+          style={styles.modalImage} // Imagen principal
+        />
+        <Text style={styles.modalTitle}>{selectedNews?.title}</Text>
+        <Text style={styles.modalDate}>
+          {formatDate(selectedNews?.publicationDate)}
+        </Text>
+        <Text style={styles.modalContentText}>{selectedNews?.content}</Text>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
   </SafeAreaView>
 );
 };
@@ -572,11 +576,11 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     marginBottom: 10,
-    width: (width / 2) - 20,
+    width: '100%', // Asegura que ocupe el ancho completo
     alignItems: 'center',
   },
   doubleWidth: {
-    width: width - 20, // Ocupará todo el ancho disponible
+    width: '100%', // Este estilo ahora ocupa todo el ancho y se puede aplicar a cada elemento
   },
   educationTitle: {
     fontFamily: 'Inter-Bold',
@@ -678,6 +682,35 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#333',
+  },
+  modalImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  modalDate: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  modalContentText: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+    paddingHorizontal: 10,
+    textAlign: 'justify',
   },
 });
 
