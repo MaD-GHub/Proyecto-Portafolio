@@ -1,12 +1,19 @@
 // FilteredTransactionHistory.js
 import React from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const groupTransactionsByDate = (transactions) => {
   return transactions.reduce((groups, transaction) => {
     const date = new Date(transaction.selectedDate).toDateString();
-    if (!transaction.simulation) { // Excluye las transacciones simuladas
+    if (!transaction.simulation) {
+      // Excluye las transacciones simuladas
       if (!groups[date]) {
         groups[date] = [];
       }
@@ -57,7 +64,7 @@ const FilteredTransactionHistory = ({ transactions, onEdit, onDelete }) => {
                         { color: item.type === "Ingreso" ? "green" : "red" },
                       ]}
                     >
-                      {item.category} - {formatCurrency(item.amount)}
+                      {item.categoryName} - {formatCurrency(item.amount)}
                     </Text>
                     <Text style={styles.transactionDate}>
                       {item.description}

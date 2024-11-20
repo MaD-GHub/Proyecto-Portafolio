@@ -16,7 +16,13 @@ import {
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 import { db, auth } from "./firebase";
 import { getCategoriesByType } from "./utils/database";
 import HomeScreen from "./screens/HomeScreen";
@@ -36,7 +42,6 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
-
 
 function CustomTabBarButton({ children, onPress }) {
   return (
@@ -222,6 +227,9 @@ export default function App() {
   const [isInstallment, setIsInstallment] = React.useState(false);
   const [installmentCount, setInstallmentCount] = React.useState(1); // Estado para las cuotas
 
+
+  
+
   // Cambiar entre Ingreso y Gasto y resetear cuotas si es Ingreso
   const handleTransactionTypeChange = (type) => {
     setTransactionType(type);
@@ -265,69 +273,90 @@ export default function App() {
 
   const handleAddTransaction = async () => {
     const parsedAmount = parseFloat(amount);
-
+  
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       alert("Por favor ingrese un monto válido.");
       return;
     }
-    if (!category) {
-      alert("Por favor seleccione una categoría.");
+  
+    if (!category) { // Solo verificamos que no esté vacío
+      alert("Por favor seleccione una categoría válida.");
       return;
     }
-
+  
     const user = auth.currentUser;
     if (!user) {
       alert("Por favor inicie sesión.");
       return;
     }
-
-    let firstInstallmentDate = new Date(date); // Empezamos con la fecha de compra
-
-    // Si la compra es después del día de facturación, mover la primera cuota al siguiente mes
-    if (isInstallment && firstInstallmentDate.getDate() > billingDay) {
-      firstInstallmentDate.setMonth(firstInstallmentDate.getMonth() + 1);
-    }
-
+  
     const newTransaction = {
       type: transactionType,
       amount: parsedAmount,
-      category: category,
-      description: description,
+      categoryName: category, // Usamos directamente el nombre de la categoría
+      description: description || "",
       isFixed: isFixed,
       isRecurrent: isFixed === "Fijo",
-      isInstallment: isInstallment,
-      installmentCount: isInstallment ? installmentCount : null, // Asegúrate de que el número de cuotas se guarde correctamente
-      billingDay: billingDay, // Guardamos el día de facturación
-      installmentStartDate: firstInstallmentDate.toISOString(),
       selectedDate: date.toISOString(),
       creationDate: new Date().toLocaleDateString(),
       userId: user.uid,
     };
-
+  
     try {
-      const docRef = await addDoc(
-        collection(db, "transactions"),
-        newTransaction
-      );
+      const docRef = await addDoc(collection(db, "transactions"), newTransaction);
       setTransactions((prevTransactions) => [
         ...prevTransactions,
         { id: docRef.id, ...newTransaction },
       ]);
       closeModal();
     } catch (error) {
-      console.error("Error al añadir transacción: ", error);
+      console.error("Error al añadir transacción:", error);
+      alert("Hubo un error al guardar la transacción. Intenta nuevamente.");
     }
   };
+  
+
+  const enrichTransactionsWithCategories = async (transactions) => {
+    try {
+      const categoriesSnapshot = await getDocs(collection(db, "categorias"));
+      const categoriesMap = {};
+      categoriesSnapshot.forEach((doc) => {
+        categoriesMap[doc.id] = doc.data().nombre; // Mapea el ID al campo "nombre"
+      });
+
+      // Agregar el nombre de la categoría a cada transacción
+      return transactions.map((transaction) => ({
+        ...transaction,
+        categoryName: categoriesMap[transaction.category] || "Sin categoría",
+      }));
+    } catch (error) {
+      console.error("Error al enriquecer transacciones con categorías:", error);
+      return transactions; // Devuelve transacciones sin cambios en caso de error
+    }
+  };
+
   React.useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const ingresos = await getCategoriesByType("Ingreso");
-        console.log("Categorías de ingreso:", ingresos);
-        const gastos = await getCategoriesByType("Gasto");
-        console.log("Categorías de gasto:", gastos);
+        const categoriasSnapshot = await getDocs(collection(db, "categorias"));
 
-        setIngresoCategorias(ingresos.map((cat) => cat.nombre)); // Solo los nombres
-        setGastoCategorias(gastos.map((cat) => cat.nombre)); // Solo los nombres
+        const ingresos = [];
+        const gastos = [];
+
+        categoriasSnapshot.forEach((doc) => {
+          const categoria = doc.data();
+          if (categoria.tipo === "Ingreso") {
+            ingresos.push(categoria.nombre);
+          } else if (categoria.tipo === "Gasto") {
+            gastos.push(categoria.nombre);
+          }
+        });
+
+        setIngresoCategorias(ingresos);
+        setGastoCategorias(gastos);
+
+        console.log("Categorías de ingreso cargadas:", ingresos);
+        console.log("Categorías de gasto cargadas:", gastos);
       } catch (error) {
         console.error("Error al cargar categorías:", error);
       }
@@ -336,6 +365,28 @@ export default function App() {
     fetchCategorias();
   }, []);
 
+  React.useEffect(() => {
+    const fetchAndEnrichTransactions = async () => {
+      try {
+        const transactionsSnapshot = await getDocs(
+          collection(db, "transactions")
+        );
+        const transactions = transactionsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        const enrichedTransactions = await enrichTransactionsWithCategories(
+          transactions
+        );
+        setTransactions(enrichedTransactions);
+      } catch (error) {
+        console.error("Error al cargar las transacciones:", error);
+      }
+    };
+
+    fetchAndEnrichTransactions();
+  }, []);
 
   React.useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -383,8 +434,8 @@ export default function App() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Inversiones" // Nombre de la pantalla en el stack
-            component={InversionScreen} // Componente de la pantalla
+            name="Inversiones"
+            component={InversionScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -422,18 +473,21 @@ export default function App() {
                 { transform: [{ translateY: slideAnim }] },
               ]}
             >
+              {/* Botón de cerrar */}
               <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
+
+              {/* Título */}
               <Text style={styles.modalTitle}>Nueva Transacción</Text>
 
-              {/* Selector de Ingreso/Gasto */}
+              {/* Selector de tipo: Ingreso/Gasto */}
               <View style={styles.segmentedControlContainer}>
                 <TouchableOpacity
                   style={[
                     styles.segmentedControlButton,
                     transactionType === "Ingreso" &&
-                    styles.segmentedControlButtonActive,
+                      styles.segmentedControlButtonActive,
                   ]}
                   onPress={() => setTransactionType("Ingreso")}
                 >
@@ -441,7 +495,7 @@ export default function App() {
                     style={[
                       styles.segmentedControlText,
                       transactionType === "Ingreso" &&
-                      styles.segmentedControlTextActive,
+                        styles.segmentedControlTextActive,
                     ]}
                   >
                     Ingreso
@@ -451,7 +505,7 @@ export default function App() {
                   style={[
                     styles.segmentedControlButton,
                     transactionType === "Gasto" &&
-                    styles.segmentedControlButtonActive,
+                      styles.segmentedControlButtonActive,
                   ]}
                   onPress={() => setTransactionType("Gasto")}
                 >
@@ -459,7 +513,7 @@ export default function App() {
                     style={[
                       styles.segmentedControlText,
                       transactionType === "Gasto" &&
-                      styles.segmentedControlTextActive,
+                        styles.segmentedControlTextActive,
                     ]}
                   >
                     Gasto
@@ -472,27 +526,26 @@ export default function App() {
                 placeholder="Ingrese monto"
                 keyboardType="numeric"
                 value={amount}
-                onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ""))}
+                onChangeText={(text) => setAmount(text.replace(/[^0-9.]/g, ""))} // Permitir decimales
                 style={styles.inputBox}
               />
 
               {/* Picker de Categorías */}
               <View style={styles.inputBox2}>
                 <Picker
-                  selectedValue={category}
-                  onValueChange={(itemValue) => setCategory(itemValue)}
+                  selectedValue={category} // Almacena el nombre de la categoría
+                  onValueChange={(itemValue) => setCategory(itemValue)} // Guarda el nombre en el estado
                   style={styles.picker}
                 >
                   <Picker.Item label="Seleccione categoría" value="" />
                   {transactionType === "Ingreso"
                     ? ingresoCategorias.map((cat, index) => (
-                      <Picker.Item key={index} label={cat} value={cat} />
-                    ))
+                        <Picker.Item key={index} label={cat} value={cat} /> // Pasa solo el nombre
+                      ))
                     : gastoCategorias.map((cat, index) => (
-                      <Picker.Item key={index} label={cat} value={cat} />
-                    ))}
+                        <Picker.Item key={index} label={cat} value={cat} /> // Pasa solo el nombre
+                      ))}
                 </Picker>
-
               </View>
 
               {/* Campo de descripción */}
@@ -503,15 +556,12 @@ export default function App() {
                 style={styles.inputBox}
               />
 
-              {/* Picker para tipo fijo, variable o en cuotas (solo para Gastos) */}
-              {/* Picker para tipo de gasto (fijo/variable/cuotas) */}
-              {/* Picker para seleccionar si es fijo, variable o en cuotas */}
+              {/* Selector para tipo fijo/variable/cuotas */}
               <View style={styles.inputBox2}>
                 <Picker
                   selectedValue={isFixed}
                   onValueChange={(itemValue) => {
                     setIsFixed(itemValue);
-                    // Solo si es Cuotas se habilita la lógica de cuotas
                     setIsInstallment(itemValue === "Cuotas");
                   }}
                   style={styles.picker}
@@ -519,38 +569,35 @@ export default function App() {
                   <Picker.Item label="Seleccione tipo" value="No" />
                   <Picker.Item label="Fijo" value="Fijo" />
                   <Picker.Item label="Variable" value="Variable" />
-                  {/* Cuotas solo aparece para Gasto */}
                   {transactionType === "Gasto" && (
                     <Picker.Item label="Cuotas" value="Cuotas" />
                   )}
                 </Picker>
               </View>
 
-              {/* Mostrar solo si es en cuotas y tipo Gasto */}
+              {/* Opciones adicionales para cuotas */}
               {isInstallment && transactionType === "Gasto" && (
-                <View style={styles.inputBox2}>
-                  <Picker
-                    selectedValue={installmentCount}
-                    onValueChange={(itemValue) =>
-                      setInstallmentCount(itemValue)
-                    }
-                    style={styles.picker}
-                  >
-                    {/* Opciones ampliadas de cuotas */}
-                    <Picker.Item label="3 cuotas" value={3} />
-                    <Picker.Item label="6 cuotas" value={6} />
-                    <Picker.Item label="12 cuotas" value={12} />
-                    <Picker.Item label="18 cuotas" value={18} />
-                    <Picker.Item label="24 cuotas" value={24} />
-                  </Picker>
-                </View>
-              )}
-
-              {isInstallment && transactionType === "Gasto" && (
-                <Text style={styles.installmentText}>
-                  Cada cuota será de: {(amount / installmentCount).toFixed(2)}{" "}
-                  CLP
-                </Text>
+                <>
+                  <View style={styles.inputBox2}>
+                    <Picker
+                      selectedValue={installmentCount}
+                      onValueChange={(itemValue) =>
+                        setInstallmentCount(itemValue)
+                      }
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="3 cuotas" value={3} />
+                      <Picker.Item label="6 cuotas" value={6} />
+                      <Picker.Item label="12 cuotas" value={12} />
+                      <Picker.Item label="18 cuotas" value={18} />
+                      <Picker.Item label="24 cuotas" value={24} />
+                    </Picker>
+                  </View>
+                  <Text style={styles.installmentText}>
+                    Cada cuota será de: $
+                    {(amount / installmentCount).toFixed(2)} CLP
+                  </Text>
+                </>
               )}
 
               {/* Selector de fecha */}
@@ -565,33 +612,6 @@ export default function App() {
                 />
                 <Text style={styles.dateText}>{date.toLocaleDateString()}</Text>
               </TouchableOpacity>
-
-              {isInstallment && transactionType === "Gasto" && (
-                <View>
-                  <Text style={styles.textFacturacion}>
-                    Día de facturación de la tarjeta
-                  </Text>
-                  <View style={styles.inputBox2}>
-                    {/* El texto de Día de facturación de la tarjeta */}
-
-                    <Picker
-                      selectedValue={billingDay}
-                      onValueChange={(itemValue) => setBillingDay(itemValue)}
-                      style={styles.picker}
-                    >
-                      {[...Array(31)].map((_, index) => (
-                        <Picker.Item
-                          key={index}
-                          label={`Día ${index + 1}`}
-                          value={index + 1}
-                        />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-              )}
-
-              {/* Aquí va tu DateTimePicker */}
               {showDatePicker && (
                 <DateTimePicker
                   value={date}
@@ -607,7 +627,7 @@ export default function App() {
                 style={styles.pickerContainer}
               >
                 <TouchableOpacity
-                  onPress={handleAddTransaction}
+                  onPress={() => handleAddTransaction(category)}
                   style={styles.confirmButton}
                 >
                   <Text style={styles.confirmText}>Confirmar</Text>
@@ -622,8 +642,6 @@ export default function App() {
 
   console.log("Ingreso Categorias (final):", ingresoCategorias);
   console.log("Gasto Categorias (final):", gastoCategorias);
-
-
 }
 
 const styles = StyleSheet.create({

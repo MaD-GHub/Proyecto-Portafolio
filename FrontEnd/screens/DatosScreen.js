@@ -1,174 +1,121 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions, FlatList, TextInput } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
-import { LinearGradient } from 'expo-linear-gradient';
-import moment from 'moment';
-import { Picker } from '@react-native-picker/picker';
-import RegisterActivity from "../components/RegisterActivity";
-import { auth } from "../firebase";
-import InversionScreen from './InversionScreen'; // Importar la pantalla de Inversión
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import LineChartComponent from "../components/LineChartComponent"; // Componente de gráficos de ingresos
+import ExpensesChartComponent from "../components/ExpensesChartComponent";
+import ComparisonChartComponent from "../components/ComparisonChartComponent"; // Componente de otros gráficos
 
-export default function DatosScreen({ navigation }) {
-  const [selectedTab, setSelectedTab] = useState('Expenses'); // 'Expenses', 'Income', o 'Inversiones'
+export default function DatosScreen({ navigation, route }) {
+  const [selectedTab, setSelectedTab] = useState("Gráficos");
+  const [selectedFilter, setSelectedFilter] = useState("Ingresos"); // Filtro inicial: Ingresos
 
-  const screenWidth = Dimensions.get('window').width;
+  const handleTabPress = (tab) => {
+    setSelectedTab(tab);
+    if (tab === "Inversiones") {
+      navigation.navigate("Inversiones");
+    }
+  };
 
-  //Registrar actividad
+  const handleFilterChange = (filter) => {
+    setSelectedFilter(filter);
+  };
+
   useEffect(() => {
-    const user = auth.currentUser;
-    if (user) {
-      RegisterActivity(user.uid, "navigate", {
-        screen: "DatosScreen",
-        description: 'Usuario visita la página DatosScreen.',
-      });
+    if (route?.params?.tab) {
+      setSelectedTab(route.params.tab);
     }
-  }, []);
+  }, [route?.params]);
 
-  // Datos de prueba para las categorías de gastos
-  const expenseCategories = [
-    { id: '1', category: 'Comidas y Bebidas', amount: -200, date: 'Oct 10, 12:21 pm', icon: '🍔' },
-    { id: '2', category: 'Vestuario', amount: -150, date: 'Oct 9, 3:30 pm', icon: '👗' },
-    { id: '3', category: 'Alojamiento', amount: -800, date: 'Oct 7, 9:00 am', icon: '🏠' },
-    { id: '4', category: 'Salud', amount: -250, date: 'Oct 5, 11:15 am', icon: '🏥' },
-    { id: '5', category: 'Transporte', amount: -75, date: 'Oct 3, 8:00 am', icon: '🚗' },
-    { id: '6', category: 'Educación', amount: -300, date: 'Oct 1, 10:00 am', icon: '🎓' },
-  ];
-
-  // Datos de prueba para las categorías de ingresos
-  const incomeCategories = [
-    { id: '1', category: 'Salario', amount: 1500, date: 'Oct 10, 12:21 pm', icon: '💼' },
-    { id: '2', category: 'Ventas de Producto', amount: 800, date: 'Oct 9, 3:30 pm', icon: '🛒' },
-  ];
-
-  // Generar etiquetas de meses
-  const generateMonthLabels = () => {
-    const currentMonthIndex = moment().month();
-    const months = [];
-    for (let i = 0; i < 7; i++) {
-      months.push(moment().month((currentMonthIndex + i) % 12).format('MMM'));
+  const renderGraphContent = () => {
+    switch (selectedFilter) {
+      case "Ingresos":
+        return <LineChartComponent />; // Componente del gráfico de ingresos
+      case "Gastos":
+        return <ExpensesChartComponent />;
+      case "Comparación":
+        return <ComparisonChartComponent />;
+      default:
+        return null;
     }
-    return months;
   };
 
-  // Datos de prueba para el gráfico
-  const chartData = {
-    labels: generateMonthLabels(),
-    datasets: [
-      {
-        data: selectedTab === 'Expenses' ? [500, 700, 800, 320, 900, 600, 700] : [1000, 1100, 900, 320, 1150, 920, 970],
-        color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
-        strokeWidth: 3,
-      },
-    ],
-  };
+  const renderContent = () => {
+    switch (selectedTab) {
+      case "Gráficos":
+        return (
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {/* Contenido del gráfico */}
+            <View style={styles.graphWrapper}>{renderGraphContent()}</View>
 
-  const chartConfig = {
-    backgroundGradientFrom: '#fff',
-    backgroundGradientTo: '#fff',
-    color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
-    strokeWidth: 2,
-    decimalPlaces: 0,
-    propsForDots: {
-      r: '6',
-      strokeWidth: '2',
-      stroke: '#ffffff',
-    },
-    withVerticalLines: false,
-    withHorizontalLines: false,
-    withInnerLines: false,
-    propsForBackgroundLines: {
-      stroke: 'transparent',
-    },
-    withVerticalLabels: true,
-    withHorizontalLabels: true,
-    labelFontSize: 14,
-    labelFontWeight: 'bold',
-    propsForHorizontalLabels: {
-      fill: '#000',
-      fontWeight: 'bold',
-    },
-    propsForVerticalLabels: {
-      fill: '#000',
-      fontWeight: 'bold',
-    },
+            {/* Barra de filtros debajo del gráfico */}
+            <View style={styles.filterBar}>
+              {["Ingresos", "Gastos", "Comparación"].map(
+                (filter) => (
+                  <TouchableOpacity
+                    key={filter}
+                    style={[
+                      styles.filterButton,
+                      selectedFilter === filter && styles.activeFilter,
+                    ]}
+                    onPress={() => handleFilterChange(filter)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterText,
+                        selectedFilter === filter && styles.activeFilterText,
+                      ]}
+                    >
+                      {filter}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              )}
+            </View>
+          </ScrollView>
+        );
+      case "Análisis":
+        return (
+          <View style={styles.contentContainer}>
+            <Text style={styles.contentText}>Vista de Análisis</Text>
+          </View>
+        );
+      case "Inversiones":
+        return (
+          <View style={styles.contentContainer}>
+            <Text style={styles.contentText}>Vista de Inversiones</Text>
+          </View>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.screenTitle}>Datos</Text>
-
+      {/* Segmented Control */}
       <View style={styles.segmentedControl}>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Expenses' && styles.activeTab]}
-          onPress={() => setSelectedTab('Expenses')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Expenses' && styles.activeTabText]}>
-            Gastos
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Income' && styles.activeTab]}
-          onPress={() => setSelectedTab('Income')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Income' && styles.activeTabText]}>
-            Ingresos
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Inversiones' && styles.activeTab]}
-          onPress={() => navigation.navigate('Inversiones')} // Nombre registrado en el stack de navegación
-        >
-          <Text style={[styles.tabText, selectedTab === 'Inversiones' && styles.activeTabText]}>
-            Inversiones
-          </Text>
-        </TouchableOpacity>
+        {["Gráficos", "Análisis", "Inversiones"].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[
+              styles.tabButton,
+              selectedTab === tab && styles.activeTab,
+            ]}
+            onPress={() => handleTabPress(tab)}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      {selectedTab !== 'Inversiones' && (
-        <>
-          <LineChart
-            data={chartData}
-            width={screenWidth * 0.95}
-            height={220}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-            withVerticalLabels={true}
-            withHorizontalLabels={true}
-            withDots={true}
-            withShadow={false}
-            fromZero={true}
-          />
-
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Última Actividad</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>Ver Todo</Text>
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={selectedTab === 'Expenses' ? expenseCategories : incomeCategories}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <LinearGradient colors={['#511496', '#885fd8']} style={styles.iconContainer}>
-                  <Text style={styles.icon}>{item.icon}</Text>
-                </LinearGradient>
-                <View style={styles.details}>
-                  <Text style={styles.category}>{item.category}</Text>
-                  <Text style={styles.date}>{item.date}</Text>
-                </View>
-                <Text style={[styles.amount, item.amount < 0 ? styles.negativeAmount : styles.positiveAmount]}>
-                  {item.amount < 0 ? `-$${Math.abs(item.amount)}` : `$${item.amount}`}
-                </Text>
-              </View>
-            )}
-          />
-        </>
-      )}
+      {/* Contenido dinámico */}
+      {renderContent()}
     </View>
   );
 }
@@ -176,105 +123,99 @@ export default function DatosScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    padding: 10,
+    backgroundColor: "#f1f1f1",
   },
   screenTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#511496',
-    textAlign: 'center',
-    marginVertical: 10,
-    paddingTop: 25,
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#511496",
+    textAlign: "center",
+    marginVertical: 16,
   },
   segmentedControl: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    backgroundColor: '#ececec',
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 30,
-    marginHorizontal: 20,
-    marginVertical: 10,
-    padding: 5,
+    marginHorizontal: 16,
+    padding: 2,
+    shadowColor: "#000", // Sombra para iOS
+    shadowOffset: { width: 0, height: 2 }, // Desplazamiento de la sombra
+    shadowOpacity: 0.15, // Opacidad de la sombra
+    shadowRadius: 4, // Radio de la sombra
+    elevation: 4, // Elevación para Android
+    marginTop: 50,
   },
   tabButton: {
     flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
     borderRadius: 20,
   },
   activeTab: {
-    backgroundColor: '#511496',
+    backgroundColor: "#511496",
   },
   tabText: {
     fontSize: 16,
-    color: '#6d6d6d',
+    color: "#6d6d6d",
   },
   activeTabText: {
-    color: 'white',
+    color: "#fff",
+    fontWeight: "bold",
   },
-  chart: {
-    marginVertical: 20,
-    borderRadius: 16,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20, // Espacio al final para el scroll
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  graphWrapper: {
     marginVertical: 10,
+    paddingHorizontal: 16,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
+  filterBar: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    paddingVertical: 2,
+    backgroundColor: "#fff",
+    marginHorizontal: 15,
+    borderRadius: 20,
+    marginVertical: 5, // Espacio adicional
+    shadowColor: "#000", // Sombra para iOS
+    shadowOffset: { width: 0, height: 2 }, // Desplazamiento de la sombra
+    shadowOpacity: 0.15, // Opacidad de la sombra
+    shadowRadius: 4, // Radio de la sombra
+    elevation: 4, // Elevación para Android
+    marginTop: 15,
   },
-  seeAll: {
-    fontSize: 14,
-    color: '#885fd8',
+  filterButton: {
+    flex: 1, // Ocupará todo el espacio disponible
+    paddingVertical: 13,
+    alignItems: "center",
+    borderRadius: 20,
+    marginHorizontal: 1, // Espacio lateral mínimo
   },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 10,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
+  activeFilter: {
+    backgroundColor: "#511496",
   },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
+  filterText: {
+    fontSize: 13,
+    color: "#6d6d6d",
+    textAlign: "center",
   },
-  icon: {
-    fontSize: 24,
-    color: '#fff',
+  activeFilterText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
-  details: {
+  contentContainer: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  category: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  date: {
-    fontSize: 14,
-    color: '#888',
-  },
-  amount: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  negativeAmount: {
-    color: '#ff3b30',
-  },
-  positiveAmount: {
-    color: '#4cd964',
+  contentText: {
+    fontSize: 18,
+    color: "#673072",
+    textAlign: "center",
   },
 });
+

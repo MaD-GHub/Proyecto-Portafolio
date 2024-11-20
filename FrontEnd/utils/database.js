@@ -1,20 +1,25 @@
-// utils/database.js
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
 
-export const getTransactionsFromDatabase = async () => {
+// Filtrar categorías por tipo: "Ingreso" o "Gasto"
+export const getCategoriesByType = async (type) => {
+  const categories = [];
   try {
-    const transactionsRef = collection(db, "transactions");
-    const querySnapshot = await getDocs(transactionsRef);
-    
-    const transactions = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    return transactions;
+    const q = query(
+      collection(db, "categorias"),
+      where("tipo", "==", type) // Filtrar por el campo "tipo"
+    );
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      console.log("Documento leído:", data); // Para verificar la estructura
+      if (data && data.nombre) {
+        categories.push(data.nombre); // Extraer solo el nombre
+      }
+    });
   } catch (error) {
-    console.error("Error al obtener transacciones:", error);
-    throw error; // Para que el `catch` en `DatosScreen` lo maneje
+    console.error("Error al cargar categorías:", error);
   }
+  return categories;
 };
+
