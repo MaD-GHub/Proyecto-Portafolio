@@ -165,17 +165,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   chartDescription: {
-    marginTop: 20,
+    marginTop: 35,
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
     textAlign: "left",
     width: "100%",
-    paddingHorizontal: 15,
+    paddingHorizontal: 25,
   },
   categorySection: {
     marginHorizontal: 35, // Mayor margen horizontal
-    marginTop: 10,
+    marginTop: 0,
   },
   categoryBox: {
     flexDirection: "row",
