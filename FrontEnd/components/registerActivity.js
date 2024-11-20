@@ -14,5 +14,4 @@ const RegisterActivity = async (userId, action, details = {}) => {
   }
 };
 
-export default registerActivity;
-
+export default RegisterActivity
