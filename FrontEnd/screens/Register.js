@@ -5,8 +5,8 @@ import { auth, db } from '../firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker'; 
-import { FontAwesome5 } from '@expo/vector-icons'; 
+import { Picker } from '@react-native-picker/picker';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -19,9 +19,35 @@ export default function RegisterScreen({ navigation }) {
   const [hasJob, setHasJob] = useState(false);
   const [salary, setSalary] = useState('');
   const [salaryDay, setSalaryDay] = useState('');
+  const [region, setRegion] = useState('');
+  const [comuna, setComuna] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+// Lista de regiones y comunas de Chile (completo)
+const regionesYComunas = {
+  "Arica y Parinacota": ["Arica", "Camarones", "Putre", "General Lagos"],
+  "Tarapacá": ["Iquique", "Alto Hospicio", "Pozo Almonte", "Pica", "Huara", "Colchane", "Camiña"],
+  "Antofagasta": ["Antofagasta", "Mejillones", "Taltal", "Sierra Gorda", "Calama", "San Pedro de Atacama", "Ollagüe", "María Elena"],
+  "Atacama": ["Copiapó", "Caldera", "Tierra Amarilla", "Chañaral", "Diego de Almagro", "Vallenar", "Huasco", "Alto del Carmen", "Freirina"],
+  "Coquimbo": ["La Serena", "Coquimbo", "Ovalle", "Illapel", "Los Vilos", "Salamanca", "Andacollo", "La Higuera", "Paiguano", "Vicuña"],
+  "Valparaíso": ["Valparaíso", "Viña del Mar", "Concón", "Quilpué", "Villa Alemana", "Casablanca", "San Antonio", "Cartagena", "El Quisco", "El Tabo", "Santo Domingo", "Quillota", "La Calera", "Nogales", "Hijuelas", "La Cruz", "Limache", "Olmué", "San Felipe", "Putaendo", "Santa María", "Llaillay", "Catemu", "Panquehue", "Los Andes", "Calle Larga", "Rinconada", "San Esteban", "Isla de Pascua", "Juan Fernández"],
+  "Región Metropolitana de Santiago": ["Santiago", "Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Vitacura", "Puente Alto", "Pirque", "San José de Maipo", "Colina", "Lampa", "Tiltil", "Melipilla", "Alhué", "Curacaví", "María Pinto", "San Pedro", "Talagante", "El Monte", "Isla de Maipo", "Padre Hurtado", "Peñaflor"],
+  "O'Higgins": ["Rancagua", "Machalí", "Graneros", "Doñihue", "Codegua", "Olivar", "Coinco", "Coltauco", "Quinta de Tilcoco", "Rengo", "Malloa", "Requínoa", "San Vicente", "Pichidegua", "Peumo", "Las Cabras", "San Fernando", "Chépica", "Chimbarongo", "Lolol", "Nancagua", "Palmilla", "Peralillo", "Pumanque", "Santa Cruz", "Pichilemu", "Marchihue", "Navidad", "Litueche", "La Estrella"],
+  "Maule": ["Talca", "Constitución", "Curepto", "Empedrado", "Maule", "Pelarco", "Pencahue", "Río Claro", "San Clemente", "San Rafael", "Cauquenes", "Chanco", "Pelluhue", "Curicó", "Hualañé", "Licantén", "Molina", "Rauco", "Romeral", "Sagrada Familia", "Teno", "Vichuquén", "Linares", "Colbún", "Longaví", "Parral", "Retiro", "San Javier", "Villa Alegre", "Yerbas Buenas"],
+  "Ñuble": ["Chillán", "Chillán Viejo", "El Carmen", "Pinto", "San Ignacio", "Coihueco", "San Carlos", "Ñiquén", "San Fabián", "Bulnes", "Quillón", "San Nicolás", "Quirihue", "Cobquecura", "Coelemu", "Ninhue", "Portezuelo", "Ránquil", "Treguaco", "Yungay", "Pemuco"],
+  "Biobío": ["Concepción", "Coronel", "Chiguayante", "Hualqui", "Lota", "Penco", "San Pedro de la Paz", "Santa Juana", "Talcahuano", "Tomé", "Hualpén", "Los Ángeles", "Antuco", "Cabrero", "Laja", "Mulchén", "Nacimiento", "Negrete", "Quilaco", "Quilleco", "San Rosendo", "Santa Bárbara", "Tucapel", "Yumbel", "Alto Biobío", "Lebu", "Arauco", "Cañete", "Contulmo", "Curanilahue", "Los Álamos", "Tirúa"],
+  "Araucanía": ["Temuco", "Carahue", "Cunco", "Curarrehue", "Freire", "Galvarino", "Gorbea", "Lautaro", "Loncoche", "Melipeuco", "Nueva Imperial", "Padre Las Casas", "Perquenco", "Pitrufquén", "Pucón", "Saavedra", "Teodoro Schmidt", "Toltén", "Vilcún", "Villarrica", "Cholchol", "Angol", "Collipulli", "Curacautín", "Ercilla", "Lonquimay", "Los Sauces", "Lumaco", "Purén", "Renaico", "Traiguén", "Victoria"],
+  "Los Ríos": ["Valdivia", "Corral", "Lanco", "Los Lagos", "Máfil", "Mariquina", "Paillaco", "Panguipulli", "La Unión", "Futrono", "Lago Ranco", "Río Bueno"],
+  "Los Lagos": ["Puerto Montt", "Calbuco", "Cochamó", "Fresia", "Frutillar", "Llanquihue", "Los Muermos", "Maullín", "Puerto Varas", "Castro", "Ancud", "Chonchi", "Curaco de Vélez", "Dalcahue", "Puqueldón", "Queilén", "Quellón", "Quemchi", "Quinchao", "Osorno", "Puerto Octay", "Purranque", "Puyehue", "Río Negro", "San Juan de la Costa", "San Pablo", "Chaitén", "Futaleufú", "Hualaihué", "Palena"],
+  "Aysén": ["Coyhaique", "Lago Verde", "Aysén", "Cisnes", "Guaitecas", "Cochrane", "O'Higgins", "Tortel", "Chile Chico", "Río Ibáñez"],
+  "Magallanes": ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos", "Antártica", "Porvenir", "Primavera", "Timaukel", "Puerto Natales", "Torres del Paine"],
+};
+
   const handleRegister = async () => {
+    if (!region || !comuna) {
+      Alert.alert("Error", "Por favor selecciona tu región y comuna.");
+      return;
+    }
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -35,6 +61,8 @@ export default function RegisterScreen({ navigation }) {
         salary: hasJob ? salary : null,
         salaryDay: hasJob ? salaryDay : null,
         email: user.email,
+        region,
+        comuna, // Agrega región y comuna al registro
       });
 
       Alert.alert("Te has Registrado con éxito");
@@ -68,8 +96,8 @@ export default function RegisterScreen({ navigation }) {
             />
           </View>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('StartScreen')}>
-          <FontAwesome5 name="angle-left" size={24} color="#fff" />
-          </TouchableOpacity> 
+            <FontAwesome5 name="angle-left" size={24} color="#fff" />
+          </TouchableOpacity>
         </LinearGradient>
 
         {/* Formulario flotante */}
@@ -90,21 +118,51 @@ export default function RegisterScreen({ navigation }) {
             />
           )}
 
-          <View >
+          <View>
+            <LinearGradient colors={['#511496', '#885FD8']} style={styles.pickerContainer}>
+              <Picker
+                selectedValue={gender}
+                onValueChange={(itemValue) => setGender(itemValue)}
+                style={styles.pickerTextStyle}
+              >
+                <Picker.Item label="Seleccione su género" value="" />
+                <Picker.Item label="Masculino" value="masculino" />
+                <Picker.Item label="Femenino" value="femenino" />
+                <Picker.Item label="No informar" value="no_informar" />
+              </Picker>
+            </LinearGradient>
+          </View>
+
           <LinearGradient colors={['#511496', '#885FD8']} style={styles.pickerContainer}>
-          <Picker
-              selectedValue={gender}
-              onValueChange={(itemValue) => setGender(itemValue)}
-              style={styles.pickerTextStyle} // Custom text style
+            <Picker
+              selectedValue={region}
+              onValueChange={(itemValue) => {
+                setRegion(itemValue);
+                setComuna(''); // Reinicia comuna al cambiar la región
+              }}
+              style={styles.pickerTextStyle}
             >
-            
-              <Picker.Item label="Seleccione su género" value="" />
-              <Picker.Item label="Masculino" value="masculino" />
-              <Picker.Item label="Femenino" value="femenino" />
-              <Picker.Item label="No informar" value="no_informar" />
+              <Picker.Item label="Seleccione su región" value="" />
+              {Object.keys(regionesYComunas).map((region, index) => (
+                <Picker.Item key={index} label={region} value={region} />
+              ))}
             </Picker>
           </LinearGradient>
-          </View>
+
+          {region && (
+            <LinearGradient colors={['#511496', '#885FD8']} style={styles.pickerContainer}>
+              <Picker
+                selectedValue={comuna}
+                onValueChange={(itemValue) => setComuna(itemValue)}
+                style={styles.pickerTextStyle}
+              >
+                <Picker.Item label="Seleccione su comuna" value="" />
+                {regionesYComunas[region].map((comuna, index) => (
+                  <Picker.Item key={index} label={comuna} value={comuna} />
+                ))}
+              </Picker>
+            </LinearGradient>
+          )}
 
           <TouchableOpacity onPress={() => setHasJob(!hasJob)}>
             <Text style={styles.checkboxText}>{hasJob ? '✅' : '⬜'} ¿Tienes trabajo?</Text>
@@ -151,7 +209,6 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     marginTop: -140,
-
   },
   logoContainer: {
     justifyContent: 'center',
@@ -189,16 +246,15 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   pickerContainer: {
-    backgroundColor: '#fff', // Background for the picker container
+    backgroundColor: '#fff',
     padding: 0,
     marginBottom: 17,
     borderWidth: 2,
     borderColor: '#fff',
-    borderRadius: 25, // Full rounded corners
+    borderRadius: 25,
   },
   pickerTextStyle: {
-    color: '#fff', // Text color of the picker items
-    paddingHorizontal: 10, // Padding inside the picker for spacing
+    color: '#fff',
   },
   registerButton: {
     paddingVertical: 8,
@@ -229,6 +285,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 15,
   },
-  
 });
-

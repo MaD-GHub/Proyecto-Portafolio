@@ -35,8 +35,12 @@ const ActualidadScreen = () => {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [modalVisible, setModalVisible] = useState(null);
   const [selectedNews, setSelectedNews] = useState(null);
-
+  const [selectedBook, setSelectedBook] = useState(null);
   const navigation = useNavigation(); // Instancia de navegación
+  const [articlesData, setArticlesData] = useState([]); // Lista de artículos
+  const [selectedArticle, setSelectedArticle] = useState(null); // Artículo seleccionado
+  const [glossaryData, setGlossaryData] = useState([]); // Lista de términos del glosario
+  const [selectedGlossaryTerm, setSelectedGlossaryTerm] = useState(null); // Término seleccionado
 
   // Términos financieros importantes
   const financialTerms = [
@@ -111,6 +115,41 @@ const ActualidadScreen = () => {
     }
   };
 
+// Cargar Articulos desde Firebase
+  const fetchArticles = async () => {
+    setLoading(true);
+    try {
+      const snapshot = await getDocs(collection(db, 'articles')); // Cambia 'articles' al nombre de la colección en Firestore
+      const articlesList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setArticlesData(articlesList);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //cargar glosario desde firebase
+  const fetchGlossary = async () => {
+    setLoading(true);
+    try {
+      const snapshot = await getDocs(collection(db, 'glossary')); // Cambia 'glossary' al nombre de tu colección
+      const glossaryList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setGlossaryData(glossaryList);
+    } catch (error) {
+      console.error('Error fetching glossary terms:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
   // Cargar datos del mercado
   const fetchMarketData = async () => {
     setLoading(true);
@@ -150,60 +189,52 @@ const ActualidadScreen = () => {
     }
   };
 
-  // Libros recomendados (cargando imágenes localmente)
-  const recommendedBooks = [
-    {
-      title: 'Padre Rico, Padre Pobre',
-      author: 'Robert T. Kiyosaki',
-      cover: require('../assets/libros/padre_rico_padre_pobre.jpg'),
-    },
-    {
-      title: 'El Hombre Más Rico de Babilonia',
-      author: 'George S. Clason',
-      cover: require('../assets/libros/el_hombre_mas_rico_babilonia.jpg'),
-    },
-    {
-      title: 'Los Secretos de la Mente Millonaria',
-      author: 'T. Harv Eker',
-      cover: require('../assets/libros/secretos_mente_millonaria.jpg'),
-    },
-    {
-      title: 'Piense y Hágase Rico',
-      author: 'Napoleon Hill',
-      cover: require('../assets/libros/piense_hagase_rico.jpg'),
-    },
-    {
-      title: 'La Magia de Pensar en Grande',
-      author: 'David Schwartz',
-      cover: require('../assets/libros/la_magia_de_pensar_en_grande.jpg'),
-    },
-    {
-      title: 'El Código del Dinero',
-      author: 'Raimon Samsó',
-      cover: require('../assets/libros/el_codigo_del_dinero.jpg'),
-    },
-  ];
-
   const fetchBooks = async () => {
     setLoading(true);
-    setBookData(recommendedBooks); // Asegúrate de que recommendedBooks tiene los datos correctos
-    setLoading(false);
+    try {
+      const snapshot = await getDocs(collection(db, 'lecturas'));
+      const booksList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setBookData(booksList);
+    } catch (error) {
+      console.error('Error fetching books from Firebase:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     if (selectedTab === 'Valor Mercado') {
       fetchMarketData();
     } else if (selectedTab === 'Noticias') {
-      fetchNewsFromFirebase(); // Solo mantenemos esta línea
+      fetchNewsFromFirebase();
     } else if (selectedTab === 'Educación') {
-      fetchBooks();
+      fetchBooks(); // Llama a la nueva función fetchBooks
     }
   }, [selectedTab]);
 
+  useEffect(() => {
+    if (modalVisible === 'artículos') {
+      fetchArticles();
+    }
+  }, [modalVisible]);
+
+  useEffect(() => {
+    if (modalVisible === 'glosario') {
+      fetchGlossary();
+    }
+  }, [modalVisible]);
+  
 
   if (!fontsLoaded) {
     return <ActivityIndicator size="large" color="#511496" />;
   }
+
+  const openModal = (modalName) => {
+    setModalVisible(modalName);
+  };
 
   // Renderiza los datos del mercado
   const renderMarketItem = ({ item, index }) => {
@@ -243,49 +274,18 @@ const renderFirebaseNewsItem = ({ item }) => (
   </TouchableOpacity>
 );
 
-
-// Renderiza cada noticia de la API
-const renderNewsItem = ({ item }) => {
-  const imageUrl = typeof item.image_url === 'string' ? item.image_url : null;
-
-  return (
-    <View style={styles.newsCard}>
-      <ImageBackground
-        source={imageUrl ? { uri: imageUrl } : NoHayNoticiaImage}
-        style={styles.newsImage}
-        imageStyle={{ borderRadius: 10 }}
-      >
-        <View style={styles.newsOverlay}>
-          <Text style={styles.newsTitle}>{item.title}</Text>
-        </View>
-      </ImageBackground>
-    </View>
-  );
-};
-
-// Renderiza cada libro
-const renderBookItem = ({ item }) => (
-  <View style={styles.bookCard}>
-    <Image
-      source={item.cover}
-      style={styles.smallBookImage}
-      resizeMode="contain"
-    />
-    <View style={styles.bookDetails}>
-      <Text style={styles.bookTitle}>{item.title}</Text>
-      <Text style={styles.bookAuthor}>{item.author}</Text>
-    </View>
-  </View>
-);
-
 // Renderiza el contenido de Educación Financiera
 const renderEducationItem = ({ item }) => (
   <TouchableOpacity
-    onPress={item.title === 'Artículos' ? () => setModalVisible('articulos') : () => setModalVisible(item.title.toLowerCase())}
+    onPress={() =>
+      item.title === 'Lecturas Recomendadas'
+        ? openModal('lecturas recomendadas')
+        : openModal(item.title.toLowerCase())
+    }
   >
     <LinearGradient
       colors={item.background}
-      style={[styles.educationCard, styles.doubleWidth]} // Aplica el estilo "doubleWidth" a todos
+      style={[styles.educationCard, styles.doubleWidth]}
     >
       <MaterialIcons name={item.icon} size={40} color="white" />
       <Text style={styles.educationTitle}>{item.title}</Text>
@@ -348,6 +348,7 @@ return (
           Educación
         </Text>
       </TouchableOpacity>
+      
     </View>
 
     {loading ? (
@@ -382,7 +383,7 @@ return (
           <>
             {/* Lecturas Recomendadas ocupa toda la fila superior */}
             <FlatList
-              data={educationData} // Asegúrate de que data contiene solo los elementos necesarios sin duplicados
+              data={educationData}
               renderItem={renderEducationItem}
               keyExtractor={(item) => item.title}
               contentContainerStyle={styles.educationList}
@@ -392,48 +393,170 @@ return (
       </>
     )}
 
-    {/* Modal para cada apartado de educación financiera */}
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible !== null}
-      onRequestClose={() => setModalVisible(null)}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(null)}>
-            <AntDesign name="close" size={24} color="black" />
-          </TouchableOpacity>
-          <ScrollView contentContainerStyle={styles.scrollContent}>
-            <Text style={styles.modalTitle}>
-              {modalVisible?.charAt(0).toUpperCase() + modalVisible?.slice(1)}
-            </Text>
-            {modalVisible === 'glosario' &&
-              financialTerms.map((term, index) => (
-                <View key={index} style={styles.termCard}>
-                  <Text style={styles.termTitle}>{term.term}</Text>
-                  <Text style={styles.termDefinition}>{term.definition}</Text>
-                </View>
-              ))}
-            {modalVisible === 'lecturas recomendadas' &&
-              bookData.map((book, index) => (
-                <View key={index} style={styles.termCard}>
-                  <Image 
-                    source={book.cover} 
-                    style={styles.smallBookImage} 
-                    resizeMode="contain"
-                  />
-                  <View style={styles.bookDetails}>
-                    <Text style={styles.bookTitle}>{book.title}</Text>
-                    <Text style={styles.bookAuthor}>{book.author}</Text>
-                  </View>
-                </View>
-              ))}
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
 
+
+    {/* Modal para cada apartado de educación financiera */}
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={modalVisible !== null} // Muestra el modal si modalVisible tiene algún valor
+  onRequestClose={() => setModalVisible(null)} // Cierra el modal al presionar fuera
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <TouchableOpacity style={styles.closeIcon} onPress={() => setModalVisible(null)}>
+        <AntDesign name="close" size={24} color="black" />
+      </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.modalTitle}>
+          {modalVisible?.charAt(0).toUpperCase() + modalVisible?.slice(1)}
+        </Text>
+        
+        {/* Contenido del Glosario */}
+        {modalVisible === 'glosario' &&
+          glossaryData.map((term, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.termItemContainer}
+              onPress={() => setSelectedGlossaryTerm(term)} // Abre el modal de detalle del término
+            >
+              <View style={styles.termInfoContainer}>
+                <Text style={styles.termWord}>{term.word}</Text>
+                <Text style={styles.termDefinitionPreview}>
+                  {term.definition.length > 50 ? `${term.definition.slice(0, 50)}...` : term.definition}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+
+        {/* Contenido de Lecturas Recomendadas */}
+        {modalVisible === 'lecturas recomendadas' &&
+          bookData.map((book, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.bookItemContainer}
+              onPress={() => setSelectedBook(book)} // Al presionar, se abre el modal de detalle del libro
+            >
+              <Image
+                source={{ uri: book.photos?.[0] || NoHayNoticiaImage }}
+                style={styles.bookImage}
+                resizeMode="contain"
+              />
+              <View style={styles.bookInfoContainer}>
+                <Text style={styles.bookTitle}>{book.title}</Text>
+                <Text style={styles.bookAuthor}>Autor: {book.author}</Text>
+                <Text style={styles.bookDate}>
+                  Publicado: {new Date(book.publicationDate.seconds * 1000).toLocaleDateString('es-ES')}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+        {/* Contenido de Artículos (si deseas incluir esta lógica) */}
+        {modalVisible === 'artículos' &&
+        articlesData.map((article, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.articleItemContainer}
+            onPress={() => setSelectedArticle(article)} // Abre el modal de detalle del artículo
+          >
+            <Image
+              source={{ uri: article.mainPhoto || NoHayNoticiaImage }}
+              style={styles.articleImage}
+              resizeMode="contain"
+            />
+            <View style={styles.articleInfoContainer}>
+              <Text style={styles.articleTitle}>{article.title}</Text>
+              <Text style={styles.articleAuthor}>Autor: {article.author}</Text>
+              <Text style={styles.articleDate}>
+                Publicado: {new Date(article.publicationDate.seconds * 1000).toLocaleDateString('es-ES')}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
+
+
+{/* DETALLES LIBROS :) */}
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={selectedBook !== null} // Mostrar el modal si hay un libro seleccionado
+  onRequestClose={() => setSelectedBook(null)} // Cerrar modal al presionar fuera
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <TouchableOpacity
+        style={styles.closeIcon}
+        onPress={() => setSelectedBook(null)} // Limpia el libro seleccionado al cerrar
+      >
+        <AntDesign name="close" size={24} color="black" />
+      </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Imagen del libro */}
+        <Image
+          source={{ uri: selectedBook?.photos?.[0] || NoHayNoticiaImage }}
+          style={styles.modalImage}
+          resizeMode="contain"
+        />
+        {/* Título del libro */}
+        <Text style={styles.modalTitle}>{selectedBook?.title}</Text>
+        {/* Autor */}
+        <Text style={styles.modalAuthor}>Autor: {selectedBook?.author}</Text>
+        {/* Fecha de publicación */}
+        <Text style={styles.modalDate}>
+          Publicado: {new Date(selectedBook?.publicationDate.seconds * 1000).toLocaleDateString('es-ES')}
+        </Text>
+        {/* Descripción */}
+        <Text style={styles.modalContentText}>{selectedBook?.review}</Text>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
+
+
+{/* DETALLES ARTICULOS :) */}
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={selectedArticle !== null} // Mostrar el modal si hay un artículo seleccionado
+  onRequestClose={() => setSelectedArticle(null)} // Cerrar el modal al presionar fuera
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <TouchableOpacity
+        style={styles.closeIcon}
+        onPress={() => setSelectedArticle(null)} // Limpia el artículo seleccionado al cerrar
+      >
+        <AntDesign name="close" size={24} color="black" />
+      </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Imagen principal */}
+        <Image
+          source={{ uri: selectedArticle?.mainPhoto || NoHayNoticiaImage }}
+          style={styles.modalImage}
+          resizeMode="contain"
+        />
+        {/* Título */}
+        <Text style={styles.modalTitle}>{selectedArticle?.title}</Text>
+        {/* Autor */}
+        <Text style={styles.modalAuthor}>Autor: {selectedArticle?.author}</Text>
+        {/* Fuente */}
+        <Text style={styles.modalSource}>Fuente: {selectedArticle?.mainSource}</Text>
+        {/* Fecha de publicación */}
+        <Text style={styles.modalDate}>
+          Publicado: {new Date(selectedArticle?.publicationDate.seconds * 1000).toLocaleDateString('es-ES')}
+        </Text>
+        {/* Contenido del artículo */}
+        <Text style={styles.modalContentText}>{selectedArticle?.content}</Text>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
 
 
 
@@ -466,6 +589,37 @@ return (
     </View>
   </View>
 </Modal>
+
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={selectedGlossaryTerm !== null} // Mostrar el modal si hay un término seleccionado
+  onRequestClose={() => setSelectedGlossaryTerm(null)} // Cerrar el modal al presionar fuera
+>
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <TouchableOpacity
+        style={styles.closeIcon}
+        onPress={() => setSelectedGlossaryTerm(null)} // Limpia el término seleccionado al cerrar
+      >
+        <AntDesign name="close" size={24} color="black" />
+      </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Palabra del glosario */}
+        <Text style={styles.modalTitle}>{selectedGlossaryTerm?.word}</Text>
+        {/* Definición */}
+        <Text style={styles.modalDefinition}>{selectedGlossaryTerm?.definition}</Text>
+        {/* Fecha de publicación */}
+        <Text style={styles.modalDate}>
+          Publicado: {new Date(selectedGlossaryTerm?.publicationDate.seconds * 1000).toLocaleDateString('es-ES')}
+        </Text>
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
+
+
+
   </SafeAreaView>
 );
 };
@@ -711,7 +865,139 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     paddingHorizontal: 10,
     textAlign: 'justify',
+    marginBottom: 10,
   },
+  bookDate: {
+    fontFamily: 'Inter-Light',
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+  },
+  bookReview: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#333',
+    marginTop: 10,
+    textAlign: 'justify',
+  },
+  bookItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+  },
+  bookImage: {
+    width: 80,
+    height: 100,
+    borderRadius: 5,
+    marginRight: 15,
+  },
+  bookInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  bookTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+  },
+  bookAuthor: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+  },
+  bookDate: {
+    fontFamily: 'Inter-Light',
+    fontSize: 12,
+    color: '#888',
+    marginTop: 5,
+  },
+  articleItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+  },
+  articleImage: {
+    width: 80,
+    height: 100,
+    borderRadius: 5,
+    marginRight: 15,
+  },
+  articleInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  articleTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    textAlign: 'left',
+  },
+  articleAuthor: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'left',
+    marginTop: 5,
+  },
+  articleDate: {
+    fontFamily: 'Inter-Light',
+    fontSize: 12,
+    color: '#888',
+    marginTop: 5,
+  },
+  modalSource: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  termItemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+  },
+  termInfoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  termWord: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 16,
+    textAlign: 'left',
+  },
+  termDefinitionPreview: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'left',
+    marginTop: 5,
+  },
+  modalDefinition: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 24,
+    textAlign: 'justify',
+  },
+  
 });
 
 export default ActualidadScreen;
