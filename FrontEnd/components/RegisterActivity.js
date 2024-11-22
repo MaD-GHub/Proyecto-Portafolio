@@ -1,7 +1,7 @@
 import { db } from "../firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 
-const RegisterActivity = async (userId, action, details = {}) => {
+const registerActivity = async (userId, action, details = {}) => {
   try {
     await addDoc(collection(db, 'userActivity'), {
       userId,
@@ -14,4 +14,5 @@ const RegisterActivity = async (userId, action, details = {}) => {
   }
 };
 
-export default RegisterActivity
+export default registerActivity;
+
