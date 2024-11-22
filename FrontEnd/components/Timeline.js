@@ -23,60 +23,76 @@ const Timeline = ({ transactions }) => {
   }, [transactions]);
 
   const calculateProjection = () => {
-    const projectionMonths = 6;
+    const projectionMonths = 8; // Proyectar los próximos 6 meses
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const projectionData = [];
     let currentBalance = 0;
 
-    // Calculamos el balance máximo para ajustar las alturas
+    // Encontrar el balance máximo para ajustar las alturas
     let maxBalance = 0;
 
     for (let i = 0; i < projectionMonths; i++) {
       let monthlyIncome = 0;
       let monthlyExpense = 0;
 
+      // Procesar todas las transacciones
       transactions.forEach((transaction) => {
-        const amount = parseFloat(transaction.amount);
+        const amount = parseFloat(transaction.amount) || 0;
         const isFixed = transaction.isFixed === "Fijo";
+        const isInstallment = transaction.isFixed === "Cuotas"; // Verificar si es una cuota        
         const transactionDate = new Date(transaction.selectedDate);
+        const installmentCount = transaction.installmentCount || 0;
         const transactionMonth = transactionDate.getMonth();
         const transactionYear = transactionDate.getFullYear();
-        const isInstallment = transaction.isInstallment;
-        const installmentCount = transaction.installmentCount || 0;
 
+        // Cálculo de ingresos
         if (transaction.type === "Ingreso") {
           if (isFixed) {
-            monthlyIncome += amount;
-          } else if (transactionMonth === (currentMonth + i) % 12 && transactionYear === currentYear + Math.floor((currentMonth + i) / 12)) {
-            monthlyIncome += amount;
+            monthlyIncome += amount; // Agregar el ingreso fijo a cada mes
+          } else if (
+            transactionMonth === (currentMonth + i) % 12 &&
+            transactionYear === currentYear + Math.floor((currentMonth + i) / 12)
+          ) {
+            monthlyIncome += amount; // Agregar ingresos normales del mes
           }
         }
 
+        // Cálculo de gastos
         if (transaction.type === "Gasto") {
           if (isFixed) {
-            monthlyExpense += amount;
+            monthlyExpense += amount; // Gastos fijos en todos los meses
           } else if (isInstallment && installmentCount > 0) {
+            // Gastos por cuotas
             const installmentAmount = amount / installmentCount;
-            const startMonth = new Date(transaction.installmentStartDate).getMonth();
-            const startYear = new Date(transaction.installmentStartDate).getFullYear();
+            const startMonth = new Date(transaction.selectedDate).getMonth();
+            const startYear = new Date(transaction.selectedDate).getFullYear();
 
+            const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
+            const projectedMonth = (currentMonth + i) % 12;
+
+            // Ajuste para cuotas que cruzan el año
             if (
-              (currentMonth + i) % 12 >= startMonth &&
-              (currentMonth + i) % 12 < startMonth + installmentCount &&
-              startYear <= currentYear + Math.floor((currentMonth + i) / 12)
+              (projectedYear > startYear || 
+               (projectedYear === startYear && projectedMonth >= startMonth)) &&
+              (projectedMonth - startMonth + 12 * (projectedYear - startYear) < installmentCount)
             ) {
               monthlyExpense += installmentAmount;
             }
-          } else if (transactionMonth === (currentMonth + i) % 12 && transactionYear === currentYear + Math.floor((currentMonth + i) / 12)) {
-            monthlyExpense += amount;
+          } else if (
+            transactionMonth === (currentMonth + i) % 12 &&
+            transactionYear === currentYear + Math.floor((currentMonth + i) / 12)
+          ) {
+            monthlyExpense += amount; // Gastos normales del mes
           }
         }
       });
 
+      // Actualizar el balance del mes
       currentBalance += monthlyIncome - monthlyExpense;
       maxBalance = Math.max(maxBalance, Math.abs(currentBalance));
 
+      // Generar datos para el mes proyectado
       const projectedMonth = (currentMonth + i) % 12;
       const projectedYear = currentYear + Math.floor((currentMonth + i) / 12);
 
@@ -86,7 +102,7 @@ const Timeline = ({ transactions }) => {
       });
     }
 
-    // Actualizamos el estado con el balance máximo y el proyecto
+    // Ajustar los datos de proyección y calcular alturas
     setProjection(
       projectionData.map((item) => ({
         ...item,
@@ -144,7 +160,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     height: 285,
     marginHorizontal: 10,
-    },
+  },
   timelineTitle: {
     fontSize: 18,
     fontFamily: "ArchivoBlack-Regular",
@@ -152,11 +168,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 15,
   },
-  timeline: { 
-    position: "relative", 
-    flexDirection: "row" 
+  timeline: {
+    position: "relative",
+    flexDirection: "row",
   },
-
   baseTimeline: {
     position: "absolute",
     width: "100%",
@@ -179,12 +194,11 @@ const styles = StyleSheet.create({
     top: -50,
     zIndex: 0,
   },
-  timelineMonths: { 
-    flexDirection: "row", 
+  timelineMonths: {
+    flexDirection: "row",
     justifyContent: "space-around",
-    textAlign: "center"
+    textAlign: "center",
   },
-  
   timelineItem: {
     alignItems: "center",
     width: 90,
@@ -203,7 +217,7 @@ const styles = StyleSheet.create({
     fontFamily: "QuattrocentoSans-Bold",
     color: "#673072",
     marginTop: 55,
-    textAlign: "center"
+    textAlign: "center",
   },
   timelineBalance: {
     fontSize: 14,

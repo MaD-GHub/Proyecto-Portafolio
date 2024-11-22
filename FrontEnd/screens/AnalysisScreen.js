@@ -1,40 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import PieChartComponent from "../components/PieChartComponent"; // Gráfico de torta
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db, auth } from "../firebase";
 
 const AnalysisScreen = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState("Ingresos");
+  const [transactions, setTransactions] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  const [chartColors, setChartColors] = useState([]);
+  const [categoryBreakdown, setCategoryBreakdown] = useState([]);
+  const [total, setTotal] = useState(0);
 
-  // Datos de ejemplo
-  const pieChartData = {
-    Ingresos: [50, 30, 15, 5],
-    Gastos: [40, 25, 20, 15],
-  };
-  const pieChartColors = ["#FF6384", "#36A2EB", "#FFCE56", "#8E44AD"];
-  const pieChartTotal = {
-    Ingresos: 20173,
-    Gastos: 15000,
+  // Cargar transacciones desde Firestore
+  const loadTransactions = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const q = query(collection(db, "transactions"), where("userId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+
+      const trans = [];
+      querySnapshot.forEach((doc) => {
+        trans.push({ id: doc.id, ...doc.data() });
+      });
+
+      setTransactions(trans);
+    } catch (error) {
+      console.error("Error al cargar transacciones:", error);
+    }
   };
 
-  const categoryBreakdown = {
-    Ingresos: [
-      { name: "Sueldo", value: 10086.5, percentage: 50 },
-      { name: "Abono", value: 3631.14, percentage: 18 },
-      { name: "Venta de Producto", value: 3429.41, percentage: 17 },
-      { name: "Otros", value: 3025.95, percentage: 15 },
-    ],
-    Gastos: [
-      { name: "Vacaciones", value: 5000, percentage: 40 },
-      { name: "Combustibles", value: 3750, percentage: 25 },
-      { name: "Comida", value: 3000, percentage: 20 },
-      { name: "Educación", value: 2250, percentage: 15 },
-    ],
+  // Procesar datos para el gráfico y la lista de categorías
+  const processChartData = () => {
+    const filteredTransactions = transactions.filter(
+      (t) => t.type === selectedCategory.slice(0, -1) // "Ingresos" -> "Ingreso", "Gastos" -> "Gasto"
+    );
+
+    // Agrupar montos por categoría
+    const totalsByCategory = filteredTransactions.reduce((acc, trans) => {
+      acc[trans.categoryName] = (acc[trans.categoryName] || 0) + trans.amount;
+      return acc;
+    }, {});
+
+    const totalAmount = Object.values(totalsByCategory).reduce((acc, amount) => acc + amount, 0);
+
+    const breakdown = Object.entries(totalsByCategory).map(([category, amount]) => ({
+      name: category,
+      value: amount,
+      percentage: ((amount / totalAmount) * 100).toFixed(1),
+    }));
+
+    const colors = ["#FF6384", "#36A2EB", "#FFCE56", "#8E44AD", "#FFA500", "#00FF00"];
+    setChartData(breakdown.map((item) => item.value)); // Solo valores
+    setChartColors(colors.slice(0, breakdown.length)); // Colores ajustados
+    setCategoryBreakdown(breakdown); // Lista de categorías
+    setTotal(totalAmount);
   };
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  useEffect(() => {
+    processChartData();
+  }, [transactions, selectedCategory]);
 
   return (
     <View style={styles.container}>
-      {/* Título y botón de retroceso */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialCommunityIcons style={styles.arrowLeft} name="arrow-left" size={24} color="#511496" />
@@ -42,7 +78,7 @@ const AnalysisScreen = ({ navigation }) => {
         <Text style={styles.title}>Análisis</Text>
       </View>
 
-      {/* Selector de categorías (Gastos/Ingresos) */}
+      {/* Selector de Categorías */}
       <View style={styles.selector}>
         {["Ingresos", "Gastos"].map((category) => (
           <TouchableOpacity
@@ -63,25 +99,29 @@ const AnalysisScreen = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Contenido principal */}
+      {/* Contenido Principal */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Gráfico de torta */}
-        <View style={styles.pieChartContainer}>
-          <PieChartComponent
-            data={pieChartData[selectedCategory]}
-            colors={pieChartColors}
-            total={pieChartTotal[selectedCategory]}
-            thickness={20} // Grosor ajustado del anillo
-            centralize={true}
-          />
-          <Text style={styles.chartDescription}>
-            Gastos/Ingresos por categoría
-          </Text>
-        </View>
+        {/* Gráfico de Tortas */}
+        {total > 0 ? (
+          <View style={styles.pieChartContainer}>
+            <PieChartComponent
+              data={chartData}
+              colors={chartColors}
+              total={total}
+              thickness={20} // Grosor del anillo
+              centralize={true}
+            />
+            <Text style={styles.chartDescription}>
+              Gastos/Ingresos por categoría
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.noDataText}>No hay datos disponibles para mostrar.</Text>
+        )}
 
-        {/* Detalles de las categorías */}
+        {/* Detalles de las Categorías */}
         <View style={styles.categorySection}>
-          {categoryBreakdown[selectedCategory].map((item, index) => (
+          {categoryBreakdown.map((item, index) => (
             <View key={index}>
               <View style={styles.categoryBox}>
                 <Text style={styles.categoryTitle}>{item.name}</Text>
@@ -91,14 +131,14 @@ const AnalysisScreen = ({ navigation }) => {
                 <View
                   style={[
                     styles.percentageBox,
-                    { backgroundColor: pieChartColors[index % pieChartColors.length] },
+                    { backgroundColor: chartColors[index % chartColors.length] },
                   ]}
                 >
                   <Text style={styles.percentageText}>{item.percentage}%</Text>
                 </View>
               </View>
               {/* Línea separadora */}
-              {index < categoryBreakdown[selectedCategory].length - 1 && (
+              {index < categoryBreakdown.length - 1 && (
                 <View style={styles.separatorLine} />
               )}
             </View>
@@ -174,7 +214,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
   },
   categorySection: {
-    marginHorizontal: 35, // Mayor margen horizontal
+    marginHorizontal: 35,
     marginTop: 0,
   },
   categoryBox: {
@@ -185,7 +225,7 @@ const styles = StyleSheet.create({
   },
   separatorLine: {
     height: 1,
-    backgroundColor: "#ddd", // Línea separadora
+    backgroundColor: "#ddd",
     marginVertical: 5,
   },
   categoryTitle: {
@@ -212,6 +252,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",
+  },
+  noDataText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#666",
+    marginTop: 20,
   },
 });
 

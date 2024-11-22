@@ -292,29 +292,32 @@ export default function App() {
     const newTransaction = {
       type: transactionType,
       amount: parsedAmount,
-      categoryName: category, // Usamos directamente el nombre de la categoría
+      categoryName: category,
       description: description || "",
-      isFixed: isFixed,
+      isFixed: isInstallment ? "Cuotas" : isFixed, // Marcar como "Cuotas" si corresponde
       isRecurrent: isFixed === "Fijo",
       selectedDate: date.toISOString(),
-      creationDate: new Date().toLocaleDateString(),
+      creationDate: new Date().toISOString(),
       userId: user.uid,
     };
-
-    try {
-      const docRef = await addDoc(
-        collection(db, "transactions"),
-        newTransaction
-      );
-      setTransactions((prevTransactions) => [
-        ...prevTransactions,
-        { id: docRef.id, ...newTransaction },
-      ]);
-      closeModal();
-    } catch (error) {
-      console.error("Error al añadir transacción:", error);
-      alert("Hubo un error al guardar la transacción. Intenta nuevamente.");
-    }
+  
+    // Agregar datos de cuotas si corresponde
+      if (isInstallment) {
+        newTransaction.installmentCount = installmentCount; // Cantidad de cuotas
+        newTransaction.installmentStartDate = date.toISOString(); // Fecha de inicio de las cuotas
+      }
+    
+      try {
+        const docRef = await addDoc(collection(db, "transactions"), newTransaction);
+        setTransactions((prevTransactions) => [
+          ...prevTransactions,
+          { id: docRef.id, ...newTransaction },
+        ]);
+        closeModal();
+      } catch (error) {
+        console.error("Error al añadir transacción:", error);
+        alert("Hubo un error al guardar la transacción. Intenta nuevamente.");
+      }
   };
 
   const enrichTransactionsWithCategories = async (transactions) => {
@@ -539,18 +542,20 @@ export default function App() {
               {/* Picker de Categorías */}
               <View style={styles.inputBox2}>
                 <Picker
-                  selectedValue={category} // Almacena el nombre de la categoría
-                  onValueChange={(itemValue) => setCategory(itemValue)} // Guarda el nombre en el estado
+                  selectedValue={category}
+                  onValueChange={(itemValue) => setCategory(itemValue)}
                   style={styles.picker}
                 >
                   <Picker.Item label="Seleccione categoría" value="" />
                   {transactionType === "Ingreso"
                     ? ingresoCategorias.map((cat, index) => (
-                        <Picker.Item key={index} label={cat} value={cat} /> // Pasa solo el nombre
+                        <Picker.Item key={index} label={cat} value={cat} />
                       ))
-                    : gastoCategorias.map((cat, index) => (
-                        <Picker.Item key={index} label={cat} value={cat} /> // Pasa solo el nombre
-                      ))}
+                    : gastoCategorias
+                        .filter((cat) => cat !== "Ahorros") // Excluir "Ahorro"
+                        .map((cat, index) => (
+                          <Picker.Item key={index} label={cat} value={cat} />
+                        ))}
                 </Picker>
               </View>
 
