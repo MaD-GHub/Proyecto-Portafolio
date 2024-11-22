@@ -31,6 +31,14 @@ import {
 import { db, auth } from "../firebase";
 import registerActivity from "../components/registerActivity"; 
 
+import CaraMedia from "../assets/Cara_media.png";
+import CaraMuymal from "../assets/Cara_muy_mal.png";
+import CaraMal from "../assets/Cara_mal.png";
+import CaraSemimaxima from "../assets/Cara_semimaxima.png";
+import CaraMaxima from "../assets/Cara_maxima.png";
+import { Image } from "react-native";
+
+
 // Función para obtener la fecha actual
 const getTodayDate = () => {
   const today = new Date();
@@ -39,6 +47,8 @@ const getTodayDate = () => {
   const yyyy = today.getFullYear();
   return `${dd}/${mm}/${yyyy}`;
 };
+
+
 
 // Función para formatear las fechas en un formato legible
 const formatDate = (date) => {
@@ -87,6 +97,7 @@ const Timeline = ({ transactions }) => {
 
   
 
+  
   // Función para calcular la proyección
   const calculateProjection = () => {
     const projectionMonths = 6; // Proyectamos 6 meses hacia adelante
@@ -384,6 +395,13 @@ export default function HomeScreen() {
     }).start();
   };
 
+
+  const [isHealthMode, setIsHealthMode] = useState(false);
+
+  const toggleHealthMode = () => {
+    setIsHealthMode((prev) => !prev);
+  };
+
   const toggleNotifications = () => {
     setNotificationsVisible(!notificationsVisible);
   };
@@ -426,7 +444,18 @@ export default function HomeScreen() {
         )}
 
         <Text style={styles.balanceAmount}>{formatCurrency(totalSaved)}</Text>
-        <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
+
+        <TouchableOpacity onPress={toggleHealthMode}>
+          {isHealthMode ? (
+            <View style={styles.healthModeContainer}>
+              <Text style={styles.healthModeText}>Salud financiera</Text>
+              <Image source={CaraMedia} style={styles.healthModeImage} />
+            </View>
+          ) : (
+            <Text style={styles.balanceDate}>Saldo actual - {getTodayDate()}</Text>
+          )}
+        </TouchableOpacity>
+
 
         <TouchableOpacity onPress={toggleLabel} style={styles.chevronContainer}>
           <View style={styles.chevronLine} />
@@ -929,6 +958,22 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  healthModeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 5,
+  },
+  healthModeText: {
+    fontFamily: "QuattrocentoSans-Bold",
+    fontSize: 16,
+    color: "white",
+    marginRight: 10,
+  },
+  healthModeImage: {
+    width: 24,
+    height: 24,
   },
   
 });
