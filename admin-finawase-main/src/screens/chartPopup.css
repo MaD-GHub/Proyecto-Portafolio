@@ -1,0 +1,32 @@
+/* chartPopup.css */
+.popup {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  display: none; /* Oculta por defecto */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  width: 250px;
+  z-index: 10;
+  top: 100%; /* Posición relativa al contenedor */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.popup-header {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.popup-description,
+.popup-purpose {
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+/* Mostrar la ventana emergente al pasar el cursor o hacer clic */
+.chart-container:hover .popup,
+.chart-container:focus .popup {
+  display: block;
+}
