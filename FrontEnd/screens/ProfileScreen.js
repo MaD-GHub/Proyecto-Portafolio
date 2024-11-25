@@ -43,12 +43,11 @@ const ProfileScreen = ({ route }) => {
   let unsubscribe = null;
   
   useEffect(() => {
-    
     const fetchUserData = async () => {
       try {
         const user = auth.currentUser;
         if (user) {
-          const userDoc = await getDoc(doc(db, 'users', user.uid)); 
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             const userData = userDoc.data();
             setUserName(userData.firstName);
@@ -57,18 +56,8 @@ const ProfileScreen = ({ route }) => {
             setEmail(user.email);
             setNewEmail(user.email);
             setNewPassword('');
+            setProfileImage(userData.profileImage || null); // Asigna una imagen predeterminada si no hay
           }
-  
-          const q = query(collection(db, 'transactions'), where('userId', '==', user.uid));
-          const unsubscribe = onSnapshot(q, (snapshot) => {
-            const transacciones = snapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
-            setTransactions(transacciones);
-          });
-  
-          return () => unsubscribe(); // Limpia el listener cuando el componente se desmonta
         }
       } catch (error) {
         console.error('Error al obtener los datos del usuario:', error);
@@ -78,13 +67,9 @@ const ProfileScreen = ({ route }) => {
     };
   
     fetchUserData();
-
-    return () => {
-      if (unsubscribe) {
-        unsubscribe(); // Detenemos el listener cuando el componente se desmonta
-      }
-    };
   }, []);
+  
+  
 
   const openModal = () => {
     setModalVisible(true);
@@ -202,6 +187,63 @@ const ProfileScreen = ({ route }) => {
     return ingresos - gastos;
   };
 
+
+  const [profileImage, setProfileImage] = useState(null); // Para la imagen de perfil
+
+  const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitas otorgar permisos para acceder a la galería.');
+      return;
+    }
+  
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1], // Imagen cuadrada
+        quality: 1,
+      });
+  
+      if (!result.canceled) {
+        const uri = result.assets[0].uri;
+        setProfileImage(uri); // Actualizamos la imagen en el estado
+        await uploadProfileImage(uri); // Sube la imagen y actualiza Firestore
+      }
+    } catch (error) {
+      console.error('Error al seleccionar la imagen:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen.');
+    }
+  };
+  
+  
+  const uploadProfileImage = async (uri) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+  
+      const response = await fetch(uri);
+      const blob = await response.blob();
+  
+      const storageRef = ref(storage, `profilePictures/${user.uid}.jpg`);
+      await uploadBytes(storageRef, blob);
+  
+      const downloadURL = await getDownloadURL(storageRef);
+      setProfileImage(downloadURL);
+  
+      await updateDoc(doc(db, 'users', user.uid), {
+        profileImage: downloadURL,
+      });
+  
+      Alert.alert('Éxito', 'Tu foto de perfil ha sido actualizada.');
+    } catch (error) {
+      console.error('Error al subir la imagen:', error);
+      Alert.alert('Error', 'No se pudo actualizar la foto de perfil.');
+    }
+  };
+  
+  
+
   // Función para cerrar sesión con confirmación
   const handleLogout = () => {
     Alert.alert(
@@ -245,29 +287,25 @@ const ProfileScreen = ({ route }) => {
         <MaterialCommunityIcons name="arrow-left" size={30} color="white" />
       </TouchableOpacity>
 
-      {/* Profile Info */}
-      <View style={styles.profileSection}>
+    {/* Profile Info con encabezado degradado */}
+    <LinearGradient
+      colors={['#6A0DAD', '#511496', '#885fd8']} // Degradado de morados
+      style={styles.profileSection}
+    >
+      <TouchableOpacity
+        onPress={handlePickImage}
+        activeOpacity={0.8} // Reduce la opacidad al presionar
+      >
         <Image
-          source={require('../assets/profile-picture.png')}
+          source={profileImage ? { uri: profileImage } : require('../assets/profile-picture.png')}
           style={styles.profileImage}
         />
-        <View style={styles.profileTextContainer}>
-          <Text style={styles.profileName}>{userName} {firstLastName}</Text>
-        </View>
-      </View>
+        <MaterialCommunityIcons name="camera" size={24} color="#fff" style={styles.cameraIcon} />
+      </TouchableOpacity>
+      <Text style={styles.profileName}>{userName} {firstLastName}</Text>
+      <Text style={styles.profileEmail}>{email}</Text>
+    </LinearGradient>
 
-      {/* Saldo y Meses en una línea */}
-      <View style={styles.balanceContainer}>
-        <View style={styles.balanceItem}>
-          <Text style={styles.balanceText}>{formatCurrency(calculateTotalSaved())}</Text>
-          <Text style={styles.balanceLabel}>Saldo</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.balanceItem}>
-          <Text style={styles.balanceText}>{mesesUso}</Text>
-          <Text style={styles.balanceLabel}>Meses</Text>
-        </View>
-      </View>
 
       {/* Opciones de navegación */}
       <View style={styles.optionsSection}>
@@ -284,10 +322,11 @@ const ProfileScreen = ({ route }) => {
           <Text style={styles.optionText}>Términos y Condiciones</Text>
         </View>
         <TouchableOpacity style={styles.optionItem} onPress={handleLogout}>
-          <MaterialCommunityIcons name="logout" size={24} color="#885fd8" />
+          <MaterialCommunityIcons name="logout" size={24} color="#FF6347" />
           <Text style={styles.optionText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </View>
+
 
       {/* Modal para editar la información personal */}
       <Modal
@@ -381,10 +420,10 @@ const ProfileScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+container: {
+  flex: 1,
+  backgroundColor: '#f4f4f8',
+},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -397,71 +436,64 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   profileSection: {
-    flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#511496',
-    marginTop: 0,
+    paddingVertical: 40,
+    paddingTop: 60,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // Esto añade sombra en Android
   },
-  profileImage: {
+  profileImageContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    marginLeft: 30, // Ajuste de margen para mover la imagen más a la derecha
+    borderRadius: 40, // Hacer la imagen completamente redonda
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    elevation: 3, // Sombra para destacar
   },
-  profileTextContainer: {
-    marginLeft: 30, // Ajuste de margen para mover el nombre más a la derecha
+  profileImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
   },
   profileName: {
     color: 'white',
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
+    marginTop: 10, // Espacio entre la imagen y el nombre
   },
-  balanceContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    marginBottom: 20,
+  profileEmail: {
+    color: '#ddd',
+    fontSize: 14,
+    marginTop: 5, // Espacio entre el nombre y el correo
   },
-  balanceItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  balanceText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#511496',
-  },
-  balanceLabel: {
-    fontSize: 16,
-    color: '#555',
-    marginTop: 5,
-  },
-  divider: {
-    width: 1,
-    height: '100%',
-    backgroundColor: 'black',
-    marginHorizontal: 10,
-  },
+  
   optionsSection: {
     marginHorizontal: 20,
+    marginTop: 30, // Más espacio entre el encabezado y los botones
   },
-  optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  optionText: {
-    fontSize: 16,
-    marginLeft: 20,
-    color: '#885fd8',
-    fontWeight: 'bold',
-  },
+optionItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingVertical: 15,
+  paddingHorizontal: 10,
+  marginBottom: 10,
+  borderRadius: 10,
+  backgroundColor: '#f9f9f9',
+  elevation: 1, // Para un ligero efecto de elevación
+},
+optionText: {
+  fontSize: 16,
+  marginLeft: 20,
+  color: '#333',
+  fontWeight: 'bold',
+},
   modalContainer: {
     position: 'absolute',
     left: 0,
@@ -547,6 +579,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
   },
+  profileImageContainer: {
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginRight: 15,
+  backgroundColor: '#fff',
+  borderRadius: 50,
+  overflow: 'hidden',
+  elevation: 3, // Sombra para destacar
+},
+profileImage: {
+  width: 100,
+  height: 100,
+  borderRadius: 50,
+},
+profileEmail: {
+  color: '#aaa',
+  fontSize: 14,
+  marginTop: 5,
+},
+cameraIcon: {
+  position: 'absolute',
+  bottom: 10, // Ajusta según tu diseño
+  right: 10,  // Ajusta según tu diseño
+  backgroundColor: '#511496',
+  borderRadius: 12,
+  padding: 4,
+  elevation: 5,
+},
+
 });
 
 export default ProfileScreen;
