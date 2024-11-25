@@ -1,4 +1,3 @@
-// FilteredTransactionHistory.js
 import React from "react";
 import {
   View,
@@ -61,13 +60,23 @@ const FilteredTransactionHistory = ({ transactions, onEdit, onDelete }) => {
                     <Text
                       style={[
                         styles.transactionText,
-                        { color: item.type === "Ingreso" ? "green" : "red" },
+                        {
+                          color:
+                            item.categoryName === "Ahorro"
+                              ? "orange" // Color para Ahorro
+                              : item.type === "Ingreso"
+                              ? "green"
+                              : "red",
+                        },
                       ]}
                     >
-                      {item.categoryName} - {formatCurrency(item.amount)}
+                      {item.categoryName === "Ahorro"
+                        ? `Ahorro - ${item.subCategoryName || "Sin Subcategoría"}`
+                        : `${item.categoryName}`}{" "}
+                      - {formatCurrency(item.amount)}
                     </Text>
                     <Text style={styles.transactionDate}>
-                      {item.description}
+                      {item.description || "Sin descripción"}
                     </Text>
                   </View>
                   <View style={styles.transactionActions}>
