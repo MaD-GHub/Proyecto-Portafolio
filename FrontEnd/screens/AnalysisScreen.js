@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import PieChartComponent from "../components/PieChartComponent"; // Gráfico de torta
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import registerActivity from "../components/RegisterActivity";
 
 const AnalysisScreen = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState("Ingresos");
@@ -67,6 +68,17 @@ const AnalysisScreen = ({ navigation }) => {
   useEffect(() => {
     processChartData();
   }, [transactions, selectedCategory]);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "AnalysisScreen",
+        description: 'Usuario visita la página de analisis', 
+        });
+    }
+  }, []);
 
   return (
     <View style={styles.container}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import registerActivity from "../components/registerActivity";
+import registerActivity from "../components/RegisterActivity";
 
 const TutorialScreen = () => {
   //Registrar actividad

@@ -5,7 +5,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { db, auth } from '../firebase';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
-import registerActivity from "../components/registerActivity";
+import registerActivity from "../components/RegisterActivity";
+
 
 const SugerenciasScreen = () => {
   const navigation = useNavigation();

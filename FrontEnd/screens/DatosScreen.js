@@ -4,6 +4,8 @@ import LineChartComponent from "../components/LineChartComponent"; // Componente
 import ExpensesChartComponent from "../components/ExpensesChartComponent";
 import ComparisonChartComponent from "../components/ComparisonChartComponent"; // Componente de otros gráficos
 import AnalysisScreen from "../screens/AnalysisScreen"; // Importar AnalysisScreen
+import registerActivity from "../components/RegisterActivity";
+
 
 export default function DatosScreen({ navigation, route }) {
   const [selectedTab, setSelectedTab] = useState("Gráficos");
@@ -42,6 +44,17 @@ export default function DatosScreen({ navigation, route }) {
         return null;
     }
   };
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "DatosScreen",
+        description: 'Usuario visita la página de Datos', 
+        });
+    }
+  }, []);
 
   const renderContent = () => {
     switch (selectedTab) {

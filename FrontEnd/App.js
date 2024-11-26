@@ -22,6 +22,7 @@ import {
   getDocs,
   deleteDoc,
   doc,
+  setDoc
 } from "firebase/firestore";
 import { db, auth } from "./firebase";
 import { getCategoriesByType } from "./utils/database";
@@ -40,6 +41,7 @@ import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import logActivity from "./components/ActivityLogger";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -402,6 +404,88 @@ export default function App() {
       setLoading(false);
     });
 
+    return () => unsubscribe();
+  }, []);
+
+  // Registrar `app_open` en cada apertura de la app
+  React.useEffect(() => {
+    if (user) {
+      logActivity("app_open", {
+        description: "El usuario ha abierto la app",
+        userId: user.uid,
+      });
+    }
+  }, [user]);
+
+  //obtener ubicacion
+  const cleanData = (data) => {
+    // Filtrar los campos que no son undefined
+    return Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+  };
+  
+  const fetchLocationData = async () => {
+    try {
+      const response = await fetch("https://ipapi.co/json/");
+      const data = await response.json();
+  
+      // Limpiar los datos para eliminar campos undefined
+      console.log(locationData)
+
+      const locationData = cleanData({
+        ipAddress: data.ip,
+        city: data.city,
+        region: data.region,
+        country: data.country_name,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        timezone: data.timezone,
+        callingCode: data.country_calling_code,
+        currency: data.currency,
+        language: data.languages,
+        org: data.org,
+      });
+
+      console.log(locationData)
+  
+      return locationData;
+    } catch (error) {
+      console.error("Error obteniendo la ubicación:", error);
+      return null;
+    }
+  };
+  
+  const saveUserLocation = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      const locationData = await fetchLocationData();
+      if (locationData) {
+        try {
+          // Guardar la ubicación en el documento del usuario en Firestore
+          await setDoc(
+            doc(db, "users", user.uid),
+            { location: locationData },
+            { merge: true }
+          );
+          console.log(locationData)
+          console.log("Ubicación guardada correctamente en Firebase");
+        } catch (error) {
+          console.error("Error al guardar ubicación en Firebase:", error);
+        }
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUser(user);
+        saveUserLocation(); // Llamada para guardar la ubicación al iniciar sesión
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+  
     return () => unsubscribe();
   }, []);
 
