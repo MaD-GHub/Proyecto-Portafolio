@@ -5,6 +5,7 @@ import ExpensesChartComponent from "../components/ExpensesChartComponent";
 import ComparisonChartComponent from "../components/ComparisonChartComponent"; // Componente de otros gráficos
 import AnalysisScreen from "../screens/AnalysisScreen"; // Importar AnalysisScreen
 import registerActivity from "../components/RegisterActivity";
+import { db, auth } from "../firebase";
 
 
 export default function DatosScreen({ navigation, route }) {

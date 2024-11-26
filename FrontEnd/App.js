@@ -41,7 +41,7 @@ import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import logActivity from "./components/ActivityLogger";
+import registerActivity from "./components/RegisterActivity";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -407,10 +407,11 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+
   // Registrar `app_open` en cada apertura de la app
   React.useEffect(() => {
     if (user) {
-      logActivity("app_open", {
+      registerActivity(user.uid, "app_open", {
         description: "El usuario ha abierto la app",
         userId: user.uid,
       });
@@ -423,14 +424,23 @@ export default function App() {
     return Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
   };
   
+
+  
   const fetchLocationData = async () => {
     try {
       const response = await fetch("https://ipapi.co/json/");
+      if (!response.ok) {
+        console.error("Error en la solicitud: ", response.status, response.statusText);
+        return null;
+      }
       const data = await response.json();
   
-      // Limpiar los datos para eliminar campos undefined
-      console.log(locationData)
-
+      if (!data) {
+        console.error("El JSON está vacío o no válido.");
+        return null;
+      }
+  
+      // Procesar y limpiar datos
       const locationData = cleanData({
         ipAddress: data.ip,
         city: data.city,
@@ -444,12 +454,11 @@ export default function App() {
         language: data.languages,
         org: data.org,
       });
-
-      console.log(locationData)
   
+      console.log("Datos de ubicación obtenidos: ", locationData);
       return locationData;
     } catch (error) {
-      console.error("Error obteniendo la ubicación:", error);
+      console.error("Error obteniendo la ubicación: ", error);
       return null;
     }
   };
