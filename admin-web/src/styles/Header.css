@@ -1,0 +1,79 @@
+/* Header principal */
+.header {
+  position: fixed;
+  top: 8px;
+  left: 105px; /* Separado del Sidebar */
+  width: calc(100% - 100px); /* Ajustado al ancho sin interferir con Sidebar */
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Espaciado entre elementos */
+  padding: 0 30px;
+  background-color: transparent; /* Fondo transparente */
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+/* Contenedor para título y subtítulo */
+.header-title {
+  display: flex;
+  flex-direction: column; /* Título arriba, subtítulo abajo */
+  justify-content: center;
+}
+
+.header-title h1 {
+  font-size: 20px; /* Título principal */
+  font-weight: 400; /* Roboto Regular */
+  margin: 0;
+  color: white;
+}
+
+.header-title p {
+  font-size: 14px; /* Subtítulo */
+  font-weight: 300; /* Roboto Light */
+  margin: 0;
+  color: #d3d3d3;
+}
+
+/* Elementos del lado derecho */
+.header .right-section {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espaciado entre elementos */
+}
+
+/* Input de búsqueda */
+.search-bar {
+  height: 36px;
+  width: 200px;
+  border-radius: 25px;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  font-size: 14px;
+  padding: 5px 10px;
+  outline: none;
+}
+
+.search-bar:focus {
+  border-color: #8b428d;
+}
+
+/* Botón premium */
+.premium-button {
+  height: 48px;
+  border-radius: 25px;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  font-size: 14px;
+  padding: 0 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 40px;
+}
+
+.premium-button:hover {
+  border-color: #8b428d;
+  color: #8b428d;
+}

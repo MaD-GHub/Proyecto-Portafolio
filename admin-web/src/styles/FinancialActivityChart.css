@@ -1,0 +1,42 @@
+.financial-chart {
+    background-color: #293238; /* Fondo igual al Sidebar */
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    color: white;
+  }
+  
+  .financial-chart h3 {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 20px;
+  }
+  
+  .chart-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .chart-container {
+    flex: 1;
+    position: relative;
+    height: 250px; /* Ajusta el alto */
+  }
+  
+  .chart-info {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .chart-info h4 {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .chart-info p {
+    font-size: 14px;
+    color: #d3d3d3; /* Texto más claro */
+  }
+  

@@ -1,0 +1,11 @@
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .dashboard-row {
+    display: flex;
+    gap: 20px;
+  }
+  

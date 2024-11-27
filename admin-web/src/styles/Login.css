@@ -1,0 +1,104 @@
+/* Fondo general */
+.login-page {
+  height: 100vh; /* Toda la altura del viewport */
+  width: 100%; /* Toda la anchura */
+  display: flex; /* Flexbox para centrar el contenido */
+  justify-content: center;
+  align-items: center;
+  background-image: url("../img/BgLogin2.jpg"); /* Imagen de fondo */
+  background-size: cover; /* La imagen cubre todo el fondo */
+  background-position: center; /* Centrado de la imagen */
+  background-repeat: no-repeat; /* No repetir la imagen */
+}
+
+/* Caja del login */
+.login-container {
+  background: rgba(0, 0, 0, 0.6); /* Fondo translúcido oscuro */
+  backdrop-filter: blur(10px); /* Efecto de desenfoque */
+  border-radius: 15px; /* Bordes redondeados */
+  padding: 30px 40px; /* Espaciado interno */
+  width: 100%;
+  max-width: 400px; /* Ancho máximo */
+  color: #fff; /* Texto blanco */
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* Sombra alrededor */
+}
+
+/* Títulos y subtítulos */
+.login-container h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.login-container p {
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #aaa; /* Texto gris claro */
+}
+
+/* Campos de entrada */
+.login-input {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #555; /* Borde delgado gris */
+  border-radius: 10px;
+  background: transparent; /* Fondo transparente */
+  color: #fff; /* Texto blanco */
+  font-size: 14px;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #7f5eff; /* Morado */
+  box-shadow: 0 0 5px #7f5eff; /* Resplandor morado */
+}
+
+/* Botones */
+.login-button {
+  width: 100%;
+  padding: 10px 0;
+  margin-bottom: 15px;
+  background-color: #7f5eff; /* Fondo morado */
+  color: #fff;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 12px;
+}
+
+.login-button:hover {
+  background-color: #a08cff; /* Morado claro al pasar el mouse */
+}
+
+.other-login-button {
+  width: 100%;
+  padding: 10px 0;
+  background-color: #333; /* Fondo gris oscuro */
+  color: #fff;
+  font-size: 16px;
+  border: 1px solid #555; /* Borde gris oscuro */
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.other-login-button:hover {
+  background-color: #444; /* Gris más claro */
+}
+
+/* Enlaces */
+.forgot-password,
+.register-link {
+  color: #7f5eff; /* Texto morado */
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.forgot-password:hover,
+.register-link:hover {
+  text-decoration: underline;
+}

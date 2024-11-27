@@ -1,0 +1,37 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+@import "./Fonts.css"; /* Tipografías */
+@import "./Sidebar.css"; /* Estilos del Sidebar */
+@import "./HomeScreen.css"; /* Estilos de HomeScreen */
+
+.app-layout {
+  display: flex; /* Coloca el Sidebar y el contenido en línea */
+  height: 100vh; /* Altura completa de la pantalla */
+}
+
+.sidebar {
+  flex-shrink: 0; /* El Sidebar no se encogerá */
+  z-index: 10; /* Asegúrate de que esté encima del contenido */
+}
+
+.main-content {
+  flex-grow: 1; /* El contenido ocupa todo el espacio restante */
+  padding: 20px; /* Opcional: Espaciado interno */
+  overflow-y: auto; /* Permite scroll si el contenido crece */
+}
