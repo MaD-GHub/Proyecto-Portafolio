@@ -4,7 +4,8 @@ import HeaderAhorro from "../components/HeaderAhorro";
 import AddSavingGoalModal from "../components/AddSavingGoalModal";
 import AhorrosBox from "../components/AhorrosBox";
 import { collection, getDocs } from "firebase/firestore";
-import { db, auth } from "../firebase";
+import { db, auth } from "../firebase"
+import registerActivity from "../components/RegisterActivity";;
 
 const AhorroScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -45,6 +46,17 @@ const AhorroScreen = () => {
     fetchSavingGoals(); // Refresca los datos después de guardar
     setModalVisible(false); // Cierra el modal
   };
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "AhorroScreen",
+        description: 'Usuario visita la página Ahorro', 
+        });
+    }
+  }, []);
 
   return (
     <View style={styles.container}>

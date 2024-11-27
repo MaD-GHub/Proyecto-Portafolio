@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome5 } from '@expo/vector-icons'; // Íconos para darle un toque visual
+import registerActivity from "../components/RegisterActivity";
+
 
 const { width } = Dimensions.get('window');
 
@@ -62,6 +64,17 @@ const ActualidadScreen = () => {
       setLoading(false);
     }
   };
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "EducacionScreen",
+        description: 'Usuario visita la página de Educación', 
+        });
+    }
+  }, []);
 
   // Renderiza cada dato financiero
   const renderMarketItem = ({ item }) => (

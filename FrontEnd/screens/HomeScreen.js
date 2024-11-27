@@ -16,12 +16,15 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Font from "expo-font";
 import { useNavigation } from "@react-navigation/native";
-import { collection, query, where, deleteDoc, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { collection, query, where, deleteDoc, doc, updateDoc, onSnapshot, } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { LinearGradient } from "expo-linear-gradient";
 import Balance from "../components/Balance";
 import Timeline from "../components/Timeline";
 import FilteredTransactionHistory from "../components/FilteredTransactionHistory";
+import logActivity from "../components/ActivityLogger";
+import registerActivity from "../components/RegisterActivity";
+
 
 // Función para formatear a CLP
 const formatCurrency = (amount) => {
@@ -76,6 +79,17 @@ export default function HomeScreen() {
     });
 
     return () => unsubscribe();
+  }, []);
+
+   //Registrar actividad
+   useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "HomeScreen",
+        description: 'Usuario visita la página Home', 
+        });
+    }
   }, []);
 
   const handleDeleteTransaction = async (id) => {

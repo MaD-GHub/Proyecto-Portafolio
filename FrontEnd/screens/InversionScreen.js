@@ -19,6 +19,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { Slider } from "react-native-elements";
 import { LineChart } from "react-native-chart-kit";
 import { Picker } from "@react-native-picker/picker";
+import registerActivity from "../components/RegisterActivity";
 
 const InversionScreen = () => {
   const navigation = useNavigation();
@@ -293,6 +294,17 @@ const InversionScreen = () => {
   };
 
   const { month, reason } = getSuggestedMonth(investorProfile);
+
+  //Registrar actividad
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      registerActivity(user.uid, "navigate", { 
+        screen: "InversionScreen",
+        description: 'Usuario visita la página de Inversion', 
+        });
+    }
+  }, []);
 
   return (
     <ScrollView style={styles.container}>

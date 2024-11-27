@@ -19,7 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native'; // Importamos el hook de navegación
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import registerActivity from "../components/registerActivity";
+import registerActivity from "../components/RegisterActivity";
 import { auth } from "../firebase";
 
 const { width } = Dimensions.get('window');
