@@ -1,0 +1,296 @@
+/* Fondo general para AdminScreen */
+.admin-screen {
+    height: 100vh;
+    width: 100vw;
+    background-image: url("../img/BgLogin2.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: rgba(0, 0, 0, 0.7);
+    background-blend-mode: darken;
+    display: flex;
+    color: white;
+  }
+  
+  /* Contenido principal */
+  .main-content {
+    flex: 1;
+    margin-left: 115px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 80px;
+    margin-right: 40px;
+    box-sizing: border-box; /* Esto asegura que el padding no afecta las dimensiones */
+    overflow: hidden; /* Para evitar cualquier desbordamiento */
+  }
+  
+  /* Primera sección: Recuadros de actividades */
+  .first-line {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Cuatro columnas de actividad */
+    gap: 20px;
+    height: 170px;
+  }
+  
+  .activity-card {
+    background-color: #293238;
+    border-radius: 25px;
+    padding: 10px 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    flex: 1;
+    height: 140px; /* Altura ajustada */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .activity-card h3 {
+    font-size: 16px; /* Fuente más pequeña para subtítulos */
+    font-weight: 300; /* Roboto Light */
+    color: #d3d3d3;
+    margin: 5px 0 0;
+  }
+  
+  .activity-card h2 {
+    font-size: 20px; /* Fuente más grande para títulos */
+    font-weight: 600; /* Roboto Bold */
+    color: white;
+    margin: 10px 0 0;
+  }
+  
+/* Contenedor de la segunda línea */
+.second-line {
+    display: flex; /* Usamos flexbox para que los elementos estén alineados horizontalmente */
+    justify-content: space-between; /* Espacio entre los dos contenedores */
+    gap: 20px; /* Espacio entre los elementos */
+    width: 100%; /* Asegura que ocupe todo el ancho disponible */
+    height: 480px; /* Altura fija para contener las tarjetas */
+    box-sizing: border-box;
+    overflow: hidden; /* Para evitar desbordamientos */
+    padding-bottom: 10px;
+  }
+  
+  /* Contenedor de las tarjetas de progreso */
+  .progress-section {
+    display: flex; /* Usamos flexbox para alinear horizontalmente las tarjetas */
+    justify-content: space-between; /* Asegura que las tarjetas estén separadas */
+    width: 100%; /* El contenedor ocupa todo el ancho disponible */
+    height: 100%; /* El contenedor debe ocupar toda la altura disponible */
+    background-color: transparent; /* Transparente como deseas */
+    padding: 0 0px; /* Agrega un margen a los lados */
+    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+  }
+  
+  /* Estilo de las tarjetas de progreso */
+  .progress-card {
+    background-color: #293238;
+    border-radius: 25px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    width: 100%; /* Cada tarjeta ocupa el 48% del ancho disponible */
+    height: auto; /* Deja que la tarjeta ajuste su altura según el contenido */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Asegura que los elementos dentro estén distribuidos */
+    padding: 10px;
+    box-sizing: border-box;
+    margin-bottom: 0px; /* Agrega un margen inferior para que no se toquen */
+    max-width: 100%; /* Asegura que no se desborden */
+    min-width: 500px; /* Asegura que las tarjetas no se reduzcan demasiado en pantallas pequeñas */
+  }
+  
+  /* Títulos de las tarjetas de progreso */
+  .progress-card h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: #d3d3d3;
+    text-align: left;
+    margin-left: 20px;
+  }
+  .progress-card p {
+    font-size: 16px;
+    font-weight: 300;
+    color: #d3d3d3;
+    text-align: left;
+    margin-left: 20px;
+  }
+  
+  /* Barra de progreso */
+  .progress-bar {
+    background-color: #404950;
+    border-radius: 10px;
+    height: 10px; /* Barra más delgada */
+    overflow: hidden;
+    margin: 0 20px;
+  }
+  
+  .progress {
+    background-color: #ffd476;
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease-in-out;
+  }
+  .progress2 {
+    background-color: #76ff8d;
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease-in-out;
+  }
+  .progress3 {
+    background-color: #76bdff;
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease-in-out;
+  }
+/* Estilos para la lista de actividades */
+.task-list {
+    background-color: #293238; /* Fondo para la lista de actividades */
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 600px; /* Limitar el ancho de la lista */
+    margin: 0 auto; /* Centrar la lista */
+    box-sizing: border-box; /* Asegura que el padding no afecte las dimensiones */
+  }
+  
+  /* Títulos de la lista de actividades */
+  .task-list h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 10px;
+  }
+  
+  .task-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Estilos para cada tarea individual */
+  .task-item {
+    width: 100%; /* Asegura que cada tarea ocupe el 100% del ancho */
+    padding: 10px 0px 10px 10px;
+    margin: 10px 0px 12px 0px;
+    border-radius: 15px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between; /* Separa el texto y el botón */
+    align-items: center;
+    overflow: hidden; /* Evitar que el contenido se desborde */
+    box-sizing: border-box; /* Asegura que el padding no afecte las dimensiones */
+    max-width: 100%; /* Limitar que no se expanda más allá de su contenedor */
+    word-wrap: break-word; /* Asegura que el texto largo no se desborde */
+  }
+  
+  /* Estilos para el botón de estado */
+  .status-button {
+    padding: 7px 15px;
+    margin-right: 5px;
+    border-radius: 13px;
+    cursor: pointer; /* Cambia el cursor cuando pasas sobre el botón */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transiciones suaves */
+  }
+  
+  /* Estilos para cada estado del botón */
+  .status-button.pendiente {
+    background-color: #eba7a7; /* Rojo claro para pendiente */
+    color: #9b5555;
+  }
+  
+  .status-button.pendiente:hover {
+    background-color: #804444; /* Rojo oscuro al hacer hover */
+  }
+  
+  .status-button.progreso {
+    background-color: #ddd05a; /* Amarillo claro para en progreso */
+    color: #5f5920;
+  }
+  
+  .status-button.progreso:hover {
+    background-color: #cc8c00; /* Amarillo más oscuro al hacer hover */
+  }
+  
+  .status-button.completada {
+    background-color: #d4edda; /* Verde claro para completada */
+    color: #348d49;
+  }
+  
+  .status-button:hover {
+    background-color: #76bdff; /* Fondo oscuro al hacer hover */
+  }
+
+
+/* Solicitudes */
+/* Solicitudes (Tabla) */
+.task-list2 {
+    background-color: #293238; /* Fondo para la lista de solicitudes */
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 800px; /* Ancho máximo para que no se expanda demasiado */
+    margin: 0 auto; /* Centrar la tabla */
+    box-sizing: border-box;
+    overflow-x: auto; /* Permite desplazarse horizontalmente si es necesario */
+}
+
+/* Título de la tabla */
+.task-list2 h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 10px;
+}
+
+/* Estilos para la tabla */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+/* Estilos para las celdas de la tabla */
+.table th,
+.table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    color: white;
+}
+
+/* Estilo para los encabezados */
+.table th {
+    background-color: #404950;
+    font-weight: bold;
+}
+
+/* Estilo para las filas de la tabla */
+.table tr:nth-child(even) {
+    background-color: #2c3539; /* Fila par */
+}
+
+/* Estilo para las filas de la tabla */
+.table tr:nth-child(odd) {
+    background-color: #293238; /* Fila impar */
+}
+
+/* Estilo para los botones de acción */
+.action-btn {
+    padding: 6px 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    background-color: #ffd476;
+    color: #2a2a2a;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.action-btn:hover {
+    background-color: #cc8c00;
+}
+

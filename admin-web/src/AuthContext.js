@@ -10,9 +10,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+      setUser(user); // Al cambiar el estado de usuario, la app se actualiza
+      setLoading(false); // Terminamos de cargar
     });
+
+    // Cleanup en caso de que el componente se desmonte
     return () => unsubscribe();
   }, []);
 

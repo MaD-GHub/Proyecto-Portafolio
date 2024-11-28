@@ -6,9 +6,17 @@ import { TbSettingsPlus } from "react-icons/tb"; // Ícono de Mantenedor
 import { SlGraph, SlSettings } from "react-icons/sl"; // Íconos de Analíticas y Configuración
 import { FaRegUser } from "react-icons/fa"; // Ícono de Usuario
 import { AiOutlineLogout } from "react-icons/ai"; // Ícono de Logout
+import { useNavigate } from "react-router-dom"; // Hook para la redirección
 
 const Sidebar = () => {
   const [activePage, setActivePage] = useState("home"); // Estado para manejar la página activa
+  const navigate = useNavigate(); // Hook de redirección
+
+  // Función para redirigir a la página de administración (Mantenedor)
+  const handleMaintenanceClick = () => {
+    navigate("/admin"); // Redirige a la ruta de Admin
+    setActivePage("maintenance"); // Cambia la página activa para reflejar el cambio visual
+  };
 
   return (
     <>
@@ -23,17 +31,20 @@ const Sidebar = () => {
           {/* Botón Home */}
           <button
             className={`sidebar-item ${activePage === "home" ? "active" : ""}`}
-            onClick={() => setActivePage("home")}
+            onClick={() => {
+              navigate("/home");
+              setActivePage("home");
+            }}
           >
             <GrHomeRounded size={18} />
           </button>
 
-          {/* Botón Mantenedor */}
+          {/* Botón Mantenedor (ahora con la redirección al admin) */}
           <button
             className={`sidebar-item ${
               activePage === "maintenance" ? "active" : ""
             }`}
-            onClick={() => setActivePage("maintenance")}
+            onClick={handleMaintenanceClick}
           >
             <TbSettingsPlus size={18} />
           </button>

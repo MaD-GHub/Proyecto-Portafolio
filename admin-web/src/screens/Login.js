@@ -1,25 +1,33 @@
 import React, { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth"; // Para manejar el login
-import { auth } from "../firebase"; // Configuración de Firebase
-import { useNavigate } from "react-router-dom"; // Para redirigir al usuario
-import "../styles/Login.css"; // Importamos los estilos
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+import { useNavigate } from "react-router-dom";
+import "../styles/Login.css";
 
 const Login = () => {
-  const [email, setEmail] = useState(""); // Estado para el email
-  const [password, setPassword] = useState(""); // Estado para la contraseña
-  const [error, setError] = useState(""); // Estado para manejar errores
-  const navigate = useNavigate(); // Hook para redirigir a otra página
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Evita que la página se recargue
+    e.preventDefault();
+
     try {
       // Intentamos iniciar sesión con Firebase
       await signInWithEmailAndPassword(auth, email, password);
       console.log("Inicio de sesión exitoso con:", email);
-      navigate("/home"); // Redirigimos al HomeScreen después del login
+
+      // Redirigir a la página de inicio solo si el login fue exitoso
+      if (auth.currentUser) {
+        console.log("Redirigiendo a /home...");
+        navigate("/home"); // Redirigimos al HomeScreen
+      } else {
+        setError("Error al autenticar el usuario.");
+      }
     } catch (err) {
-      console.error(err.message); // Logueamos el error para debug
-      setError("Email o contraseña incorrectos. Por favor, inténtalo de nuevo."); // Mostramos un mensaje de error
+      console.error(err.message);
+      setError("Email o contraseña incorrectos.");
     }
   };
 
@@ -28,9 +36,7 @@ const Login = () => {
       <div className="login-container">
         <h1>Iniciar Sesión</h1>
         <p>Administrador FinaWise</p>
-        {/* Formulario para iniciar sesión */}
         <form onSubmit={handleLogin}>
-          {/* Muestra un mensaje de error si hay */}
           {error && <p className="error-message">{error}</p>}
 
           <input
@@ -38,18 +44,15 @@ const Login = () => {
             className="login-input"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)} // Actualizamos el estado del email
+            onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password"
             className="login-input"
             placeholder="Password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)} // Actualizamos el estado de la contraseña
+            onChange={(e) => setPassword(e.target.value)}
           />
-          <a href="#" className="forgot-password">
-            Solicitar nueva contraseña.
-          </a>
           <button type="submit" className="login-button">
             Entrar
           </button>
