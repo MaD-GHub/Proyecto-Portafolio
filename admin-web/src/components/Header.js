@@ -13,7 +13,7 @@ const Header = ({ title, subtitle }) => {
       {/* Elementos del lado derecho */}
       <div className="right-section">
         <input type="text" placeholder="Buscar algo..." className="search-bar" />
-        <button className="premium-button">Premium</button>
+        <button className="premium-button">Buscar</button>
       </div>
     </header>
   );

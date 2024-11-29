@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -10,16 +10,49 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { db } from "../firebase"; // Asegúrate de tener la configuración de Firebase correcta
+import { collection, getDocs } from "firebase/firestore";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const FinancialActivityChart = ({ title, color, total, transactions }) => {
+const FinancialActivityChart = ({ title, color, type }) => {
+  const [transactionsData, setTransactionsData] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const transactionsSnapshot = await getDocs(collection(db, "transactions"));
+      let totalAmount = 0;
+      let transactionsCount = 0;
+      let monthlyData = [0, 0, 0, 0, 0]; // Datos mensuales predeterminados
+
+      transactionsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === type) { // Filtra por tipo de transacción (Gasto o Ingreso)
+          totalAmount += parseFloat(data.amount);
+          transactionsCount += 1;
+
+          // Distribuye las transacciones por mes
+          const month = new Date(data.creationDate.seconds * 1000).getMonth(); // Obtiene el mes
+          monthlyData[month] += parseFloat(data.amount);
+        }
+      });
+
+      setTransactionsData(monthlyData);
+      setTotal(totalAmount);
+      setTotalTransactions(transactionsCount);
+    };
+
+    fetchTransactions();
+  }, [type]); // Dependiendo del tipo de transacción (Gasto/Ingreso), se recargan los datos
+
   const data = {
     labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo"],
     datasets: [
       {
         label: title,
-        data: [500, 700, 800, 600, 1750],
+        data: transactionsData,
         borderColor: color,
         backgroundColor: `${color}55`, // Fondo semitransparente
         fill: false, // Desactivar relleno
@@ -62,7 +95,6 @@ const FinancialActivityChart = ({ title, color, total, transactions }) => {
       },
     },
   };
-  
 
   return (
     <div className="chart" style={{ display: "flex", flexDirection: "column" }}>
@@ -79,7 +111,7 @@ const FinancialActivityChart = ({ title, color, total, transactions }) => {
             color: "white",
           }}
         >
-          {total}
+          ${total.toLocaleString()}
         </h2>
         <p
           style={{
@@ -91,7 +123,7 @@ const FinancialActivityChart = ({ title, color, total, transactions }) => {
           }}
         >
           <span>Transacciones totales</span>
-          <span>{transactions}</span>
+          <span>{totalTransactions}</span>
         </p>
       </div>
     </div>

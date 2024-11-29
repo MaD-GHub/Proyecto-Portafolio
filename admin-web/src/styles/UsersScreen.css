@@ -1,0 +1,103 @@
+/* Contenedor principal que incluye el sidebar y el contenido principal */
+.home-screen {
+    display: flex;
+  }
+  
+  /* Contenido principal, ocupa todo el espacio disponible */
+  .main-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  
+  /* Primer contenedor de la tabla de usuarios */
+  .first-line {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  /* Contenedor de la tabla, ahora ocupará todo el ancho disponible */
+  .user-table-container {
+    width: 100%;
+    height: 140%;
+    overflow-x: auto;
+    display: flex;
+    justify-content: flex-start;
+  }
+  
+  /* Tabla de usuarios, ocupa el 100% del contenedor */
+  .user-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    table-layout: fixed; /* Hace que la tabla utilice todo el ancho disponible */
+  }
+  
+  /* Estilos para celdas de la tabla */
+  .user-table th, .user-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #b9b9b9;
+  }
+  
+  /* Encabezado de la tabla */
+  .user-table th {
+    background-color: #303030;
+    font-weight: bold;
+  }
+  
+  /* Fila de la tabla cuando se pasa el ratón por encima */
+  .user-table tr:hover {
+    background-color: #656565;
+  }
+  
+  /* Botones de acción dentro de la tabla */
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+  }
+  
+  /* Estilos generales de los botones */
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s ease-in-out;
+  }
+  
+  /* Efecto al pasar el ratón por encima de los botones */
+  button:hover {
+    opacity: 0.7;
+  }
+  
+  /* Estilos específicos para cada botón */
+  .edit-button {
+    color: #4caf50; /* Verde para editar */
+  }
+  
+  .toggle-button {
+    color: #ff9800; /* Naranja para activar/desactivar */
+  }
+  
+  .delete-button {
+    color: #f44336; /* Rojo para eliminar */
+  }
+  
+  /* Efecto de hover para cada botón */
+  .edit-button:hover {
+    color: #45a049;
+  }
+  
+  .toggle-button:hover {
+    color: #e68900;
+  }
+  
+  .delete-button:hover {
+    color: #d32f2f;
+  }
+  

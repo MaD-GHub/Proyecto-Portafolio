@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { LinearGradient } from 'expo-linear-gradient';
 import { auth, db } from '../firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';  // Importa Timestamp de Firebase
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker'; 
 import { FontAwesome5 } from '@expo/vector-icons'; 
@@ -26,6 +26,9 @@ export default function RegisterScreen({ navigation }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Usar el timestamp de Firebase para la fecha de registro
+      const currentDate = Timestamp.fromDate(new Date());  // Convierte la fecha actual a un Timestamp de Firebase
+
       await setDoc(doc(db, 'users', user.uid), {
         firstName,
         lastName,
@@ -35,6 +38,9 @@ export default function RegisterScreen({ navigation }) {
         salary: hasJob ? salary : null,
         salaryDay: hasJob ? salaryDay : null,
         email: user.email,
+        activo: true, // Campo "activo"
+        role: 'defaultUser', // Asignación de rol por defecto
+        registrationDate: currentDate, // Guardar como Timestamp
       });
 
       Alert.alert("Te has Registrado con éxito");
@@ -68,7 +74,7 @@ export default function RegisterScreen({ navigation }) {
             />
           </View>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('StartScreen')}>
-          <FontAwesome5 name="angle-left" size={24} color="#fff" />
+            <FontAwesome5 name="angle-left" size={24} color="#fff" />
           </TouchableOpacity> 
         </LinearGradient>
 
@@ -91,19 +97,18 @@ export default function RegisterScreen({ navigation }) {
           )}
 
           <View >
-          <LinearGradient colors={['#511496', '#885FD8']} style={styles.pickerContainer}>
-          <Picker
-              selectedValue={gender}
-              onValueChange={(itemValue) => setGender(itemValue)}
-              style={styles.pickerTextStyle} // Custom text style
-            >
-            
-              <Picker.Item label="Seleccione su género" value="" />
-              <Picker.Item label="Masculino" value="masculino" />
-              <Picker.Item label="Femenino" value="femenino" />
-              <Picker.Item label="No informar" value="no_informar" />
-            </Picker>
-          </LinearGradient>
+            <LinearGradient colors={['#511496', '#885FD8']} style={styles.pickerContainer}>
+              <Picker
+                selectedValue={gender}
+                onValueChange={(itemValue) => setGender(itemValue)}
+                style={styles.pickerTextStyle} // Custom text style
+              >
+                <Picker.Item label="Seleccione su género" value="" />
+                <Picker.Item label="Masculino" value="masculino" />
+                <Picker.Item label="Femenino" value="femenino" />
+                <Picker.Item label="No informar" value="no_informar" />
+              </Picker>
+            </LinearGradient>
           </View>
 
           <TouchableOpacity onPress={() => setHasJob(!hasJob)}>
@@ -151,7 +156,6 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     marginTop: -140,
-
   },
   logoContainer: {
     justifyContent: 'center',
@@ -229,6 +233,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 15,
   },
-  
 });
-

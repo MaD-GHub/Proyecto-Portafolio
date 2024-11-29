@@ -5,6 +5,7 @@ import HomeScreen from "./screens/HomeScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Sidebar from "./components/Sidebar"; // Importa el Sidebar
 import { AuthProvider } from "./AuthContext";
+import UsersScreen from "./screens/UsersScreen";
 
 function App() {
   return (
@@ -22,6 +23,19 @@ function App() {
                 <div className="app-layout">
                   <Sidebar /> {/* Sidebar solo visible en la ruta protegida */}
                   <HomeScreen />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Ruta protegida para UsersScreen */}
+          <Route
+            path="/usuarios"
+            element={
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar /> {/* Sidebar solo visible en la ruta protegida */}
+                  <UsersScreen />
                 </div>
               </ProtectedRoute>
             }

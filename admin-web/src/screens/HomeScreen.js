@@ -1,9 +1,54 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase"; // Asegúrate de tener bien configurado firebase.js
 import Header from "../components/Header"; // Header con título y subtítulo
 import "../styles/HomeScreen.css";
 import FinancialActivityChart from "../components/FinancialActivityChart"; // Componente de gráficos
 
 const HomeScreen = () => {
+  const [financialData, setFinancialData] = useState({
+    ingresos: 0,
+    gastos: 0,
+    ahorros: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFinancialData = async () => {
+      try {
+        // Cargar datos de la colección 'financials' en Firebase
+        const snapshot = await getDocs(collection(db, "financials"));
+        let ingresos = 0;
+        let gastos = 0;
+        let ahorros = 0;
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // Suponiendo que en la colección 'financials' tienes campos tipo 'income', 'expense' y 'savings'
+          ingresos += parseFloat(data.income) || 0;
+          gastos += parseFloat(data.expense) || 0;
+          ahorros += parseFloat(data.savings) || 0;
+        });
+
+        setFinancialData({
+          ingresos,
+          gastos,
+          ahorros
+        });
+        setLoading(false);
+      } catch (error) {
+        console.error("Error al obtener los datos financieros: ", error);
+        setLoading(false);
+      }
+    };
+
+    fetchFinancialData();
+  }, []);
+
+  if (loading) {
+    return <p>Cargando datos financieros...</p>;
+  }
+
   return (
     <div className="home-screen">
       <div className="main-content">
@@ -16,7 +61,6 @@ const HomeScreen = () => {
             {/* Barra superior */}
             <div className="chart-header">
               <span>Resumen Financiero</span>
-              <span>s</span>
             </div>
 
             {/* Gráficos */}
@@ -25,8 +69,8 @@ const HomeScreen = () => {
                 <FinancialActivityChart
                   title="Ingresos"
                   color="green"
-                  total="$3,343,304"
-                  transactions="32,900"
+                  total={`$${financialData.ingresos.toLocaleString()}`}
+                  transactions={financialData.ingresos}
                 />
               </div>
               <div className="chart-divider"></div>
@@ -34,8 +78,8 @@ const HomeScreen = () => {
                 <FinancialActivityChart
                   title="Gastos"
                   color="red"
-                  total="$2,214,540"
-                  transactions="21,300"
+                  total={`$${financialData.gastos.toLocaleString()}`}
+                  transactions={financialData.gastos}
                 />
               </div>
               <div className="chart-divider"></div>
@@ -43,8 +87,8 @@ const HomeScreen = () => {
                 <FinancialActivityChart
                   title="Ahorros"
                   color="orange"
-                  total="$1,120,780"
-                  transactions="15,000"
+                  total={`$${financialData.ahorros.toLocaleString()}`}
+                  transactions={financialData.ahorros}
                 />
               </div>
             </div>

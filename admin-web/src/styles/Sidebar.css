@@ -76,6 +76,23 @@
   margin: 2px;
 }
 
+.sidebar-item2 {
+  width: 98%;
+  height: 47px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #3e454c;
+  color: white;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: solid 2px;
+  border-color: #293137;
+  margin: 2px;
+}
+
 /* Botón activo */
 .sidebar-item.active {
   background-color: #8b428d;
@@ -85,4 +102,8 @@
 /* Hover */
 .sidebar-item:hover {
   background-color: #5a5f64;
+}
+
+.sidebar-item2:hover {
+  background-color: #b24343;
 }
