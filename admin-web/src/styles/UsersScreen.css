@@ -13,7 +13,7 @@
 }
 
 /* Primer contenedor de la tabla de usuarios */
-.first-line {
+.first-line-users {
     margin-top: 20px;
     display: flex;
     justify-content: space-between;

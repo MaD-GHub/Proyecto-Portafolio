@@ -15,44 +15,44 @@ import { collection, getDocs } from "firebase/firestore";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const FinancialActivityChart = ({ title, color, type }) => {
-  const [transactionsData, setTransactionsData] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [totalTransactions, setTotalTransactions] = useState(0);
+const FinancialActivityChart = ({ title, color }) => {
+  const [userRegistrationsData, setUserRegistrationsData] = useState([0, 0, 0, 0, 0]); // Datos mensuales de registros
+  const [totalUsers, setTotalUsers] = useState(0); // Total de usuarios registrados
 
   useEffect(() => {
-    const fetchTransactions = async () => {
-      const transactionsSnapshot = await getDocs(collection(db, "transactions"));
-      let totalAmount = 0;
-      let transactionsCount = 0;
-      let monthlyData = [0, 0, 0, 0, 0]; // Datos mensuales predeterminados
+    const fetchUserRegistrations = async () => {
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      let registrationsData = [0, 0, 0, 0, 0]; // Datos mensuales predeterminados para el registro de usuarios
 
-      transactionsSnapshot.forEach((doc) => {
+      // Contamos el total de usuarios
+      let total = 0;
+    
+      usersSnapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.type === type) { // Filtra por tipo de transacción (Gasto o Ingreso)
-          totalAmount += parseFloat(data.amount);
-          transactionsCount += 1;
-
-          // Distribuye las transacciones por mes
-          const month = new Date(data.creationDate.seconds * 1000).getMonth(); // Obtiene el mes
-          monthlyData[month] += parseFloat(data.amount);
+        const registrationDate = data.registrationDate; // Obtener la fecha de registro
+    
+        // Verifica que registrationDate sea un Timestamp válido
+        if (registrationDate && registrationDate.seconds) {
+          const registrationMonth = new Date(registrationDate.seconds * 1000).getMonth(); // Mes (0-11)
+          registrationsData[registrationMonth] += 1; // Incrementamos el contador de usuarios registrados en ese mes
+          total += 1; // Contamos todos los usuarios
         }
       });
-
-      setTransactionsData(monthlyData);
-      setTotal(totalAmount);
-      setTotalTransactions(transactionsCount);
+    
+      setUserRegistrationsData(registrationsData);
+      setTotalUsers(total); // Guardamos el total de usuarios
     };
 
-    fetchTransactions();
-  }, [type]); // Dependiendo del tipo de transacción (Gasto/Ingreso), se recargan los datos
+    fetchUserRegistrations();
+  }, []);
+
 
   const data = {
-    labels: ["Enero", "Febrero", "Marzo", "Abril", "Mayo"],
+    labels: ["Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
     datasets: [
       {
         label: title,
-        data: transactionsData,
+        data: userRegistrationsData, // Usamos los datos de registros de usuarios por mes
         borderColor: color,
         backgroundColor: `${color}55`, // Fondo semitransparente
         fill: false, // Desactivar relleno
@@ -88,8 +88,8 @@ const FinancialActivityChart = ({ title, color, type }) => {
         ticks: {
           color: "#d3d3d3", // Color visible para los ticks del eje Y
           font: { size: 12 }, // Tamaño de fuente de los ticks
-          stepSize: 500, // Intervalos entre los ticks
-          suggestedMax: 2000, // Rango máximo
+          stepSize: 5, // Intervalos entre los ticks
+          suggestedMax: Math.max(...userRegistrationsData) + 5, // Ajustar el rango máximo
           padding: 10, // Espaciado adicional
         },
       },
@@ -111,7 +111,7 @@ const FinancialActivityChart = ({ title, color, type }) => {
             color: "white",
           }}
         >
-          ${total.toLocaleString()}
+          {totalUsers} usuarios
         </h2>
         <p
           style={{
@@ -122,8 +122,8 @@ const FinancialActivityChart = ({ title, color, type }) => {
             margin: 0,
           }}
         >
-          <span>Transacciones totales</span>
-          <span>{totalTransactions}</span>
+          <span>Usuarios totales</span>
+          <span>{totalUsers}</span>
         </p>
       </div>
     </div>

@@ -3,101 +3,75 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase"; // Asegúrate de tener bien configurado firebase.js
 import Header from "../components/Header"; // Header con título y subtítulo
 import "../styles/HomeScreen.css";
-import FinancialActivityChart from "../components/FinancialActivityChart"; // Componente de gráficos
+import RegistrationUsersActivity from "../components/RegistrationUsersActivity"; // Nuevo componente de actividad de registros
+import UserMap from "../components/UserMap"; // Asegúrate de que la ruta sea correcta
 
 const HomeScreen = () => {
-  const [financialData, setFinancialData] = useState({
-    ingresos: 0,
-    gastos: 0,
-    ahorros: 0
-  });
+  const [userCount, setUserCount] = useState(0); // Conteo de usuarios
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFinancialData = async () => {
+    const fetchUserCount = async () => {
       try {
-        // Cargar datos de la colección 'financials' en Firebase
-        const snapshot = await getDocs(collection(db, "financials"));
-        let ingresos = 0;
-        let gastos = 0;
-        let ahorros = 0;
-
+        // Cargar datos de la colección 'users' en Firebase
+        const snapshot = await getDocs(collection(db, "users"));
+        let count = 0;
+  
         snapshot.forEach((doc) => {
-          const data = doc.data();
-          // Suponiendo que en la colección 'financials' tienes campos tipo 'income', 'expense' y 'savings'
-          ingresos += parseFloat(data.income) || 0;
-          gastos += parseFloat(data.expense) || 0;
-          ahorros += parseFloat(data.savings) || 0;
+          // Verificar si el documento tiene un campo `timestamp`
+          const userData = doc.data();
+          
+          // Si el campo `timestamp` existe y es válido, se cuenta el usuario
+          if (userData && userData.birthDate && userData.birthDate.seconds) {
+            count += 1; // Aumenta el contador por cada documento de usuario
+          }
         });
-
-        setFinancialData({
-          ingresos,
-          gastos,
-          ahorros
-        });
+  
+        setUserCount(count); // Establecer el conteo de usuarios
         setLoading(false);
       } catch (error) {
-        console.error("Error al obtener los datos financieros: ", error);
+        console.error("Error al obtener el conteo de usuarios: ", error);
         setLoading(false);
       }
     };
-
-    fetchFinancialData();
+  
+    fetchUserCount();
   }, []);
+  
 
   if (loading) {
-    return <p>Cargando datos financieros...</p>;
+    return <p>Cargando datos de usuarios...</p>;
   }
 
   return (
     <div className="home-screen">
       <div className="main-content">
         {/* Header */}
-        <Header title="Hola, Admin!" subtitle="Listo para los nuevos cambios?" />
+        <Header
+          title="Hola, Admin!"
+          subtitle="Listo para los nuevos cambios?"
+        />
 
         {/* Primera línea: 55% gráficos, 45% card vacía */}
         <div className="first-line">
           <div className="chart-container">
             {/* Barra superior */}
             <div className="chart-header">
-              <span>Resumen Financiero</span>
+              <span>Resumen de Usuarios</span>
             </div>
 
             {/* Gráficos */}
-            <div className="chart-group">
-              <div className="chart">
-                <FinancialActivityChart
-                  title="Ingresos"
-                  color="green"
-                  total={`$${financialData.ingresos.toLocaleString()}`}
-                  transactions={financialData.ingresos}
-                />
-              </div>
-              <div className="chart-divider"></div>
-              <div className="chart">
-                <FinancialActivityChart
-                  title="Gastos"
-                  color="red"
-                  total={`$${financialData.gastos.toLocaleString()}`}
-                  transactions={financialData.gastos}
-                />
-              </div>
-              <div className="chart-divider"></div>
-              <div className="chart">
-                <FinancialActivityChart
-                  title="Ahorros"
-                  color="orange"
-                  total={`$${financialData.ahorros.toLocaleString()}`}
-                  transactions={financialData.ahorros}
-                />
-              </div>
-            </div>
+            
+                <RegistrationUsersActivity />
+        
+                {/* Reemplazado FinancialActivityChart por RegistrationUsersActivity */}
+              
+           
           </div>
 
-          {/* Card Vacía */}
           <div className="large-card">
-            <h3>Card Vacía</h3>
-            <p>Contenido por definir.</p>
+            <h3>Mapa de Usuarios</h3>
+            <UserMap />
           </div>
         </div>
 

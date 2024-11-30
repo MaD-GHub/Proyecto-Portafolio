@@ -28,14 +28,14 @@
 .first-line {
   display: flex;
   gap: 20px;
-  height: 420px; /* Mayor altura para gráficos más grandes */
+  height: 100%; /* Mayor altura para gráficos más grandes */
 }
 
 /* Contenedor de gráficos */
 .chart-container {
   display: flex;
   flex-direction: column;
-  flex: 55%; /* Mantener el 55% para los gráficos */
+  flex: 85%; /* Mantener el 55% para los gráficos */
   background-color: #293238;
   border-radius: 25px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
@@ -53,6 +53,7 @@
   font-weight: 600;
   color: white;
   padding: 5px 0 10px;
+  overflow: hidden;
 }
 
 .chart-header span {
@@ -141,9 +142,11 @@
   flex: 45%;
   background-color: #293238;
   border-radius: 25px;
-  padding: 20px;
+  padding-inline: 10px;
+  padding-bottom: 7%;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
   text-align: center;
+  overflow: hidden;
 }
 
 /* Segunda línea */

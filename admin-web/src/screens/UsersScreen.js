@@ -72,7 +72,7 @@ const UsersScreen = () => {
           subtitle="Administra a los usuarios"
         />
 
-        <div className="first-line">
+        <div className="first-line-users">
           <div className="table-card">
             <div className="user-table-container">
               <table className="user-table">
