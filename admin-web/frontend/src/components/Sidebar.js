@@ -1,3 +1,5 @@
+// src/components/Sidebar.js
+
 import React, { useState } from "react";
 import "../styles/Sidebar.css"; // Estilos del Sidebar
 import logo from "../img/Logo_blanco.png"; // Logo de la app
@@ -16,6 +18,12 @@ const Sidebar = () => {
   const handleMaintenanceClick = () => {
     navigate("/admin"); // Redirige a la ruta de Admin
     setActivePage("maintenance"); // Cambia la página activa para reflejar el cambio visual
+  };
+
+  // Nueva función para redirigir a la página de tareas
+  const handleTaskAppClick = () => {
+    navigate("/tasks"); // Redirige a la ruta de TaskApp
+    setActivePage("tasks"); // Cambia la página activa para reflejar el cambio visual
   };
 
   return (
@@ -37,6 +45,15 @@ const Sidebar = () => {
             }}
           >
             <GrHomeRounded size={18} />
+          </button>
+
+          {/* Botón Tareas */}
+          <button
+            className={`sidebar-item ${activePage === "tasks" ? "active" : ""}`}
+            onClick={handleTaskAppClick}
+          >
+            <SlSettings size={18} /> {/* Puedes usar un icono que te guste */}
+            Tareas
           </button>
 
           {/* Botón Mantenedor (ahora con la redirección al admin) */}

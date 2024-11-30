@@ -5,23 +5,23 @@ import FinancialActivityChart from "../components/FinancialActivityChart"; // Co
 
 const HomeScreen = () => {
   return (
-    <div className="home-screen">
-      <div className="main-content">
+    <div className="home-screen-container">
+      <div className="main-content-wrapper">
         {/* Header */}
         <Header title="Hola, Admin!" subtitle="Listo para los nuevos cambios?" />
 
         {/* Primera línea: 55% gráficos, 45% card vacía */}
-        <div className="first-line">
-          <div className="chart-container">
+        <div className="first-section">
+          <div className="chart-wrapper">
             {/* Barra superior */}
-            <div className="chart-header">
+            <div className="chart-header-wrapper">
               <span>Resumen Financiero</span>
               <span>s</span>
             </div>
 
             {/* Gráficos */}
-            <div className="chart-group">
-              <div className="chart">
+            <div className="chart-group-wrapper">
+              <div className="chart-item">
                 <FinancialActivityChart
                   title="Ingresos"
                   color="green"
@@ -30,7 +30,7 @@ const HomeScreen = () => {
                 />
               </div>
               <div className="chart-divider"></div>
-              <div className="chart">
+              <div className="chart-item">
                 <FinancialActivityChart
                   title="Gastos"
                   color="red"
@@ -39,7 +39,7 @@ const HomeScreen = () => {
                 />
               </div>
               <div className="chart-divider"></div>
-              <div className="chart">
+              <div className="chart-item">
                 <FinancialActivityChart
                   title="Ahorros"
                   color="orange"
@@ -51,31 +51,31 @@ const HomeScreen = () => {
           </div>
 
           {/* Card Vacía */}
-          <div className="large-card">
+          <div className="large-card-item">
             <h3>Card Vacía</h3>
             <p>Contenido por definir.</p>
           </div>
         </div>
 
         {/* Segunda línea: 50% progreso (2 cards), 50% tabla de categorías */}
-        <div className="second-line">
-          <div className="progress-section">
-            <div className="progress-card">
+        <div className="second-section">
+          <div className="progress-section-wrapper">
+            <div className="progress-card-item">
               <h3>Progreso de Tareas 1</h3>
-              <div className="progress-bar">
-                <div className="progress" style={{ width: "40%" }}></div>
+              <div className="progress-bar-wrapper">
+                <div className="progress-bar" style={{ width: "40%" }}></div>
               </div>
               <p>2/5 completado</p>
             </div>
-            <div className="progress-card">
+            <div className="progress-card-item">
               <h3>Progreso de Tareas 2</h3>
-              <div className="progress-bar">
-                <div className="progress" style={{ width: "70%" }}></div>
+              <div className="progress-bar-wrapper">
+                <div className="progress-bar" style={{ width: "70%" }}></div>
               </div>
               <p>7/10 completado</p>
             </div>
           </div>
-          <div className="table-card">
+          <div className="table-card-item">
             <h3>Categorías Principales</h3>
             <table>
               <thead>

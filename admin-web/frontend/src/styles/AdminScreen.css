@@ -63,88 +63,80 @@
   }
   
 /* Contenedor de la segunda línea */
-.second-line {
-    display: flex; /* Usamos flexbox para que los elementos estén alineados horizontalmente */
-    justify-content: space-between; /* Espacio entre los dos contenedores */
-    gap: 20px; /* Espacio entre los elementos */
-    width: 100%; /* Asegura que ocupe todo el ancho disponible */
-    height: 480px; /* Altura fija para contener las tarjetas */
-    box-sizing: border-box;
-    overflow: hidden; /* Para evitar desbordamientos */
-    padding-bottom: 10px;
-  }
-  
-  /* Contenedor de las tarjetas de progreso */
-  .progress-section {
-    display: flex; /* Usamos flexbox para alinear horizontalmente las tarjetas */
-    justify-content: space-between; /* Asegura que las tarjetas estén separadas */
-    width: 100%; /* El contenedor ocupa todo el ancho disponible */
-    height: 100%; /* El contenedor debe ocupar toda la altura disponible */
-    background-color: transparent; /* Transparente como deseas */
-    padding: 0 0px; /* Agrega un margen a los lados */
-    box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
-  }
-  
-  /* Estilo de las tarjetas de progreso */
-  .progress-card {
-    background-color: #293238;
-    border-radius: 25px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-    width: 100%; /* Cada tarjeta ocupa el 48% del ancho disponible */
-    height: auto; /* Deja que la tarjeta ajuste su altura según el contenido */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Asegura que los elementos dentro estén distribuidos */
-    padding: 10px;
-    box-sizing: border-box;
-    margin-bottom: 0px; /* Agrega un margen inferior para que no se toquen */
-    max-width: 100%; /* Asegura que no se desborden */
-    min-width: 500px; /* Asegura que las tarjetas no se reduzcan demasiado en pantallas pequeñas */
-  }
-  
-  /* Títulos de las tarjetas de progreso */
-  .progress-card h3 {
-    font-size: 18px;
-    font-weight: 500;
-    color: #d3d3d3;
-    text-align: left;
-    margin-left: 20px;
-  }
-  .progress-card p {
-    font-size: 16px;
-    font-weight: 300;
-    color: #d3d3d3;
-    text-align: left;
-    margin-left: 20px;
-  }
-  
-  /* Barra de progreso */
-  .progress-bar {
-    background-color: #404950;
-    border-radius: 10px;
-    height: 10px; /* Barra más delgada */
-    overflow: hidden;
-    margin: 0 20px;
-  }
-  
-  .progress {
-    background-color: #ffd476;
-    height: 100%;
-    width: 0;
-    transition: width 0.3s ease-in-out;
-  }
-  .progress2 {
-    background-color: #76ff8d;
-    height: 100%;
-    width: 0;
-    transition: width 0.3s ease-in-out;
-  }
-  .progress3 {
-    background-color: #76bdff;
-    height: 100%;
-    width: 0;
-    transition: width 0.3s ease-in-out;
-  }
+.second-line-a {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  height: 480px;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+
+/* Contenedor de las tarjetas de progreso */
+.progress-section-a {
+  display: flex; /* Usamos flexbox para alinear las tarjetas */
+  flex-direction: column; /* Cambio a columna para apilar las barras de progreso verticalmente */
+  justify-content: flex-start; /* Asegura que las tarjetas estén alineadas al principio */
+  width: 100%; /* El contenedor ocupa todo el ancho disponible */
+  height: 100%; /* El contenedor debe ocupar toda la altura disponible */
+  background-color: transparent; 
+  padding: 0 0px;
+  box-sizing: border-box;
+}
+
+/* Estilo de las tarjetas de progreso */
+.progress-card-a {
+  background-color: #293238;
+  border-radius: 25px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  width: 100%; /* Asegura que las tarjetas ocupen el 100% de ancho del contenedor */
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 20px; /* Espaciado entre las tarjetas de progreso */
+  max-width: 100%;
+  min-width: 500px;
+}
+.progress-card-a h3 {
+  padding-left: 23px;
+}
+.progress-card-a p {
+  padding-left: 23px;
+}
+
+/* Barra de progreso */
+.progress-bar-a {
+  background-color: #404950;
+  border-radius: 10px;
+  height: 10px;
+  overflow: hidden;
+  margin: 0 20px;
+}
+
+/* Barras de progreso específicas */
+.progress-a {
+  background-color: #ffd476;
+  height: 100%;
+  width: 0;
+  transition: width 0.3s ease-in-out;
+}
+.progress2-a {
+  background-color: #76ff8d;
+  height: 100%;
+  width: 0;
+  transition: width 0.3s ease-in-out;
+}
+.progress3-a {
+  background-color: #76bdff;
+  height: 100%;
+  width: 0;
+  transition: width 0.3s ease-in-out;
+}
 /* Estilos para la lista de actividades */
 .task-list {
     background-color: #293238; /* Fondo para la lista de actividades */
@@ -174,9 +166,9 @@
   /* Estilos para cada tarea individual */
   .task-item {
     width: 100%; /* Asegura que cada tarea ocupe el 100% del ancho */
-    padding: 10px 0px 10px 10px;
+    padding: 10px 10px 10px 15px;
     margin: 10px 0px 12px 0px;
-    border-radius: 15px;
+    border-radius: 25px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
     display: flex;
     justify-content: space-between; /* Separa el texto y el botón */
@@ -191,7 +183,7 @@
   .status-button {
     padding: 7px 15px;
     margin-right: 5px;
-    border-radius: 13px;
+    border-radius: 25px;
     cursor: pointer; /* Cambia el cursor cuando pasas sobre el botón */
     transition: background-color 0.3s ease, color 0.3s ease; /* Transiciones suaves */
   }

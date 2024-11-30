@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth"; // Agregamos el servicio de autenticación
 import { getFirestore } from "firebase/firestore"; // Agregamos Firestore
 import { getAnalytics } from "firebase/analytics";
+import { getFunctions, httpsCallable } from "firebase/functions"; // Importamos el servicio de funciones
 
 const firebaseConfig = {
   apiKey: "AIzaSyCOiPa7GEr4t1JcA_mTAV_8DX6dPnAyb8I",
@@ -20,5 +21,6 @@ const analytics = getAnalytics(app);
 // Exportar servicios necesarios
 const auth = getAuth(app); // Inicialización de Authentication
 const db = getFirestore(app); // Inicialización de Firestore
+const functions = getFunctions(app); // Inicialización de Functions
 
-export { auth, db, analytics };
+export { auth, db, analytics, functions, httpsCallable }; // Exporta también las funciones

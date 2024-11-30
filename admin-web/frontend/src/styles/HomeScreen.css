@@ -1,5 +1,5 @@
 /* Fondo general */
-.home-screen {
+.home-screen-container {
   height: 100vh;
   width: 100vw;
   background-image: url("../img/BgLogin2.jpg");
@@ -13,7 +13,7 @@
 }
 
 /* Contenido principal */
-.main-content {
+.main-content-wrapper {
   flex: 1;
   margin-left: 115px;
   padding: 20px;
@@ -24,15 +24,15 @@
   margin-right: 40px;
 }
 
-/* Primera línea */
-.first-line {
+/* Primera sección */
+.first-section {
   display: flex;
   gap: 20px;
   height: 420px; /* Mayor altura para gráficos más grandes */
 }
 
 /* Contenedor de gráficos */
-.chart-container {
+.chart-wrapper {
   display: flex;
   flex-direction: column;
   flex: 55%; /* Mantener el 55% para los gráficos */
@@ -45,7 +45,7 @@
 }
 
 /* Barra superior del contenedor de gráficos */
-.chart-header {
+.chart-header-wrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -55,23 +55,23 @@
   padding: 5px 0 10px;
 }
 
-.chart-header span {
+.chart-header-wrapper span {
   cursor: pointer;
 }
 
-.chart-header span:last-child {
+.chart-header-wrapper span:last-child {
   color: #d3d3d3;
   font-size: 14px;
   display: flex;
   align-items: center;
 }
 
-.chart-header span:last-child:hover {
+.chart-header-wrapper span:last-child:hover {
   color: white;
 }
 
 /* Gráficos */
-.chart-group {
+.chart-group-wrapper {
   display: flex;
   justify-content: space-between;
   gap: 5px; /* Reducir espacio entre gráficos */
@@ -86,7 +86,7 @@
 }
 
 /* Gráfico */
-.chart {
+.chart-item {
   flex: 1;
   max-width: 260px; /* Mantener un ancho máximo adecuado */
   min-width: 180px;
@@ -137,7 +137,7 @@
 }
 
 /* Card adicional */
-.large-card {
+.large-card-item {
   flex: 45%;
   background-color: #293238;
   border-radius: 25px;
@@ -146,22 +146,22 @@
   text-align: center;
 }
 
-/* Segunda línea */
-.second-line {
+/* Segunda sección */
+.second-section {
   display: flex;
   gap: 20px;
   height: 180px; /* Reducimos la altura de la segunda línea */
 }
 
 /* Sección de progreso */
-.progress-section {
+.progress-section-wrapper {
   flex: 50%;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.progress-card {
+.progress-card-item {
   background-color: #293238;
   border-radius: 25px;
   padding: 20px;
@@ -169,7 +169,7 @@
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.progress-bar {
+.progress-bar-wrapper {
   background-color: #404950;
   border-radius: 15px;
   height: 20px;
@@ -177,7 +177,7 @@
   margin: 10px 0;
 }
 
-.progress {
+.progress-bar {
   background-color: #8b428d;
   height: 100%;
   width: 0;
@@ -185,7 +185,7 @@
 }
 
 /* Tabla de categorías */
-.table-card {
+.table-card-item {
   flex: 50%;
   background-color: #293238;
   border-radius: 25px;
@@ -193,23 +193,22 @@
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-.table-card table {
+.table-card-item table {
   width: 100%;
   border-collapse: collapse;
   color: white;
 }
 
-.table-card th,
-.table-card td {
+.table-card-item th,
+.table-card-item td {
   padding: 10px;
   text-align: left;
 }
 
-.table-card th {
+.table-card-item th {
   background-color: #404950;
 }
 
-.table-card tr:nth-child(even) {
+.table-card-item tr:nth-child(even) {
   background-color: #2d353b;
 }
-/* Estilos card salud financiera */
