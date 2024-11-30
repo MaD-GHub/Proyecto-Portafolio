@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import UsersComponent from '../components/UsersComponent';  // Importar el componente de acciones de usuarios
-import '../styles/UsersScreen.css';
+import React, { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, getDocs } from "firebase/firestore";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
+import UsersComponent from "../components/UsersComponent"; // Importar el componente de acciones de usuarios
+import "../styles/UsersScreen.css";
 import "../styles/HomeScreen.css";
 
 const UsersScreen = () => {
@@ -14,10 +14,10 @@ const UsersScreen = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const usersCollectionRef = collection(db, 'users');
+        const usersCollectionRef = collection(db, "users");
         const snapshot = await getDocs(usersCollectionRef);
-        
-        const userList = snapshot.docs.map(doc => ({
+
+        const userList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
@@ -25,7 +25,7 @@ const UsersScreen = () => {
         setUsers(userList);
         setLoading(false);
       } catch (error) {
-        console.error('Error al obtener usuarios:', error);
+        console.error("Error al obtener usuarios:", error);
         setLoading(false);
       }
     };
@@ -40,10 +40,10 @@ const UsersScreen = () => {
     setLoading(true);
     const fetchUsers = async () => {
       try {
-        const usersCollectionRef = collection(db, 'users');
+        const usersCollectionRef = collection(db, "users");
         const snapshot = await getDocs(usersCollectionRef);
-        
-        const userList = snapshot.docs.map(doc => ({
+
+        const userList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
@@ -51,7 +51,7 @@ const UsersScreen = () => {
         setUsers(userList);
         setLoading(false);
       } catch (error) {
-        console.error('Error al obtener usuarios:', error);
+        console.error("Error al obtener usuarios:", error);
         setLoading(false);
       }
     };
@@ -67,38 +67,45 @@ const UsersScreen = () => {
     <div className="home-screen">
       <Sidebar />
       <div className="main-content">
-        <Header title="Gestión de Usuarios" subtitle="Administra a los usuarios" />
-        
+        <Header
+          title="Gestión de Usuarios"
+          subtitle="Administra a los usuarios"
+        />
+
         <div className="first-line">
-          <div className="user-table-container">
-            <table className="user-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Email</th>
-                  <th>Comuna</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(user => (
-                  <tr key={user.id}>
-                    <td>{user.firstName} {user.lastName}</td>
-                    <td>{user.email}</td>
-                    <td>{user.comuna}</td>
-                    <td>{user.activo ? 'Activo' : 'Inactivo'}</td>
-                    <td className="action-buttons">
-                      {/* Integración del componente UsersComponent */}
-                      <UsersComponent 
-                        user={user} 
-                        onUserUpdated={handleUserUpdated} 
-                      />
-                    </td>
+          <div className="table-card">
+            <div className="user-table-container">
+              <table className="user-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Comuna</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id}>
+                      <td>
+                        {user.firstName} {user.lastName}
+                      </td>
+                      <td>{user.email}</td>
+                      <td>{user.comuna}</td>
+                      <td>{user.activo ? "Activo" : "Inactivo"}</td>
+                      <td className="action-buttons">
+                        {/* Integración del componente UsersComponent */}
+                        <UsersComponent
+                          user={user}
+                          onUserUpdated={handleUserUpdated}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

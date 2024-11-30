@@ -110,7 +110,7 @@ const UsersComponent = ({ user, onUserUpdated }) => {
     <div className="user-actions">
       {/* Botón para activar/desactivar */}
       <button className="toggle-button" onClick={handleToggleActive}>
-        {isActive ? <FaToggleOff /> : <FaToggleOn />}
+        {isActive ? <FaToggleOn /> : <FaToggleOff />}
       </button>
 
       {/* Botón para eliminar usuario */}
