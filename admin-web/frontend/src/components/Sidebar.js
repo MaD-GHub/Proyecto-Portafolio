@@ -26,6 +26,12 @@ const Sidebar = () => {
     setActivePage("tasks"); // Cambia la página activa para reflejar el cambio visual
   };
 
+  // Función para redirigir a la página de Analíticas
+  const handleAnalyticsClick = () => {
+    navigate("/analytics"); // Redirige a la ruta de Analytics
+    setActivePage("analytics"); // Cambia la página activa para reflejar el cambio visual
+  };
+
   return (
     <>
       {/* Logo fuera del Sidebar */}
@@ -47,15 +53,6 @@ const Sidebar = () => {
             <GrHomeRounded size={18} />
           </button>
 
-          {/* Botón Tareas */}
-          <button
-            className={`sidebar-item ${activePage === "tasks" ? "active" : ""}`}
-            onClick={handleTaskAppClick}
-          >
-            <SlSettings size={18} /> {/* Puedes usar un icono que te guste */}
-            Tareas
-          </button>
-
           {/* Botón Mantenedor (ahora con la redirección al admin) */}
           <button
             className={`sidebar-item ${
@@ -68,10 +65,8 @@ const Sidebar = () => {
 
           {/* Botón Analíticas */}
           <button
-            className={`sidebar-item ${
-              activePage === "analytics" ? "active" : ""
-            }`}
-            onClick={() => setActivePage("analytics")}
+            className={`sidebar-item ${activePage === "analytics" ? "active" : ""}`}
+            onClick={handleAnalyticsClick} // Redirige a la ruta de analíticas
           >
             <SlGraph size={18} />
           </button>

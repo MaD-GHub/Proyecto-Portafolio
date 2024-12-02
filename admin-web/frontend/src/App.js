@@ -8,6 +8,7 @@ import AdminScreen from "./screens/AdminScreen"; // Importamos la pantalla del a
 import ProtectedRoute from "./components/ProtectedRoute";
 import Sidebar from "./components/Sidebar"; // Sidebar común
 import TaskApp from "./taskApp"; // Importa el componente de TaskApp
+import Analytics from "./screens/Analytics"; // Importa la pantalla de Analytics
 import { AuthProvider } from "./AuthContext";
 
 function App() {
@@ -52,6 +53,19 @@ function App() {
                 <div className="app-layout">
                   <Sidebar /> {/* Sidebar visible en la ruta de tareas */}
                   <TaskApp /> {/* Renderiza el formulario de tareas */}
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Ruta protegida para la Analytics */}
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar /> {/* Sidebar visible en la ruta de analíticas */}
+                  <Analytics /> {/* Renderiza la vista de Analytics */}
                 </div>
               </ProtectedRoute>
             }

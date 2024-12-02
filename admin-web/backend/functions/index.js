@@ -4,9 +4,9 @@ admin.initializeApp();
 
 // Función para agregar tarea
 exports.addTask = functions.https.onCall(async (data, context) => {
-  const { text } = data;
+  const {text} = data;
   if (!text) {
-    throw new functions.https.HttpsError('invalid-argument', 'El texto de la tarea es obligatorio');
+    throw new functions.https.HttpsError("invalid-argument", "Txtobligatorio");
   }
 
   try {
@@ -17,10 +17,10 @@ exports.addTask = functions.https.onCall(async (data, context) => {
       lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
     });
     console.log("Tarea creada con ID:", docRef.id);
-    return { success: true, taskId: docRef.id };
+    return {success: true, taskId: docRef.id};
   } catch (e) {
     console.error("Error al crear tarea:", e);
-    throw new functions.https.HttpsError('unknown', 'Error al crear tarea');
+    throw new functions.https.HttpsError("unknown", "Error al crear tarea");
   }
 });
 
@@ -35,20 +35,20 @@ exports.markTaskAsCompleted = functions.https.onCall(async (data, context) => {
     const taskSnapshot = await taskRef.get();
 
     if (!taskSnapshot.exists) {
-      throw new functions.https.HttpsError('not-found', 'Tarea no encontrada');
+      throw new functions.https.HttpsError("not-found", "Tarea no encontrada");
     }
 
     // Actualizar el estado de la tarea
     await taskRef.update({
       status: status,
-      lastUpdated: admin.firestore.FieldValue.serverTimestamp()
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     console.log(`Tarea ${taskId} marcada como completada.`);
-    return { success: true, message: `Tarea ${taskId} marcada como completada.` };
+    return {success: true, message: `Tarea ${taskId} marcada cm completada.`};
   } catch (error) {
     console.error("Error al actualizar la tarea:", error);
-    throw new functions.https.HttpsError('unknown', 'Error al actualizar la tarea');
+    throw new functions.https.HttpsError("unknown", "Error al actualizar");
   }
 });
 
