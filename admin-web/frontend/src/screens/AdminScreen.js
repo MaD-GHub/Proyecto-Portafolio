@@ -8,13 +8,7 @@ import { collection, query, getDocs, doc, updateDoc } from 'firebase/firestore';
 
 const AdminScreen = () => {
   const [tasks, setTasks] = useState([]);  // Inicializamos el estado vacío de tareas
-  const [requests, setRequests] = useState([ // Definimos el estado para solicitudes de sugerencias
-    { id: 1, user: "Juan Pérez", suggestion: "Añadir opción de filtro por fecha", date: "2024-11-25" },
-    { id: 2, user: "María López", suggestion: "Mejorar el diseño de la página de inicio", date: "2024-11-24" },
-    { id: 3, user: "Carlos Sánchez", suggestion: "Incluir tutoriales para usuarios nuevos", date: "2024-11-23" },
-    { id: 4, user: "Ana García", suggestion: "Agregar sección de preguntas frecuentes", date: "2024-11-22" },
-  ]);  // Aquí estás usando un mock de datos, pero si quieres, puedes cargarlo desde Firebase también.
-
+  const [requests, setRequests] = useState([]); // Estado para solicitudes de sugerencias
   const [loading, setLoading] = useState(false);  // Estado de carga mientras obtenemos las tareas
 
   // Función para obtener las tareas desde Firestore
@@ -32,36 +26,46 @@ const AdminScreen = () => {
     }
   };
 
-  // Función para cambiar el estado de una tarea en Firestore
-  const handleStatusChange = async (id, currentStatus) => {
+  // Función para obtener las solicitudes de sugerencias desde Firestore
+  const fetchRequests = async () => {
     setLoading(true);
     try {
-      const taskRef = doc(db, "tasks", id);  // Referencia al documento de la tarea
-      const newStatus = 
-        currentStatus === "pendiente" 
-          ? "progreso" 
-          : currentStatus === "progreso" 
-          ? "completada" 
-          : "pendiente"; // Ciclo de estados
-
-      // Actualizar la tarea en Firestore
-      await updateDoc(taskRef, {
-        status: newStatus,
-        lastUpdated: new Date(),
-      });
-
-      console.log(`Tarea ${id} actualizada a estado ${newStatus}`);
-      fetchTasks(); // Refresca la lista de tareas después de la actualización
+      const q = query(collection(db, "suggestions"));
+      const querySnapshot = await getDocs(q);
+      const requestsFromDb = querySnapshot.docs.map(doc => ({ 
+        id: doc.id,
+        user: doc.data().userName,
+        suggestion: doc.data().suggestion,
+        date: doc.data().createdAt.toDate().toLocaleDateString(),
+        status: doc.data().status
+      }));
+      setRequests(requestsFromDb);
     } catch (error) {
-      console.error("Error al actualizar tarea:", error);
+      console.error("Error al obtener solicitudes de sugerencias:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Cargar tareas cuando el componente se monte
+  // Función para cambiar el estado de una solicitud en Firestore
+  const handleRequestStatusChange = async (id, newStatus) => {
+    setLoading(true);
+    try {
+      const requestRef = doc(db, "suggestions", id);  // Referencia al documento de la solicitud
+      await updateDoc(requestRef, { status: newStatus });
+      console.log(`Solicitud ${id} actualizada a estado ${newStatus}`);
+      fetchRequests(); // Refresca la lista de solicitudes después de la actualización
+    } catch (error) {
+      console.error("Error al actualizar solicitud:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cargar tareas y solicitudes cuando el componente se monte
   useEffect(() => {
     fetchTasks(); // Traer las tareas al cargar la pantalla
+    fetchRequests(); // Traer las solicitudes de sugerencias al cargar la pantalla
   }, []);
 
   return (
@@ -136,7 +140,7 @@ const AdminScreen = () => {
                   {/* Botón para cambiar estado */}
                   <div
                     className={`status-button ${task.status}`}
-                    onClick={() => handleStatusChange(task.id, task.status)} // Pasamos el id y el estado actual
+                    onClick={() => handleRequestStatusChange(task.id, task.status)} // Pasamos el id y el estado actual
                   >
                     {task.status === "pendiente" && "Pendiente"}
                     {task.status === "progreso" && "Progreso"}
@@ -166,8 +170,18 @@ const AdminScreen = () => {
                     <td>{request.suggestion}</td>
                     <td>{request.date}</td>
                     <td>
-                      <button className="action-btn">Responder</button>
-                      <button className="action-btn">Eliminar</button>
+                      <button 
+                        className="action-btn"
+                        onClick={() => handleRequestStatusChange(request.id, "aceptada")}
+                      >
+                        Aceptar
+                      </button>
+                      <button 
+                        className="action-btn"
+                        onClick={() => handleRequestStatusChange(request.id, "rechazada")}
+                      >
+                        Rechazar
+                      </button>
                     </td>
                   </tr>
                 ))}
