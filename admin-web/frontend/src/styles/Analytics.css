@@ -11,6 +11,7 @@
   display: flex;
   color: white;
   flex-direction: column;
+  overflow: hidden; /* Evita scroll en el contenedor principal */
 }
 
 /* Contenido principal */
@@ -24,7 +25,25 @@
   margin-top: 80px;
   margin-right: 40px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: auto; /* Habilita el scroll solo en el eje Y */
+  scrollbar-width: thin; /* Establece el grosor de la barra de desplazamiento (solo Firefox) */
+  scrollbar-color: #293238 #1f2224; /* Color de la barra y el fondo del scroll (color de las cards) */
+}
+
+/* Personalización de la barra de desplazamiento para navegadores basados en Webkit (Chrome, Safari) */
+.main-content-analytics::-webkit-scrollbar {
+  width: 8px; /* Ancho del scrollbar */
+}
+
+.main-content-analytics::-webkit-scrollbar-track {
+  background: #2e3538; /* Color de fondo de la barra de desplazamiento */
+  border-radius: 10px;
+}
+
+.main-content-analytics::-webkit-scrollbar-thumb {
+  background-color: #8b428d; /* Color de la barra de desplazamiento */
+  border-radius: 10px;
+  border: 2px solid #2e3538; /* Agrega un borde minimalista alrededor de la barra */
 }
 
 /* Primera sección - Recuadros de actividad */
@@ -81,33 +100,49 @@
 
 /* Sección de gráfico */
 .graph-section-analytics {
-  margin-top: 0px; /* Espacio entre las cards y el gráfico */
+  margin-top: 20px; /* Espacio entre las cards y el gráfico */
   width: 100%;
   display: flex;
   justify-content: center;
   position: relative;
 }
 
-/* Estilo para el gráfico */
+/* Ajustes en la Card Contenedora */
 .graph-card-analytics {
   background-color: #293238;
-  border-radius: 25px;
-  width: 100%; /* El gráfico ocupará el 100% del ancho disponible */
-  padding: 20px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  border-radius: 15px;  /* Reducimos el borde para hacerlo más moderno */
+  width: 80%; /* Reducimos el tamaño de la card contenedora */
+  padding: 20px; /* Espaciado adecuado dentro de la card */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra más sutil */
   text-align: center;
-  margin-top: 10px; /* Espacio entre las tarjetas y el gráfico */
+  margin-top: 20px;
+  height: auto;
+  margin: 0 auto; /* Centrado automático */
 }
 
-/* Estilos para el contenedor del gráfico */
+/* Ajustes en el contenedor del gráfico */
 .graph-container-analytics {
-  height: 300px; /* Ajusta la altura del gráfico */
-  background-color: #404950;
-  border-radius: 10px;
-  margin-top: 10px;
+  height: 350px; /* Ajustamos la altura para un gráfico más compacto */
+  padding: 15px;  /* Espaciado reducido */
+  background-color: #404950; /* Fondo oscuro para el gráfico */
+  border-radius: 10px; /* Bordes redondeados */
   display: flex;
   justify-content: center;
   align-items: center;
   color: #d3d3d3;
-  width: 100%; /* Ocupa todo el ancho del contenedor */
+  width: 100%;
+  max-width: 900px; /* Establecemos un ancho máximo */
+  margin: 0 auto; /* Centrado */
+}
+
+/* Sección que contiene el gráfico */
+.graph-section-analytics {
+  margin-top: 20px; /* Un pequeño margen superior */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  padding: 0 20px;
+  box-sizing: border-box;
+  text-align: center; /* Centrado del título y gráfico */
 }

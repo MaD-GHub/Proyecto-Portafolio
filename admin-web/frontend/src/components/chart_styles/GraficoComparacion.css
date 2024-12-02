@@ -1,0 +1,44 @@
+/* Card contenedora, dividiendo el espacio entre gráfico y texto */
+.card-container {
+    display: flex;
+    justify-content: space-between; /* Divide el espacio en dos partes */
+    align-items: flex-start;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    margin: 20px auto;
+  }
+  
+  /* Contenedor del gráfico (ocupa el 70% de la card) */
+  .graph-container-comparacion {
+    flex: 0.7;  /* El gráfico ocupa el 70% */
+    height: 350px; /* Tamaño del gráfico */
+    padding-right: 20px; /* Espacio derecho */
+  }
+  
+  /* Contenedor del texto (ocupa el 30% de la card) */
+  .text-container-comparacion {
+    flex: 0.3; /* El texto ocupa el 30% */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-left: 20px; /* Espacio izquierdo */
+  }
+  
+  .text-container-comparacion h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: left;
+  }
+  
+  .text-container-comparacion p {
+    font-size: 16px;
+    margin-top: 5px;
+    color: #555;
+    text-align: left;
+  }
+  
