@@ -1,17 +1,54 @@
 import React, { useState, useEffect } from "react";
-import Header from "../components/Header"; // Componente Header
-import { FaNewspaper, FaRegClipboard, FaUserAlt, FaUsers } from "react-icons/fa"; // Importamos los iconos
-import "../styles/AdminScreen.css"; // Estilos específicos para Admin
-
-import { db } from '../firebase'; // Conexión con Firebase
-import { collection, query, getDocs, doc, updateDoc } from 'firebase/firestore'; // Importación de Firestore
+import Header from "../components/Header";
+import { FaNewspaper, FaRegClipboard, FaUserAlt, FaUsers } from "react-icons/fa";
+import "../styles/AdminScreen.css";
+import { db } from '../firebase';
+import { collection, query, getDocs, doc, updateDoc, where } from 'firebase/firestore';
 
 const AdminScreen = () => {
-  const [tasks, setTasks] = useState([]);  // Inicializamos el estado vacío de tareas
-  const [requests, setRequests] = useState([]); // Estado para solicitudes de sugerencias
-  const [loading, setLoading] = useState(false);  // Estado de carga mientras obtenemos las tareas
+  const [newsCount, setNewsCount] = useState(0);
+  const [articlesCount, setArticlesCount] = useState(0);
+  const [registeredUsersCount, setRegisteredUsersCount] = useState(0);
+  const [activeUsersCount, setActiveUsersCount] = useState(0);
+  const [tasks, setTasks] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [totalRequestsCount, setTotalRequestsCount] = useState(0);
+  const [acceptedRequestsCount, setAcceptedRequestsCount] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  // Función para obtener las tareas desde Firestore
+  useEffect(() => {
+    fetchCounts();
+    fetchTasks();
+    fetchRequests();
+  }, []);
+
+  const fetchCounts = async () => {
+    setLoading(true);
+    try {
+      const newsSnapshot = await getDocs(collection(db, "news"));
+      setNewsCount(newsSnapshot.size);
+
+      const articlesSnapshot = await getDocs(collection(db, "articles"));
+      setArticlesCount(articlesSnapshot.size);
+
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      setRegisteredUsersCount(usersSnapshot.size);
+
+      const activeUsersSnapshot = await getDocs(query(collection(db, "users"), where("activo", "==", true)));
+      setActiveUsersCount(activeUsersSnapshot.size);
+
+      const suggestionsSnapshot = await getDocs(collection(db, "suggestions"));
+      setTotalRequestsCount(suggestionsSnapshot.size);
+
+      const acceptedSuggestionsSnapshot = await getDocs(query(collection(db, "suggestions"), where("status", "==", "aceptada")));
+      setAcceptedRequestsCount(acceptedSuggestionsSnapshot.size);
+    } catch (error) {
+      console.error("Error al obtener los datos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchTasks = async () => {
     setLoading(true);
     try {
@@ -26,13 +63,12 @@ const AdminScreen = () => {
     }
   };
 
-  // Función para obtener las solicitudes de sugerencias desde Firestore
   const fetchRequests = async () => {
     setLoading(true);
     try {
       const q = query(collection(db, "suggestions"));
       const querySnapshot = await getDocs(q);
-      const requestsFromDb = querySnapshot.docs.map(doc => ({ 
+      const requestsFromDb = querySnapshot.docs.map(doc => ({
         id: doc.id,
         user: doc.data().userName,
         suggestion: doc.data().suggestion,
@@ -47,14 +83,14 @@ const AdminScreen = () => {
     }
   };
 
-  // Función para cambiar el estado de una solicitud en Firestore
   const handleRequestStatusChange = async (id, newStatus) => {
     setLoading(true);
     try {
-      const requestRef = doc(db, "suggestions", id);  // Referencia al documento de la solicitud
+      const requestRef = doc(db, "suggestions", id);
       await updateDoc(requestRef, { status: newStatus });
       console.log(`Solicitud ${id} actualizada a estado ${newStatus}`);
       fetchRequests(); // Refresca la lista de solicitudes después de la actualización
+      fetchCounts(); // Refresca los conteos después de la actualización
     } catch (error) {
       console.error("Error al actualizar solicitud:", error);
     } finally {
@@ -62,48 +98,34 @@ const AdminScreen = () => {
     }
   };
 
-  // Cargar tareas y solicitudes cuando el componente se monte
-  useEffect(() => {
-    fetchTasks(); // Traer las tareas al cargar la pantalla
-    fetchRequests(); // Traer las solicitudes de sugerencias al cargar la pantalla
-  }, []);
-
   return (
     <div className="admin-screen">
       <Header title="Panel de Administración" subtitle="Gestiona y controla el sistema" />
       <div className="main-content">
-        {/* Primera sección - Recuadros de actividad */}
         <div className="first-line">
           <div className="activity-card">
             <FaNewspaper size={30} color="#cfcfcf" />
             <h3>Noticias Subidas</h3>
-            <h2>00</h2>
+            <h2>{newsCount}</h2>
           </div>
           <div className="activity-card">
             <FaRegClipboard size={30} color="#cfcfcf" />
             <h3>Artículos Semanales</h3>
-            <h2>00</h2>
-          </div>
-          <div className="activity-card">
-            <FaRegClipboard size={30} color="#cfcfcf" />
-            <h3>Tareas Semanales</h3>
-            <h2>3 de 10</h2>
+            <h2>{articlesCount}</h2>
           </div>
           <div className="activity-card">
             <FaUsers size={30} color="#cfcfcf" />
             <h3>Usuarios Registrados</h3>
-            <h2>150</h2>
+            <h2>{registeredUsersCount}</h2>
           </div>
           <div className="activity-card">
             <FaUserAlt size={30} color="#cfcfcf" />
             <h3>Usuarios Activos</h3>
-            <h2>120</h2>
+            <h2>{activeUsersCount}</h2>
           </div>
         </div>
 
-        {/* Segunda sección - Progreso de tareas y Lista de actividades */}
         <div className="second-line-a">
-          {/* Progreso de tareas */}
           <div className="progress-section-a">
             <div className="progress-card-a">
               <h3>Tareas Semanales</h3>
@@ -122,13 +144,17 @@ const AdminScreen = () => {
             <div className="progress-card-a">
               <h3>Progreso de Solicitudes</h3>
               <div className="progress-bar-a">
-                <div className="progress3-a" style={{ width: "39%" }}></div>
+                <div
+                  className="progress3-a"
+                  style={{ width: `${(acceptedRequestsCount / totalRequestsCount) * 100}%` }}
+                ></div>
               </div>
-              <p className="progress-text-a">5 de 12 completadas</p>
+              <p className="progress-text-a">
+                {acceptedRequestsCount} de {totalRequestsCount} aceptadas
+              </p>
             </div>
           </div>
 
-          {/* Lista de actividades */}
           <div className="task-list">
             <h3>Lista de Tareas</h3>
             <ul>
@@ -137,10 +163,9 @@ const AdminScreen = () => {
                   <div className="task-item-text">
                     <span>{task.text}</span>
                   </div>
-                  {/* Botón para cambiar estado */}
                   <div
                     className={`status-button ${task.status}`}
-                    onClick={() => handleRequestStatusChange(task.id, task.status)} // Pasamos el id y el estado actual
+                    onClick={() => handleRequestStatusChange(task.id, task.status)}
                   >
                     {task.status === "pendiente" && "Pendiente"}
                     {task.status === "progreso" && "Progreso"}
@@ -151,7 +176,6 @@ const AdminScreen = () => {
             </ul>
           </div>
 
-          {/* Solicitudes de sugerencias */}
           <div className="task-list2">
             <h3>Solicitudes de sugerencias</h3>
             <table className="table">
