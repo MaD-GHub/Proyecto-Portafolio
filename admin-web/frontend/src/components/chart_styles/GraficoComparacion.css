@@ -41,4 +41,7 @@
     color: #555;
     text-align: left;
   }
-  
+  line-graph-container {
+    width: 700px;
+    height: 600px;
+  }

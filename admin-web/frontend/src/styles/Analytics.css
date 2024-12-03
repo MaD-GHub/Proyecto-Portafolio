@@ -110,39 +110,58 @@
 /* Ajustes en la Card Contenedora */
 .graph-card-analytics {
   background-color: #293238;
-  border-radius: 15px;  /* Reducimos el borde para hacerlo más moderno */
+  border-radius: 15px;
   width: 80%; /* Reducimos el tamaño de la card contenedora */
-  padding: 20px; /* Espaciado adecuado dentro de la card */
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Sombra más sutil */
+  padding: 20px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
   margin-top: 20px;
   height: auto;
   margin: 0 auto; /* Centrado automático */
 }
 
-/* Ajustes en el contenedor del gráfico */
+/* Sección de gráfico dinámico */
+.graph-section-analytics {
+  margin-top: 20px;
+  width: 100%;
+  height: auto; /* Ajustado para adaptarse al contenido */
+  display: flex;
+  justify-content: center;
+  position: relative;
+  align-items: flex-start;
+}
+
+/* Card contenedora del gráfico */
+.graph-card-analytics {
+  background-color: #293238;
+  border-radius: 15px;
+  width: 100%; /* Ajuste al 100% del contenedor */
+  max-width: 900px; /* Limitar el ancho máximo de la card */
+  padding: 20px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  margin-top: 20px;
+  margin: 0 auto; /* Centrado */
+  height: auto;
+  margin-bottom: 30px;
+}
+
+/* Contenedor del gráfico */
 .graph-container-analytics {
-  height: 350px; /* Ajustamos la altura para un gráfico más compacto */
-  padding: 15px;  /* Espaciado reducido */
-  background-color: #404950; /* Fondo oscuro para el gráfico */
-  border-radius: 10px; /* Bordes redondeados */
+  border-radius: 10px;
+  padding: 15px; /* Reducir el padding para mayor espacio */
   display: flex;
   justify-content: center;
   align-items: center;
   color: #d3d3d3;
-  width: 100%;
-  max-width: 900px; /* Establecemos un ancho máximo */
-  margin: 0 auto; /* Centrado */
-}
-
-/* Sección que contiene el gráfico */
-.graph-section-analytics {
-  margin-top: 20px; /* Un pequeño margen superior */
-  width: 100%;
-  display: flex;
-  justify-content: center;
   position: relative;
-  padding: 0 20px;
-  box-sizing: border-box;
-  text-align: center; /* Centrado del título y gráfico */
+  flex-grow: 1;
+  min-width: 0%; /* El gráfico ocupa todo el ancho disponible */
+  height: 60vh; /* Mantener altura flexible */
+  max-width: 850px; /* Limitar el ancho máximo del gráfico */
+  margin: 0 auto;
+}
+line-graph-container {
+  width: 700px;
+  height: 600px;
 }
