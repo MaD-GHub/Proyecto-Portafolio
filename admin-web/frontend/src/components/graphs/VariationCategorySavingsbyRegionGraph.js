@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, Title, Tooltip, Legend, PointElement, LineController } from 'chart.js';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import "../chart_styles/Analytics2.css";
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, Title, Tooltip, Legend, PointElement, LineController);
 
@@ -107,8 +108,9 @@ const VariationCategorySavingsbyRegionGraph = () => {
     plugins: {
       title: {
         display: true,
-        text: 'Variación de las Categorías de Ahorro Según Salud Financiera y Región',
+        text: 'Variación de las Categorías de Ahorro',
         font: { size: 24 },
+        color: "#d0d0d0"
       },
     },
     scales: {
@@ -122,8 +124,11 @@ const VariationCategorySavingsbyRegionGraph = () => {
   };
 
   return (
-    <div className="graph-container-analytics">
-      <div className="filters" style={{ marginBottom: '20px', color: 'darkslategray' }}>
+    <div className="graph-container-analytics2">  
+      <div className="grafico-salud1">   
+        <Line data={chartData} options={options} />
+      </div> 
+      <div className="filters" style={{ marginBottom: '20px', color: 'darkslategray',  }}>
         <label>
         Región:
           <select 
@@ -147,7 +152,7 @@ const VariationCategorySavingsbyRegionGraph = () => {
           </select>
         </label>
       </div>
-      <Line data={chartData} options={options} />
+      
     </div>
   );
 };

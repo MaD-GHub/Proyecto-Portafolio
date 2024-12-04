@@ -13,6 +13,9 @@ import MonthlyBalanceGraph from "../components/graphs/MonthlyBalanceGraph"; // I
 import VariationCategoriesbyRegionCommuneGraph from "../components/graphs/VariationCategoriesbyRegionCommuneGraph";
 import VariationCategorySavingsbyRegionGraph from "../components/graphs/VariationCategorySavingsbyRegionGraph";
 import AverageBalanceEvolutionGraph from "../components/graphs/AverageBalanceEvolutionGraph"
+import MonthlyUsersGraph from "../components/graphs/MonthlyUsersGraph"
+import FinancialHealthGraph from "../components/graphs/FinancialHealthGraph"
+
 
 
 const Analytics = () => {
@@ -80,6 +83,8 @@ const Analytics = () => {
                 {selectedCard === "salud" && <VariationCategoriesbyRegionCommuneGraph />}
                 {selectedCard === "ahorros" && <VariationCategorySavingsbyRegionGraph />}
                 {selectedCard === "activos" && <AverageBalanceEvolutionGraph />}
+                {selectedCard === "usuarios" && <MonthlyUsersGraph />}
+                {selectedCard === "tareas" && <FinancialHealthGraph />}
               </div>
             </div>
           </div>

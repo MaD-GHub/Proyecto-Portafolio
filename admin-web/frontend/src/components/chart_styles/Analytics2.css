@@ -1,0 +1,90 @@
+
+
+/* Contenedor del gráfico */
+.graph-container-analytics2 {
+  border-radius: 10px;
+  padding: 15px; /* Reducir el padding para mayor espacio */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #d3d3d3;
+  position: relative;
+  flex-direction: column;
+  min-width: 0%; /* El gráfico ocupa todo el ancho disponible */
+  height: 60vh; /* Mantener altura flexible */
+  max-width: 1250px; /* Limitar el ancho máximo del gráfico */
+  margin: 0 auto;
+}
+
+.line-graph-container {
+  width: 700px;
+  height: 600px;
+  padding: 0 20px;
+  box-sizing: border-box;
+  text-align: center; /* Centrado del título y gráfico */
+}
+
+/* Estilo para el contenedor de los filtros */
+.filter-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  margin-top: 30px;
+}
+
+/* Estilo general para los inputs */
+.filter-container select, 
+.filter-container input {
+  padding: 10px;
+  font-size: 13px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 100px;
+  background-color: #fff;
+  transition: all 0.3s ease;
+  height: 35px;
+}
+
+/* Estilo para los inputs cuando son seleccionados */
+.filter-container select:focus, 
+.filter-container input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+  outline: none;
+}
+
+/* Estilo para los botones */
+.filter-container button {
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 130px;
+  height: 35px;
+}
+
+/* Estilo para el botón cuando se pasa el ratón */
+.filter-container button:hover {
+  background-color: #45a049;
+}
+
+/* Estilo para las etiquetas */
+.filter-container label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  width: 110px;
+  margin-bottom: 12px;
+}
+
+
+.grafico-salud1 {
+  height: 770px;
+  width: 800px;
+}
