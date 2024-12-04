@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
+import "../chart_styles/GastosCategorias.css";
+
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -118,8 +120,8 @@ const VariationCategoriesbyRegionCommuneGraph = () => {
   };
 
   return (
-    <div className="graph-container-analytics">
-      <div className="filters" style={{ marginBottom: '20px', color: 'darkslategray' }}>
+    <div className="graph-container-analytics-categorias-gastos">
+      <div className="filters-categorias-gastos" style={{ marginBottom: '20px', color: 'darkslategray' }}>
         <label>
           Región:
           <select 
@@ -147,7 +149,9 @@ const VariationCategoriesbyRegionCommuneGraph = () => {
           </select>
         </label>
       </div>
-      <Bar data={chartData} options={options} />
+      <div style={{ width: "700px", height: "450px"}}>
+        <Bar data={chartData} options={options} />
+      </div>
     </div>
   );
 };

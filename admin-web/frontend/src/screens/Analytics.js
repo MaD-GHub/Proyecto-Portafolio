@@ -12,6 +12,7 @@ import "../styles/Analytics.css"; // Estilos específicos para Analytics
 import MonthlyBalanceGraph from "../components/graphs/MonthlyBalanceGraph"; // Importamos el gráfico
 import VariationCategoriesbyRegionCommuneGraph from "../components/graphs/VariationCategoriesbyRegionCommuneGraph";
 import VariationCategorySavingsbyRegionGraph from "../components/graphs/VariationCategorySavingsbyRegionGraph";
+import AverageBalanceEvolutionGraph from "../components/graphs/AverageBalanceEvolutionGraph"
 
 
 const Analytics = () => {
@@ -73,12 +74,12 @@ const Analytics = () => {
         {selectedCard && (
           <div className="graph-section-analytics">
             <div className="graph-card-analytics">
-              <h3>{`Gráfico de ${selectedCard}`}</h3>
               <div className="graph-container-analytics">
                 {/* Aquí se renderiza el gráfico correspondiente */}
                 {selectedCard === "comparacion" && <MonthlyBalanceGraph />}
                 {selectedCard === "salud" && <VariationCategoriesbyRegionCommuneGraph />}
                 {selectedCard === "ahorros" && <VariationCategorySavingsbyRegionGraph />}
+                {selectedCard === "activos" && <AverageBalanceEvolutionGraph />}
               </div>
             </div>
           </div>
