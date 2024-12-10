@@ -1,0 +1,136 @@
+/* Contenedor principal que incluye el sidebar y el contenido principal */
+.home-screen {
+    display: flex;
+}
+
+/* Contenido principal, ocupa todo el espacio disponible */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+/* Primer contenedor de la tabla de usuarios */
+.first-line-users {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Contenedor de la tabla, ahora ocupará todo el ancho disponible */
+.user-table-container {
+    width: 101%;
+    height: 98%;
+    overflow-x: auto;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Tabla de usuarios, ocupa el 100% del contenedor */
+/* Estilos para la tabla */
+.user-table {
+    width: 100%; /* Asegura que la tabla ocupe todo el ancho disponible */
+    border-collapse: collapse; /* Elimina los espacios entre celdas */
+    word-wrap: break-word; /* Hace que el texto largo se divida en varias líneas */
+    white-space: normal;   /* Permite que el texto fluya en varias líneas */
+  }
+  
+  /* Estilos para los encabezados de la tabla */
+  .user-table th {
+    flex: auto;
+    padding: 10px;
+    text-align: left;
+    background-color: #4a4a4a; /* Color de fondo para los encabezados */
+    border: 1px solid #a8a8a8;
+  }
+  
+  /* Estilos para las celdas de la tabla */
+  .user-table td {
+    text-align: left;
+    padding: 10px;
+    border: 1px solid #4d4c4c;
+  }
+  
+  /* Especificar anchos para cada columna */
+  .user-table th:nth-child(1), .user-table td:nth-child(1) {
+    width: 32%; /* Columna de "Nombre" */
+  }
+  
+  .user-table th:nth-child(2), .user-table td:nth-child(2) {
+    width: 28%; /* Columna de "Email" */
+  }
+  
+  .user-table th:nth-child(3), .user-table td:nth-child(3) {
+    width: 15%; /* Columna de "Comuna" */
+  }
+  
+  .user-table th:nth-child(4), .user-table td:nth-child(4) {
+    width: 10%; /* Columna de "Estado" */
+    text-align: center;
+  }
+  
+  .user-table th:nth-child(5), .user-table td:nth-child(5) {
+    width: 15%; /* Columna de "Acciones" */
+  }
+  
+  /* Estilo de los botones de acción en la columna de acciones */
+  .action-buttons button {
+    margin-right: 5px;
+  }
+  
+
+/* Estilos generales de los botones */
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s ease-in-out;
+}
+
+/* Efecto al pasar el ratón por encima de los botones */
+button:hover {
+    opacity: 0.7;
+}
+
+/* Estilos específicos para cada botón */
+.edit-button {
+    color: #4caf50;
+    /* Verde para editar */
+}
+
+.toggle-button {
+    color: #ff9800;
+    /* Naranja para activar/desactivar */
+}
+
+.delete-button {
+    color: #f44336;
+    /* Rojo para eliminar */
+}
+
+/* Efecto de hover para cada botón */
+.edit-button:hover {
+    color: #45a049;
+}
+
+.toggle-button:hover {
+    color: #e68900;
+}
+
+.delete-button:hover {
+    color: #d32f2f;
+}
+
+.table-card {
+    flex: 45%;
+    height: 130%;
+    background-color: #293238;
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}

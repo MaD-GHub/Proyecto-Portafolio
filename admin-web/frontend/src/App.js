@@ -4,11 +4,15 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./screens/Login";
 import HomeScreen from "./screens/HomeScreen";
-import AdminScreen from "./screens/AdminScreen"; // Importamos la pantalla del administrador
+import AdminScreen from "./screens/AdminScreen"; // Pantalla del administrador
+import UsersScreen from "./screens/UsersScreen"; // Nueva pantalla para configuración de usuarios
+import GestionContenido from "./screens/GestionContenido"; // Nueva pantalla para configuración de usuarios
+
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import Sidebar from "./components/Sidebar"; // Sidebar común
-import TaskApp from "./taskApp"; // Importa el componente de TaskApp
-import Analytics from "./screens/Analytics"; // Importa la pantalla de Analytics
+import TaskApp from "./taskApp"; // Componente de TaskApp
+import Analytics from "./screens/Analytics"; // Pantalla de Analytics
 import { AuthProvider } from "./AuthContext";
 
 function App() {
@@ -25,7 +29,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <div className="app-layout">
-                  <Sidebar /> {/* Sidebar solo visible en la ruta protegida */}
+                  <Sidebar /> {/* Sidebar visible solo en la ruta protegida */}
                   <HomeScreen />
                 </div>
               </ProtectedRoute>
@@ -58,7 +62,7 @@ function App() {
             }
           />
 
-          {/* Ruta protegida para la Analytics */}
+          {/* Ruta protegida para Analytics */}
           <Route
             path="/analytics"
             element={
@@ -66,6 +70,31 @@ function App() {
                 <div className="app-layout">
                   <Sidebar /> {/* Sidebar visible en la ruta de analíticas */}
                   <Analytics /> {/* Renderiza la vista de Analytics */}
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Nueva ruta protegida para UsersScreen */}
+          <Route
+            path="/usuarios"
+            element={
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar /> {/* Sidebar visible en la configuración de usuarios */}
+                  <UsersScreen /> {/* Renderiza la nueva vista de configuración de usuarios */}
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          {/* Nueva ruta protegida para Gestion de Contenido */}
+          <Route
+            path="/contenido"
+            element={
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar /> 
+                  <GestionContenido /> 
                 </div>
               </ProtectedRoute>
             }

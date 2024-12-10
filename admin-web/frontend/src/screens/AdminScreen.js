@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import { FaNewspaper, FaRegClipboard, FaUserAlt, FaUsers } from "react-icons/fa";
+import { GoArrowRight } from "react-icons/go";
 import "../styles/AdminScreen.css";
 import { db } from '../firebase';
 import { collection, query, getDocs, doc, updateDoc, where } from 'firebase/firestore';
+import { useNavigate } from "react-router-dom"; // Importar useNavigate para navegación
 
 const AdminScreen = () => {
+  const navigate = useNavigate(); // Inicializar el hook de navegación
   const [newsCount, setNewsCount] = useState(0);
   const [articlesCount, setArticlesCount] = useState(0);
   const [registeredUsersCount, setRegisteredUsersCount] = useState(0);
@@ -118,13 +121,26 @@ const AdminScreen = () => {
             <h3>Usuarios Registrados</h3>
             <h2>{registeredUsersCount}</h2>
           </div>
-          <div className="activity-card">
+          <div
+            className="activity-card"
+            onClick={() => navigate("/usuarios")} // Redirección a la nueva pantalla
+            style={{ cursor: "pointer" }} // Mostrar un cursor de puntero
+          >
             <FaUserAlt size={30} color="#cfcfcf" />
             <h3>Usuarios Activos</h3>
             <h2>{activeUsersCount}</h2>
           </div>
+          <div
+            className="activity-card"
+            onClick={() => navigate("/contenido")} // Redirección a la nueva pantalla
+            style={{ cursor: "pointer" }} // Mostrar un cursor de puntero
+          >
+            <GoArrowRight size={30} color="#cfcfcf" />
+            <h3>Ir a gestion de contenido</h3>
+          </div>
         </div>
 
+        {/* Segunda sección */}
         <div className="second-line-a">
           <div className="progress-section-a">
             <div className="progress-card-a">

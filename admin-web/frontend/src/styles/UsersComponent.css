@@ -1,0 +1,156 @@
+/* Estilo general del contenedor */
+.user-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Estilo de los botones de acción */
+.toggle-button,
+.delete-button,
+.notify-button,
+.history-button {
+    background-color: #6a6a6a;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.toggle-button:hover,
+.delete-button:hover,
+.notify-button:hover,
+.history-button:hover {
+    background-color: #515151;
+}
+
+.notify-button,
+.history-button {
+    font-size: 1.2rem;
+}
+
+.history-button {
+    background-color: #494949;
+}
+
+.history-button:hover {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Estilos para el modal */
+/* Estilos para el modal (Fondo oscuro más intenso) */
+.ReactModal__Overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Fondo semitransparente más oscuro */
+}
+
+.ReactModal__Content {
+    background-color: #1e1e1e;
+    /* Fondo interior más oscuro del modal */
+    padding: 20px;
+    border-radius: 8px;
+    width: 70%;
+    height: 60%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin: 10% auto;
+    /* Centrado */
+    padding-bottom: 100%;
+}
+
+
+/* Estilo para el título del modal */
+.ReactModal__Content h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+/* Estilo para los inputs y textarea */
+input,
+textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: 1px solid #6d6d6d;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 150px;
+    resize: none;
+}
+
+/* Estilo de los botones dentro del modal */
+button {
+    background-color: #6433b9;
+    color: rgb(255, 255, 255);
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button.cancel-btn {
+    background-color: #f44336;
+}
+
+button.success-btn {
+    background-color: #5a9b49;
+}
+
+button.cancel-btn:hover {
+    background-color: #e53935;
+}
+
+/* Estilo para el historial de actividades */
+.activity-history {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 95%;
+ 
+    margin-top: 20px;
+}
+
+.activity-history ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.activity-history li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.activity-history li:last-child {
+    border-bottom: none;
+}
+
+.activity-history button {
+    background-color: #f44336;
+    /* Rojo para el botón de cerrar */
+    color: white;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.activity-history button:hover {
+    background-color: #e53935;
+}
