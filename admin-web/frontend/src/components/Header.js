@@ -10,11 +10,11 @@ const Header = ({ title, subtitle }) => {
         <p>{subtitle}</p>
       </div>
 
-      {/* Elementos del lado derecho */}
+      {/* Elementos del lado derecho 
       <div className="right-section">
         <input type="text" placeholder="Buscar algo..." className="search-bar" />
         <button className="premium-button">Premium</button>
-      </div>
+      </div>*/}
     </header>
   );
 };
