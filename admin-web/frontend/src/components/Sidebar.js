@@ -9,10 +9,21 @@ import { SlGraph, SlSettings } from "react-icons/sl"; // Íconos de Analíticas 
 import { FaRegUser } from "react-icons/fa"; // Ícono de Usuario
 import { AiOutlineLogout } from "react-icons/ai"; // Ícono de Logout
 import { useNavigate } from "react-router-dom"; // Hook para la redirección
+import { signOut } from "firebase/auth"; // Importa signOut
+import { auth } from "../firebase";
 
 const Sidebar = () => {
   const [activePage, setActivePage] = useState("home"); // Estado para manejar la página activa
   const navigate = useNavigate(); // Hook de redirección
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Cierra la sesión
+      navigate("/login"); // Redirige al login
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
   // Función para redirigir a la página de administración (Mantenedor)
   const handleMaintenanceClick = () => {
@@ -87,7 +98,7 @@ const Sidebar = () => {
       <aside className="sidebar sidebar-bottom">
         <nav className="sidebar-nav">
           {/* Botón Logout */}
-          <button className="sidebar-item">
+          <button className="sidebar-item-logout" onClick={handleLogout}>
             <AiOutlineLogout size={18} />
           </button>
 
