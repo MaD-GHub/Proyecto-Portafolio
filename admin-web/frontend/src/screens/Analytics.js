@@ -15,6 +15,10 @@ import VariationCategorySavingsbyRegionGraph from "../components/graphs/Variatio
 import AverageBalanceEvolutionGraph from "../components/graphs/AverageBalanceEvolutionGraph"
 import MonthlyUsersGraph from "../components/graphs/MonthlyUsersGraph"
 import FinancialHealthAverageGraph from "../components/graphs/FinancialHealthAverageGraph"
+import AgeDistributionChart from "../components/graphs/AgeDistributionChart";
+import FinancialHealthGraph from "../components/graphs/FinancialHealthGraph";
+import IncomeByCommuneGraph from "../components/graphs/IncomeByCommuneGraph";
+import UserMap from "../components/UserMap";
 
 
 
@@ -71,6 +75,38 @@ const Analytics = () => {
             <FaAnglesUp size={30} color="#cfcfcf" />
             <h3>Evolución del Balance Promedio</h3>
           </div>
+
+          <div
+            className={getCardClass("ingresosPorComuna")}
+            onClick={() => handleCardClick("ingresosPorComuna")}
+          >
+            <MdOutlineQueryStats size={30} color="#cfcfcf" />
+            <h3>Ingresos Promedio por Comuna</h3>
+          </div>
+
+          <div
+            className={getCardClass("analisisSaludFinanciera")}
+            onClick={() => handleCardClick("analisisSaludFinanciera")}
+          >
+            <TbHealthRecognition size={30} color="#cfcfcf" />
+            <h3>Análisis de Salud Financiera</h3>
+          </div>
+
+          <div
+            className={getCardClass("ageDistribution")}
+            onClick={() => handleCardClick("ageDistribution")}
+          >
+            <HiOutlineUsers size={30} color="#cfcfcf" />
+            <h3>Análisis de Distribucion de edad</h3>
+          </div>
+
+          <div
+            className={getCardClass("map")}
+            onClick={() => handleCardClick("map")}
+          >
+            <HiOutlineUsers size={30} color="#cfcfcf" />
+            <h3>Mapa de Usuarios</h3>
+          </div>
         </div>
 
         {/* Sección de gráfico dinámico */}
@@ -85,6 +121,10 @@ const Analytics = () => {
                 {selectedCard === "activos" && <AverageBalanceEvolutionGraph />}
                 {selectedCard === "usuarios" && <MonthlyUsersGraph />}
                 {selectedCard === "tareas" && <FinancialHealthAverageGraph />}
+                {selectedCard === "ingresosPorComuna" && <IncomeByCommuneGraph />}
+                {selectedCard === "analisisSaludFinanciera" && <FinancialHealthGraph />}
+                {selectedCard === "ageDistribution" && <AgeDistributionChart />}
+                {selectedCard === "map" && <UserMap />}
               </div>
             </div>
           </div>
