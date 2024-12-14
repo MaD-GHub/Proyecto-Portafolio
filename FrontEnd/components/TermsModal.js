@@ -122,13 +122,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    width: '80%',
+    width: '90%',
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
+    maxHeight: '80%',
   },
   scrollContainer: {
-    maxHeight: '80%',
+    maxHeight: '100%',
   },
   title: {
     fontSize: 22,
@@ -138,9 +139,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     color: '#333',
-    marginBottom: 20,
+    marginBottom: 0,
   },
   button: {
+    marginTop: 20,
     backgroundColor: '#885FD8',
     paddingVertical: 12,
     borderRadius: 8,
