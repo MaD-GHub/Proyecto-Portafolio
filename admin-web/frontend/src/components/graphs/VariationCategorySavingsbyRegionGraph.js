@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, LineElement, Title, Tooltip, Legend, PointElement, LineController } from 'chart.js';
 import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import "../chart_styles/Analytics2.css";
 
 ChartJS.register(CategoryScale, LinearScale, LineElement, Title, Tooltip, Legend, PointElement, LineController);
 
@@ -124,13 +123,13 @@ const VariationCategorySavingsbyRegionGraph = () => {
   };
 
   return (
-    <div className="graph-container-analytics2">  
-      <div className="grafico-salud1">   
+    <div style={{ width: '100%', padding: '20px', textAlign: 'center' }}>
+      <div style={{ marginBottom: '20px', maxWidth: '1000px', margin: '0 auto' }}>
         <Line data={chartData} options={options} />
-      </div> 
-      <div className="filters" style={{ marginBottom: '20px', color: 'darkslategray',  }}>
-        <label>
-        Región:
+      </div>
+      <div style={{ marginBottom: '20px', color: 'darkslategray' }}>
+        <label style={{ marginRight: '15px' }}>
+          Región:
           <select 
             value={regionFilter} 
             onChange={(e) => setRegionFilter(e.target.value)} 
@@ -144,7 +143,11 @@ const VariationCategorySavingsbyRegionGraph = () => {
         </label>
         <label>
           Salud Financiera:
-          <select value={financialHealthFilter} onChange={(e) => setFinancialHealthFilter(e.target.value)} style={{ marginLeft: '10px', marginRight: '20px', backgroundColor: 'darkslategray', color: 'white' }}>
+          <select 
+            value={financialHealthFilter} 
+            onChange={(e) => setFinancialHealthFilter(e.target.value)} 
+            style={{ marginLeft: '10px', marginRight: '20px', backgroundColor: 'darkslategray', color: 'white' }}
+          >
             <option value="">Todas</option>
             {financialHealthOptions.map((health, index) => (
               <option key={index} value={health}>{health}</option>
@@ -152,7 +155,6 @@ const VariationCategorySavingsbyRegionGraph = () => {
           </select>
         </label>
       </div>
-      
     </div>
   );
 };
