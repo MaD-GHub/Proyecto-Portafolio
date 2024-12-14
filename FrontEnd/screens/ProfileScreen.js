@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native'; // Para navegación de
 import { doc, getDoc, updateDoc, collection, query, where, onSnapshot } from 'firebase/firestore'; // Importar las funciones correctas de Firestore
 import { updateEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'; // Para actualizar correo y contraseña
 import registerActivity from "../components/RegisterActivity";
-
+import TermsModal from '../components/TermsModal'; // Importa el componente del modal
 
 // Función para formatear a CLP
 const formatCurrency = (amount) => {
@@ -21,7 +21,7 @@ const formatCurrency = (amount) => {
 const ProfileScreen = ({ route }) => {
   const { totalSaved = 0 } = route.params || {}; // Recibe el saldo desde los params
   const navigation = useNavigation(); // Para navegación después de logout
-
+  
   // Estado para almacenar datos del usuario
   const [userName, setUserName] = useState('');
   const [firstLastName, setFirstLastName] = useState('');
@@ -38,7 +38,7 @@ const ProfileScreen = ({ route }) => {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [securityModalVisible, setSecurityModalVisible] = useState(false);
-
+  const [modalTermsVisible, setModalTermsVisible] = useState(false);
   const slideAnim = useState(new Animated.Value(600))[0]; // Animación para ambos labels
   const mesesUso = '12 meses';
   
@@ -108,6 +108,25 @@ const ProfileScreen = ({ route }) => {
       useNativeDriver: true,
     }).start(() => {
       setSecurityModalVisible(false);
+    });
+  };
+
+  const openModalTerms = () => {
+    setModalTermsVisible(true);
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeModalTerms = () => {
+    Animated.timing(slideAnim, {
+      toValue: 600,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setModalTermsVisible(false);
     });
   };
 
@@ -321,24 +340,34 @@ const ProfileScreen = ({ route }) => {
 
 
       {/* Opciones de navegación */}
-      <View style={styles.optionsSection}>
-        <TouchableOpacity style={styles.optionItem} onPress={openModal}>
-          <MaterialCommunityIcons name="account" size={24} color="#885fd8" />
-          <Text style={styles.optionText}>Información personal</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.optionItem} onPress={openSecurityModal}>
-          <MaterialCommunityIcons name="lock" size={24} color="#885fd8" />
-          <Text style={styles.optionText}>Seguridad</Text>
-        </TouchableOpacity>
-        <View style={styles.optionItem}>
-          <MaterialCommunityIcons name="file-document" size={24} color="#885fd8" />
-          <Text style={styles.optionText}>Términos y Condiciones</Text>
-        </View>
-        <TouchableOpacity style={styles.optionItem} onPress={handleLogout}>
-          <MaterialCommunityIcons name="logout" size={24} color="#FF6347" />
-          <Text style={styles.optionText}>Cerrar sesión</Text>
-        </TouchableOpacity>
-      </View>
+<View style={styles.optionsSection}>
+  <TouchableOpacity style={styles.optionItem} onPress={openModal}>
+    <MaterialCommunityIcons name="account" size={24} color="#885fd8" />
+    <Text style={styles.optionText}>Información personal</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.optionItem} onPress={openSecurityModal}>
+    <MaterialCommunityIcons name="lock" size={24} color="#885fd8" />
+    <Text style={styles.optionText}>Seguridad</Text>
+  </TouchableOpacity>
+  <TouchableOpacity 
+    style={styles.optionItem} 
+    onPress={() => setModalTermsVisible(true)} // Muestra el modal
+  >
+    <MaterialCommunityIcons name="file-document" size={24} color="#885fd8" />
+    <Text style={styles.optionText}>Términos y Condiciones</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.optionItem} onPress={handleLogout}>
+    <MaterialCommunityIcons name="logout" size={24} color="#FF6347" />
+    <Text style={styles.optionText}>Cerrar sesión</Text>
+  </TouchableOpacity>
+</View>
+
+{/* Modal de Términos y Condiciones */}
+<TermsModal 
+  visible={modalTermsVisible} 
+  onClose={() => setModalTermsVisible(false)} // Cierra el modal
+/>
+
 
 
       {/* Modal para editar la información personal */}

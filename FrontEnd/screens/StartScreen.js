@@ -3,10 +3,14 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator } fr
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import * as Font from 'expo-font'; // No olvides importar el módulo de fuentes
+import TermsModal from '../components/TermsModal'; // Importa el componente del modal
+
 
 export default function StartScreen() {
   const navigation = useNavigation();
   const [fontsLoaded, setFontsLoaded] = useState(false); // Estado para las fuentes cargadas
+  const [modalVisible, setModalVisible] = useState(false); 
+
 
   // Cargar las fuentes una sola vez
   useEffect(() => {
@@ -54,11 +58,17 @@ export default function StartScreen() {
         <Text style={styles.buttonTextOutline}>Crear Cuenta</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles}
-        onPress={() => navigation.navigate('#')}
+        onPress={() => setModalVisible(true)} // Mostrar el modal cuando el usuario toque el enlace
       >
-        <Text className="mb-5 top-32 bottom-0" style={{ fontFamily: "QuattrocentoSans-Bold", fontSize: 18, color: "white", textDecorationLine: 'underline'}}>Terminos y condiciones.</Text>
+        <Text className="mb-5 top-32 bottom-0" style={{ fontFamily: "QuattrocentoSans-Bold", fontSize: 18, color: "white", textDecorationLine: 'underline' }}>
+          Términos y condiciones.
+        </Text>
       </TouchableOpacity>
+
+      <TermsModal 
+        visible={modalVisible} 
+        onClose={() => setModalVisible(false)} // Cerrar el modal
+      />
     </LinearGradient>
   );
 }
