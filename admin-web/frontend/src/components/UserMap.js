@@ -3,8 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { db } from '../firebase'; // Asegúrate de importar Firebase Firestore correctamente
 import { collection, getDocs } from 'firebase/firestore';
-import 'leaflet/dist/leaflet.css';
-import personIcon from '../img/person-solid.svg'; // Asegúrate de que esta ruta sea correcta
+import 'leaflet/dist/leaflet.css'; // Asegúrate de que Leaflet esté correctamente importado
+import personIcon from '../img/person-solid.svg'; // Asegúrate de que la ruta del icono sea correcta
+import '../styles/Analytics.css'; // Incluye el archivo CSS con las clases personalizadas
 
 // Personalizar el ícono del marcador
 const customIcon = new L.Icon({
@@ -17,6 +18,7 @@ const customIcon = new L.Icon({
 const UserMap = () => {
   const [locations, setLocations] = useState([]);
 
+  // Función para obtener las ubicaciones de Firebase
   useEffect(() => {
     const fetchLocations = async () => {
       try {
@@ -44,11 +46,11 @@ const UserMap = () => {
     };
 
     fetchLocations();
-  }, []);
+  }, []); // Se ejecuta una vez al cargar el componente
 
   return (
-    <div style={{ height: '100%', width: '100%' }}>
-      <MapContainer center={[-33.45, -70.65]} zoom={5} style={{ height: '100%', width: '100%' }}>
+    <div className="user-map-container">
+      <MapContainer center={[-33.45, -70.65]} zoom={5} className="map-container">
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -60,7 +62,7 @@ const UserMap = () => {
             icon={customIcon}
           >
             <Popup>
-              <div>
+              <div className="popup-content">
                 <p><strong>Nombre:</strong> {location.firstName} {location.lastName}</p>
                 <p><strong>Email:</strong> {location.email}</p>
                 <p><strong>Género:</strong> {location.gender}</p>

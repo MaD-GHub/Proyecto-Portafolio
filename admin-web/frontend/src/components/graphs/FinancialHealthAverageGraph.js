@@ -57,7 +57,7 @@ const FinancialHealthGraph = () => {
   if (!chartData) return <div>No hay datos para mostrar</div>;
 
   return (
-    <div className="graph-container">
+    <div className="graph-container-analytics ">
       <h2>Salud Financiera Mensual Promedio</h2>
       <div style={{ marginBottom: "20px" }}>
         <label>
@@ -71,7 +71,7 @@ const FinancialHealthGraph = () => {
           </select>
         </label>
       </div>
-      <div style={{ width: "700px", height: "500px" }}>
+      <div style={{ width: "1200px", height: "500px" }}>
         <Line
           data={chartData}
           options={{

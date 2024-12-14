@@ -13,6 +13,7 @@ import {
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { parseISO, differenceInYears } from "date-fns";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -156,7 +157,7 @@ const MonthlyUsersGraph = () => {
   }
 
   return (
-    <div className="graph-container-analytics2">
+    <div className="graph-container-analytics">
 
       <Bar data={userData} options={options} />
 
@@ -165,6 +166,7 @@ const MonthlyUsersGraph = () => {
         <p>Total de usuarios registrados: <strong>{userData.stats.totalUsers}</strong></p>
         <p>Mes con más usuarios: <strong>{userData.stats.bestMonth}</strong> con <strong>{userData.stats.maxUsers}</strong> usuarios</p>
       </div>
+
       <div className="filter-container">
         <label htmlFor="period">Selecciona el periodo:</label>
         <select id="period" onChange={handlePeriodChange} value={selectedPeriod}>
@@ -175,29 +177,23 @@ const MonthlyUsersGraph = () => {
 
         <label htmlFor="region">Selecciona la región:</label>
         <select id="region" onChange={handleRegionChange} value={selectedRegion}>
-        <option value="Todos">Todos</option>
-            <option value="Región de Arica y Parinacota">Región de Arica y Parinacota</option>
-            <option value="Región de Tarapacá">Región de Tarapacá</option>
-            <option value="Región de Antofagasta">Región de Antofagasta</option>
-            <option value="Región de Atacama">Región de Atacama</option>
-            <option value="Región de Coquimbo">Región de Coquimbo</option>
-            <option value="Región de Valparaíso">Región de Valparaíso</option>
-            <option value="Región Metropolitana">Región Metropolitana</option>
-            <option value="Región del Libertador General Bernardo O'Higgins">
-              Región del Libertador General Bernardo O'Higgins
-            </option>
-            <option value="Región del Maule">Región del Maule</option>
-            <option value="Región de Ñuble">Región de Ñuble</option>
-            <option value="Región del Biobío">Región del Biobío</option>
-            <option value="Región de La Araucanía">Región de La Araucanía</option>
-            <option value="Región de Los Ríos">Región de Los Ríos</option>
-            <option value="Región de Los Lagos">Región de Los Lagos</option>
-            <option value="Región de Aysén del General Carlos Ibáñez del Campo">
-              Región de Aysén del General Carlos Ibáñez del Campo
-            </option>
-            <option value="Región de Magallanes y de la Antártica Chilena">
-              Región de Magallanes y de la Antártica Chilena
-            </option>
+          <option value="Todos">Todos</option>
+          <option value="Región de Arica y Parinacota">Región de Arica y Parinacota</option>
+          <option value="Región de Tarapacá">Región de Tarapacá</option>
+          <option value="Región de Antofagasta">Región de Antofagasta</option>
+          <option value="Región de Atacama">Región de Atacama</option>
+          <option value="Región de Coquimbo">Región de Coquimbo</option>
+          <option value="Región de Valparaíso">Región de Valparaíso</option>
+          <option value="Región Metropolitana de Santiago">Región Metropolitana</option>
+          <option value="Región del Libertador General Bernardo O'Higgins">Región del Libertador General Bernardo O'Higgins</option>
+          <option value="Región del Maule">Región del Maule</option>
+          <option value="Región de Ñuble">Región de Ñuble</option>
+          <option value="Región del Biobío">Región del Biobío</option>
+          <option value="Región de La Araucanía">Región de La Araucanía</option>
+          <option value="Región de Los Ríos">Región de Los Ríos</option>
+          <option value="Región de Los Lagos">Región de Los Lagos</option>
+          <option value="Región de Aysén del General Carlos Ibáñez del Campo">Región de Aysén del General Carlos Ibáñez del Campo</option>
+          <option value="Región de Magallanes y de la Antártica Chilena">Región de Magallanes y de la Antártica Chilena</option>
         </select>
 
         <label htmlFor="ageGroup">Selecciona el grupo etáreo:</label>

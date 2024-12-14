@@ -93,7 +93,7 @@ const AgeDistributionChart = () => {
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center">
+    <div className="graph-container-analytics">
       <h2>Distribución de Usuarios por Edad</h2>
 
       <div className="filters" style={{ display: "flex", alignItems: "center" }}>
@@ -117,7 +117,7 @@ const AgeDistributionChart = () => {
       </div>
 
       {/* Gráfico de Distribución por Edad */}
-      <div style={{ width: "700px", height: "500px" }}>
+      <div style={{ width: "1500px", height: "500px" }}>
         <Bar
           data={chartData}
           options={{

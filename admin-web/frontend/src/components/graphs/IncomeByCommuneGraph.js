@@ -21,32 +21,32 @@ ChartJS.register(
   Legend
 );
 
+// Mapa de regiones y comunas
+const regionesYComunas = {
+  "Arica y Parinacota": ["Arica", "Camarones", "Putre", "General Lagos"],
+  "Tarapacá": ["Iquique", "Alto Hospicio", "Pozo Almonte", "Pica", "Huara", "Colchane", "Camiña"],
+  "Antofagasta": ["Antofagasta", "Mejillones", "Taltal", "Sierra Gorda", "Calama", "San Pedro de Atacama", "Ollagüe", "María Elena"],
+  "Atacama": ["Copiapó", "Caldera", "Tierra Amarilla", "Chañaral", "Diego de Almagro", "Vallenar", "Huasco", "Alto del Carmen", "Freirina"],
+  "Coquimbo": ["La Serena", "Coquimbo", "Ovalle", "Illapel", "Los Vilos", "Salamanca", "Andacollo", "La Higuera", "Paiguano", "Vicuña"],
+  "Valparaíso": ["Valparaíso", "Viña del Mar", "Concón", "Quilpué", "Villa Alemana", "Casablanca", "San Antonio", "Cartagena", "El Quisco", "El Tabo", "Santo Domingo", "Quillota", "La Calera", "Nogales", "Hijuelas", "La Cruz", "Limache", "Olmué", "San Felipe", "Putaendo", "Santa María", "Llaillay", "Catemu", "Panquehue", "Los Andes", "Calle Larga", "Rinconada", "San Esteban", "Isla de Pascua", "Juan Fernández"],
+  "Región Metropolitana de Santiago": ["Santiago", "Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia", "La Cisterna", "La Florida", "La Granja", "La Pintana", "La Reina", "Las Condes", "Lo Barnechea", "Lo Espejo", "Lo Prado", "Macul", "Maipú", "Ñuñoa", "Pedro Aguirre Cerda", "Peñalolén", "Providencia", "Pudahuel", "Quilicura", "Quinta Normal", "Recoleta", "Renca", "San Joaquín", "San Miguel", "San Ramón", "Vitacura", "Puente Alto", "Pirque", "San José de Maipo", "Colina", "Lampa", "Tiltil", "Melipilla", "Alhué", "Curacaví", "María Pinto", "San Pedro", "Talagante", "El Monte", "Isla de Maipo", "Padre Hurtado", "Peñaflor", "San Bernardo", "Buin"],
+  "O'Higgins": ["Rancagua", "Machalí", "Graneros", "Doñihue", "Codegua", "Olivar", "Coinco", "Coltauco", "Quinta de Tilcoco", "Rengo", "Malloa", "Requínoa", "San Vicente", "Pichidegua", "Peumo", "Las Cabras", "San Fernando", "Chépica", "Chimbarongo", "Lolol", "Nancagua", "Palmilla", "Peralillo", "Pumanque", "Santa Cruz", "Pichilemu", "Marchihue", "Navidad", "Litueche", "La Estrella"],
+  "Maule": ["Talca", "Constitución", "Curepto", "Empedrado", "Maule", "Pelarco", "Pencahue", "Río Claro", "San Clemente", "San Rafael", "Cauquenes", "Chanco", "Pelluhue", "Curicó", "Hualañé", "Licantén", "Molina", "Rauco", "Romeral", "Sagrada Familia", "Teno", "Vichuquén", "Linares", "Colbún", "Longaví", "Parral", "Retiro", "San Javier", "Villa Alegre", "Yerbas Buenas"],
+  "Ñuble": ["Chillán", "Chillán Viejo", "El Carmen", "Pinto", "San Ignacio", "Coihueco", "San Carlos", "Ñiquén", "San Fabián", "Bulnes", "Quillón", "San Nicolás", "Quirihue", "Cobquecura", "Coelemu", "Ninhue", "Portezuelo", "Ránquil", "Treguaco", "Yungay", "Pemuco"],
+  "Biobío": ["Concepción", "Coronel", "Chiguayante", "Hualqui", "Lota", "Penco", "San Pedro de la Paz", "Santa Juana", "Talcahuano", "Tomé", "Hualpén", "Los Ángeles", "Antuco", "Cabrero", "Laja", "Mulchén", "Nacimiento", "Negrete", "Quilaco", "Quilleco", "San Rosendo", "Santa Bárbara", "Tucapel", "Yumbel", "Alto Biobío", "Lebu", "Arauco", "Cañete", "Contulmo", "Curanilahue", "Los Álamos", "Tirúa"],
+  "Araucanía": ["Temuco", "Carahue", "Cunco", "Curarrehue", "Freire", "Galvarino", "Gorbea", "Lautaro", "Loncoche", "Melipeuco", "Nueva Imperial", "Padre Las Casas", "Perquenco", "Pitrufquén", "Pucón", "Saavedra", "Teodoro Schmidt", "Toltén", "Vilcún", "Villarrica", "Cholchol", "Angol", "Collipulli", "Curacautín", "Ercilla", "Lonquimay", "Los Sauces", "Lumaco", "Purén", "Renaico", "Traiguén", "Victoria"],
+  "Los Ríos": ["Valdivia", "Corral", "Lanco", "Los Lagos", "Máfil", "Mariquina", "Paillaco", "Panguipulli", "La Unión", "Futrono", "Lago Ranco", "Río Bueno"],
+  "Los Lagos": ["Puerto Montt", "Calbuco", "Cochamó", "Fresia", "Frutillar", "Llanquihue", "Los Muermos", "Maullín", "Puerto Varas", "Castro", "Ancud", "Chonchi", "Curaco de Vélez", "Dalcahue", "Puqueldón", "Queilén", "Quellón", "Quemchi", "Quinchao", "Osorno", "Puerto Octay", "Purranque", "Puyehue", "Río Negro", "San Juan de la Costa", "San Pablo", "Chaitén", "Futaleufú", "Hualaihué", "Palena"],
+  "Aysén": ["Coyhaique", "Lago Verde", "Aysén", "Cisnes", "Guaitecas", "Cochrane", "O'Higgins", "Tortel", "Chile Chico", "Río Ibáñez"],
+  "Magallanes": ["Punta Arenas", "Laguna Blanca", "Río Verde", "San Gregorio", "Cabo de Hornos", "Antártica", "Porvenir", "Primavera", "Timaukel", "Puerto Natales", "Torres del Paine"],
+};
+
 const IncomeByCommuneGraph = () => {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRegion, setSelectedRegion] = useState("Todos");
   const [selectedCommunes, setSelectedCommunes] = useState([]);
-
-  // Lista fija de regiones de Chile
-  const regions = [
-    "Región de Arica y Parinacota",
-    "Región de Tarapacá",
-    "Región de Antofagasta",
-    "Región de Atacama",
-    "Región de Coquimbo",
-    "Región de Valparaíso",
-    "Región Metropolitana",
-    "Región del Libertador General Bernardo O'Higgins",
-    "Región del Maule",
-    "Región de Ñuble",
-    "Región del Biobío",
-    "Región de La Araucanía",
-    "Región de Los Ríos",
-    "Región de Los Lagos",
-    "Región de Aysén del General Carlos Ibáñez del Campo",
-    "Región de Magallanes y de la Antártica Chilena",
-  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,6 +112,7 @@ const IncomeByCommuneGraph = () => {
   const handleRegionChange = (event) => {
     const region = event.target.value;
     setSelectedRegion(region);
+    setSelectedCommunes([]); // Reset communes when region changes
   };
 
   const handleCommuneChange = (event) => {
@@ -184,7 +185,7 @@ const IncomeByCommuneGraph = () => {
         <label htmlFor="region">Selecciona la región:</label>
         <select id="region" onChange={handleRegionChange} value={selectedRegion}>
           <option value="Todos">Todas</option>
-          {regions.map((region) => (
+          {Object.keys(regionesYComunas).map((region) => (
             <option key={region} value={region}>
               {region}
             </option>
@@ -198,7 +199,7 @@ const IncomeByCommuneGraph = () => {
           onChange={handleCommuneChange}
           disabled={selectedRegion === "Todos"}
         >
-          {chartData.labels.map((commune) => (
+          {(selectedRegion === "Todos" ? chartData.labels : regionesYComunas[selectedRegion] || []).map((commune) => (
             <option key={commune} value={commune}>
               {commune}
             </option>

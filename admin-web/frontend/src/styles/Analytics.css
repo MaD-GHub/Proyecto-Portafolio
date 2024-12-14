@@ -27,29 +27,28 @@
   box-sizing: border-box;
   overflow-y: auto; /* Habilita el scroll solo en el eje Y */
   scrollbar-width: thin; /* Establece el grosor de la barra de desplazamiento (solo Firefox) */
-  scrollbar-color: #293238 #1f2224; /* Color de la barra y el fondo del scroll (color de las cards) */
+  scrollbar-color: #293238 #1f2224; /* Color de la barra y el fondo del scroll */
 }
 
-/* Personalización de la barra de desplazamiento para navegadores basados en Webkit (Chrome, Safari) */
 .main-content-analytics::-webkit-scrollbar {
-  width: 8px; /* Ancho del scrollbar */
+  width: 8px;
 }
 
 .main-content-analytics::-webkit-scrollbar-track {
-  background: #2e3538; /* Color de fondo de la barra de desplazamiento */
+  background: #2e3538;
   border-radius: 10px;
 }
 
 .main-content-analytics::-webkit-scrollbar-thumb {
-  background-color: #8b428d; /* Color de la barra de desplazamiento */
+  background-color: #8b428d;
   border-radius: 10px;
-  border: 2px solid #2e3538; /* Agrega un borde minimalista alrededor de la barra */
+  border: 2px solid #2e3538;
 }
 
 /* Primera sección - Recuadros de actividad */
 .first-line-analytics {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 columnas */
+  grid-template-columns: repeat(5, 1fr);
   gap: 20px;
   height: 340px;
 }
@@ -67,18 +66,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  cursor: pointer; /* Añadimos cursor pointer para que el usuario sepa que es interactivo */
-  transition: all 0.3s ease; /* Añadimos transición para el efecto de clic */
-  position: relative; /* Asegura que las tarjetas estén por encima del gráfico */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-/* Efecto cuando la card está seleccionada */
 .activity-card-analytics.selected-analytics {
-  background-color: #8b428d; /* Gris más claro */
-  transform: scale(1.05); /* Aumenta un poco el tamaño de la card */
+  background-color: #8b428d;
+  transform: scale(1.05);
 }
 
-/* Estilos de texto dentro de las cards */
 .activity-card-analytics h3 {
   font-size: 16px;
   font-weight: 300;
@@ -93,75 +90,193 @@
   margin: 10px 0 0;
 }
 
-/* Efecto de cursor de puntero */
 .activity-card-analytics:hover {
-  cursor: pointer; /* Cambia el cursor a mano */
-}
-
-/* Sección de gráfico */
-.graph-section-analytics {
-  margin-top: 20px; /* Espacio entre las cards y el gráfico */
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  position: relative;
-}
-
-/* Ajustes en la Card Contenedora */
-.graph-card-analytics {
-  background-color: #293238;
-  border-radius: 15px;
-  width: 80%; /* Reducimos el tamaño de la card contenedora */
-  padding: 20px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  margin-top: 20px;
-  height: auto;
-  margin: 0 auto; /* Centrado automático */
+  cursor: pointer;
 }
 
 /* Sección de gráfico dinámico */
 .graph-section-analytics {
   margin-top: 20px;
   width: 100%;
-  height: auto; /* Ajustado para adaptarse al contenido */
   display: flex;
   justify-content: center;
-  position: relative;
   align-items: flex-start;
+  position: relative;
 }
 
 /* Card contenedora del gráfico */
 .graph-card-analytics {
   background-color: #293238;
   border-radius: 15px;
-  width: 100%; /* Ajuste al 100% del contenedor */
-  max-width: 900px; /* Limitar el ancho máximo de la card */
+  width: 100%;
+  max-width: 1200px;
+  min-height: 400px; /* Altura mínima para los gráficos */
   padding: 20px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
-  margin-top: 20px;
-  margin: 0 auto; /* Centrado */
+  margin: 20px auto;
   height: auto;
-  margin-bottom: 30px;
+  overflow: hidden;
 }
 
-/* Contenedor del gráfico */
+/* Contenedor responsivo para los gráficos */
 .graph-container-analytics {
-  border-radius: 10px;
-  padding: 15px; /* Reducir el padding para mayor espacio */
+  position: relative;
+  width: 100%;
+  min-height: 300px; /* Altura mínima */
+  max-height: 1600px; /* Altura máxima para evitar desbordes */
+  padding: 10px;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #d3d3d3;
-  position: relative;
-  flex-grow: 1;
-  min-width: 0%; /* El gráfico ocupa todo el ancho disponible */
-  height: 60vh; /* Mantener altura flexible */
-  max-width: 850px; /* Limitar el ancho máximo del gráfico */
+  overflow: hidden;
+}
+
+/* Ajuste del canvas para los gráficos */
+.graph-container-analytics canvas {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
   margin: 0 auto;
 }
-line-graph-container {
-  width: 700px;
-  height: 600px;
+
+.graph-container-analytics {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.filter-container label {
+  margin-right: 10px;
+}
+
+.filter-container select {
+  margin: 5px;
+  padding: 5px;
+  min-width: 150px;
+}
+
+
+.filter-container select:hover,
+.filter-container select:focus {
+  border-color: #007bff;
+}
+
+.filter-container select[multiple] {
+  height: 120px;
+  overflow-y: auto;
+}
+
+/* Estilos para pantallas pequeñas */
+@media (max-width: 768px) {
+  .filter-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .filter-container select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .graph-card-analytics {
+    min-height: 300px; /* Reducir altura mínima en pantallas pequeñas */
+  }
+
+  .graph-container-analytics {
+    min-height: 250px; /* Ajustar gráficos para pantallas pequeñas */
+  }
+}
+
+/* Contenedor principal del mapa */
+.user-map-container {
+  height: 100%; /* Asegura que ocupe toda la altura disponible */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenedor del mapa de Leaflet */
+.map-container {
+  height: 100vh; /* Asegura que el mapa ocupe toda la altura de la pantalla */
+  width: 100%; /* El mapa ocupará todo el ancho */
+}
+
+/* Popup de cada marcador */
+.popup-content {
+  font-size: 14px;
+  padding: 10px;
+}
+
+.popup-content p {
+  margin: 5px 0;
+}
+
+/* Ajustes del ícono */
+.leaflet-div-icon {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+.graph-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 20px;
+}
+
+.filters label {
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.filters select {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 100%;
+  font-size: 1em;
+  margin-top: 5px;
+}
+
+.filters button {
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.filters button:hover {
+  background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .filters {
+    width: 100%;
+    max-width: 100%;
+  }
 }

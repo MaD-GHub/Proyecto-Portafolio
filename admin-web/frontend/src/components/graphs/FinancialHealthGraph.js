@@ -12,7 +12,6 @@ import {
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { parseISO, differenceInYears } from "date-fns";
-import "../../styles/personalizado.css";
 
 
 ChartJS.register(
@@ -31,7 +30,7 @@ const FinancialHealthGraph = () => {
   const [error, setError] = useState(null);
 
   // Filtros
-  const [ageRange, setAgeRange] = useState("Todos"); // Cambiar a 'Todos' para seleccionar por grupo etario
+  const [ageRange, setAgeRange] = useState("Todos");
   const [region, setRegion] = useState("Todos");
   const [gender, setGender] = useState("Todos");
 
@@ -43,7 +42,6 @@ const FinancialHealthGraph = () => {
         const usersData = snapshot.docs.map((doc) => doc.data());
         setUsers(usersData);
 
-        // Procesar datos iniciales
         const financialHealthData = groupByFinancialHealth(usersData);
         setGraphData(financialHealthData);
       } catch (err) {
@@ -57,7 +55,6 @@ const FinancialHealthGraph = () => {
     fetchData();
   }, []);
 
-  // Agrupar y filtrar usuarios por financialHealth
   const groupByFinancialHealth = (users) => {
     const categories = ["muy_mal", "mal", "media", "semimaxima", "maxima"];
     const categoryCounts = categories.reduce((acc, category) => {
@@ -65,9 +62,7 @@ const FinancialHealthGraph = () => {
       return acc;
     }, {});
 
-    // Aplicar filtros
     const filteredUsers = users.filter((user) => {
-      // Validar y calcular edad
       let userAge = null;
       if (user.birthDate && typeof user.birthDate === "string") {
         try {
@@ -77,7 +72,6 @@ const FinancialHealthGraph = () => {
         }
       }
 
-      // Filtros de edad por grupos
       let matchesAge = false;
       switch (ageRange) {
         case "Menores de 18 años":
@@ -104,14 +98,12 @@ const FinancialHealthGraph = () => {
       return matchesAge && matchesRegion && matchesGender;
     });
 
-    // Contar categorías de financialHealth
     filteredUsers.forEach((user) => {
-      const healthCategory = user.financialHealth || "Desconocido"; // Usa "Desconocido" si no existe el campo
+      const healthCategory = user.financialHealth || "Desconocido";
       if (categories.includes(healthCategory)) {
         categoryCounts[healthCategory]++;
       } else {
-        categoryCounts["Desconocido"] =
-          (categoryCounts["Desconocido"] || 0) + 1;
+        categoryCounts["Desconocido"] = (categoryCounts["Desconocido"] || 0) + 1;
       }
     });
 
@@ -122,12 +114,12 @@ const FinancialHealthGraph = () => {
           label: "Usuarios por Estado Financiero",
           data: [...Object.values(categoryCounts)],
           backgroundColor: [
-            "rgba(255, 99, 132, 0.6)", // "muy_mal"
-            "rgba(255, 159, 64, 0.6)", // "mal"
-            "rgba(255, 205, 86, 0.6)", // "media"
-            "rgba(75, 192, 192, 0.6)", // "semimaxima"
-            "rgba(54, 162, 235, 0.6)", // "maxima"
-            "rgba(201, 203, 207, 0.6)", // "Desconocido"
+            "rgba(255, 99, 132, 0.6)", 
+            "rgba(255, 159, 64, 0.6)", 
+            "rgba(255, 205, 86, 0.6)", 
+            "rgba(75, 192, 192, 0.6)", 
+            "rgba(54, 162, 235, 0.6)", 
+            "rgba(201, 203, 207, 0.6)", 
           ],
           borderColor: [
             "rgba(255, 99, 132, 1)",
@@ -187,9 +179,9 @@ const FinancialHealthGraph = () => {
   }
 
   return (
-    <div className="h-full flex flex-col items-center justify-center " >
-      <div className="filters" >
-        <label className="">
+    <div className="graph-container-analytics">
+      <div className="filters">
+        <label>
           Rango de Edad:
           <select value={ageRange} onChange={(e) => setAgeRange(e.target.value)}>
             <option value="Todos">Todos</option>
@@ -200,36 +192,30 @@ const FinancialHealthGraph = () => {
           </select>
         </label>
         
-        <label className="">
+        <label>
           Región:
           <select value={region} onChange={(e) => setRegion(e.target.value)}>
-            <option value="Todos">Todos</option>
-            <option value="Región de Arica y Parinacota">Región de Arica y Parinacota</option>
-            <option value="Región de Tarapacá">Región de Tarapacá</option>
-            <option value="Región de Antofagasta">Región de Antofagasta</option>
-            <option value="Región de Atacama">Región de Atacama</option>
-            <option value="Región de Coquimbo">Región de Coquimbo</option>
-            <option value="Región de Valparaíso">Región de Valparaíso</option>
-            <option value="Región Metropolitana de Santiago">Región Metropolitana</option>
-            <option value="Región del Libertador General Bernardo O'Higgins">
-              Región del Libertador General Bernardo O'Higgins
-            </option>
-            <option value="Región del Maule">Región del Maule</option>
-            <option value="Región de Ñuble">Región de Ñuble</option>
-            <option value="Región del Biobío">Región del Biobío</option>
-            <option value="Región de La Araucanía">Región de La Araucanía</option>
-            <option value="Región de Los Ríos">Región de Los Ríos</option>
-            <option value="Región de Los Lagos">Región de Los Lagos</option>
-            <option value="Región de Aysén del General Carlos Ibáñez del Campo">
-              Región de Aysén del General Carlos Ibáñez del Campo
-            </option>
-            <option value="Región de Magallanes y de la Antártica Chilena">
-              Región de Magallanes y de la Antártica Chilena
-            </option>
+          <option value="Todos">Todos</option>
+          <option value="Región de Arica y Parinacota">Región de Arica y Parinacota</option>
+          <option value="Región de Tarapacá">Región de Tarapacá</option>
+          <option value="Región de Antofagasta">Región de Antofagasta</option>
+          <option value="Región de Atacama">Región de Atacama</option>
+          <option value="Región de Coquimbo">Región de Coquimbo</option>
+          <option value="Región de Valparaíso">Región de Valparaíso</option>
+          <option value="Región Metropolitana de Santiago">Región Metropolitana</option>
+          <option value="Región del Libertador General Bernardo O'Higgins">Región del Libertador General Bernardo O'Higgins</option>
+          <option value="Región del Maule">Región del Maule</option>
+          <option value="Región de Ñuble">Región de Ñuble</option>
+          <option value="Región del Biobío">Región del Biobío</option>
+          <option value="Región de La Araucanía">Región de La Araucanía</option>
+          <option value="Región de Los Ríos">Región de Los Ríos</option>
+          <option value="Región de Los Lagos">Región de Los Lagos</option>
+          <option value="Región de Aysén del General Carlos Ibáñez del Campo">Región de Aysén del General Carlos Ibáñez del Campo</option>
+          <option value="Región de Magallanes y de la Antártica Chilena">Región de Magallanes y de la Antártica Chilena</option>
           </select>
         </label>
 
-        <label className="">
+        <label>
           Género:
           <select value={gender} onChange={(e) => setGender(e.target.value)}>
             <option value="Todos">Todos</option>
