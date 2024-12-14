@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 
@@ -15,13 +14,95 @@ const TermsModal = ({ visible, onClose }) => {
           <ScrollView style={styles.scrollContainer}>
             <Text style={styles.title}>Términos y Condiciones</Text>
             <Text style={styles.text}>
-              Este desarrollo es parte del proceso de finalización de nuestra carrera en Ingeniería en Informática en Duoc UC, sede San Bernardo. Todos los datos manejados por la aplicación están protegidos por Firebase.
+            1. Introducción
+            {'\n\n'}
+            Bienvenido a Finawise, una aplicación creada como proyecto académico por estudiantes de Ingeniería en Informática de Duoc UC, sede San Bernardo. Finawise está diseñada para proporcionar herramientas de gestión financiera personal y familiar. Al usar esta aplicación, aceptas los términos y condiciones descritos a continuación.
               {'\n\n'}
-              Todos los datos personales y transacciones se almacenan de manera segura y cifrada, garantizando la privacidad de los usuarios. La app es un proyecto final que tiene como objetivo demostrar el uso de tecnologías modernas en el desarrollo de aplicaciones móviles y la gestión de datos.
+              2. Naturaleza del Proyecto
               {'\n\n'}
-              Al continuar usando esta aplicación, el usuario acepta que sus datos sean procesados de acuerdo con los términos mencionados y que la app puede recolectar información relacionada con el uso para mejorar la experiencia y funcionamiento de la plataforma.
+Finawise es un desarrollo académico y no constituye una herramienta comercial. La aplicación es gratuita, no tiene fines lucrativos y está destinada exclusivamente a propósitos educativos y de demostración técnica.
               {'\n\n'}
-              Para más detalles, consulte nuestra política de privacidad.
+              3. Recolección y Uso de Datos
+              {'\n\n'}
+3.1 Datos Recopilados:
+{'\n\n'}
+Información personal: nombre, correo electrónico, y salario.
+{'\n'}
+Transacciones financieras: fechas, montos y categorías.
+{'\n'}
+Datos de uso: interacción del usuario con la aplicación.
+{'\n\n'}
+3.2 Uso de los Datos:
+{'\n\n'}
+Los datos recolectados son utilizados únicamente para proveer las funcionalidades de la aplicación y realizar análisis internos de mejora.
+{'\n\n'}
+3.3 Almacenamiento y Seguridad:
+{'\n\n'}
+Los datos son almacenados en Firebase, una plataforma que cumple con altos estándares de seguridad.
+
+La información está protegida mediante cifrado y solo es accesible por los desarrolladores para fines académicos.
+{'\n\n'}
+4. Obligaciones del Usuario
+{'\n\n'}
+4.1 Requisitos de Uso:
+{'\n\n'}
+Proveer información exacta y actualizada al registrarse.
+
+Usar la aplicación únicamente para fines personales y educativos.
+{'\n\n'}
+4.2 Restricciones:
+{'\n\n'}
+Está prohibido realizar intentos de acceso no autorizado a la base de datos.
+
+No se permite el uso de la aplicación para actividades ilegales o dañinas.
+{'\n\n'}
+5. Limitación de Responsabilidad
+{'\n\n'}
+5.1 Uso de la Información:
+{'\n\n'}
+Finawise es una herramienta académica y no garantiza precisión absoluta en los análisis financieros.
+{'\n\n'}
+5.2 Disponibilidad del Servicio:
+{'\n\n'}
+La disponibilidad de la aplicación puede verse interrumpida por mantenimiento o problemas técnicos.
+{'\n\n'}
+5.3 Decisiones Financieras:
+{'\n\n'}
+Las decisiones basadas en la información de Finawise son responsabilidad exclusiva del usuario.
+{'\n\n'}
+6. Propiedad Intelectual
+{'\n\n'}
+6.1 Derechos sobre el Proyecto:
+{'\n\n'}
+Los desarrolladores de Finawise tienen derechos sobre el contenido y código del proyecto, conforme a las leyes de propiedad intelectual de Chile aplicables a obras académicas y de software.
+{'\n\n'}
+6.2 Restricciones de Uso:
+{'\n\n'}
+No se permite usar el nombre, logotipo o elementos de la marca sin autorización escrita.
+{'\n\n'}
+7. Modificaciones
+{'\n\n'}
+7.1 Actualización de Términos:
+{'\n\n'}
+Los términos y condiciones pueden ser modificados en cualquier momento. Los usuarios serán notificados en caso de cambios significativos.
+{'\n\n'}
+8. Contacto
+{'\n\n'}
+8.1 Soporte Técnico:
+{'\n\n'}
+Para consultas o problemas relacionados con la aplicación, puedes contactarnos mediante la sección de Solicitudes ubicada en el Menu de Usuario de Finawise.
+{'\n\n'}
+9. Aceptación
+{'\n\n'}
+Al usar la aplicación, confirmas que has leído, entendido y aceptado estos términos y condiciones.
+{'\n\n'}
+10. Ley Aplicable
+{'\n\n'}
+Estos términos se rigen por las leyes de Chile. Cualquier disputa será resuelta conforme a la legislación chilena.
+{'\n\n'}
+Gracias por utilizar Finawise. Este proyecto refleja nuestro esfuerzo por aprender y aplicar tecnologías innovadoras.
+              {'\n\n'}
+              
             </Text>
           </ScrollView>
           <TouchableOpacity onPress={onClose} style={styles.button}>
